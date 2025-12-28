@@ -1,31 +1,16 @@
-import { useEffect, useState } from 'react'
-import './App.css'
-import volunteerService from './services/volunteer.service'
+import React from "react";
+import AppRouter from "./router/Router";
+import { BrowserRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-function App() {
-  const [count, setCount] = useState(0)
+const queryClient = new QueryClient();
 
-  const handleClick = async () => {
-     await volunteerService.createVolunteer({
-      id: "215283425",
-      name: "beni",
-      phone: "053248545",
-      trainee_id: "15645",
-      adress: "jerusalem",
-      email: "benibiton3@gmail.com"
-    }
-    )
-  }
+const App: React.FC = () => (
+  <QueryClientProvider client={queryClient}>
+    <BrowserRouter>
+      <AppRouter />
+    </BrowserRouter>
+  </QueryClientProvider>
+);
 
-  return (
-    <>
-      <h1>Volunteers</h1>
-
-      <button onClick={() => handleClick()}>
-        count is {count}
-      </button>
-    </>
-  )
-}
-
-export default App
+export default App;
