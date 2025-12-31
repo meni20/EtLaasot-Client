@@ -5,6 +5,7 @@ import {
   ListItemText,
   ListItemIcon,
   ListItemButton,
+  Typography,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { menuItems } from "./SideMenu.constants";
@@ -24,22 +25,22 @@ export const SideMenu: React.FC<SideMenuProps> = ({ open, onClose }) => {
         },
       }}
     >
-      <Toolbar />
+      <Typography variant="h6" sx={{ p: 2 }}>
+        Menu
+      </Typography>
       <List>
-        <List>
-          {menuItems.map((item) => (
-            <ListItemButton
-              key={item.label}
-              onClick={() => {
-                navigate(item.path);
-                onClose();
-              }}
-            >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.label} />
-            </ListItemButton>
-          ))}
-        </List>
+        {menuItems.map((item) => (
+          <ListItemButton
+            key={item.label}
+            onClick={() => {
+              navigate(item.path);
+              onClose();
+            }}
+          >
+            <ListItemIcon>{item.icon}</ListItemIcon>
+            <ListItemText primary={item.label} />
+          </ListItemButton>
+        ))}
       </List>
     </Drawer>
   );
