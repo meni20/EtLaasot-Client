@@ -1,7 +1,6 @@
 import { Box, Button } from "@mui/material";
-import type { IEvent } from "../../interfaces/event.interface";
 import { BasicCard } from "../../components/Card/Card";
-import { formatDate } from "../../utils/data.utillity";
+import type { IEvent } from "../../interfaces/event.interface";
 
 export const EventPage: React.FC = () => {
   const data = [

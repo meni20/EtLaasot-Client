@@ -3,8 +3,11 @@ import type { GridColDef } from "@mui/x-data-grid";
 import { DataGrid } from "@mui/x-data-grid";
 import { useQuery } from "@tanstack/react-query";
 import userService from "../../services/user.service";
+import { useState } from "react";
+import { CreateVolunteer } from "../../components/CreateVolunteerPopup/CreateVolunteer";
 
 export const VolunteerPage: React.FC = () => {
+  const [open, setOpen] = useState<boolean>(false);
   const rows = Array.from({ length: 1000 }, (_, i) => ({
     id: i,
     name: `User ${i}`,
@@ -16,7 +19,6 @@ export const VolunteerPage: React.FC = () => {
     queryKey: ["users"],
     queryFn: () => userService.getAllUsers(),
   });
-
 
   const columns: GridColDef[] = [
     { field: "name", headerName: "Name", flex: 1 },
@@ -34,11 +36,13 @@ export const VolunteerPage: React.FC = () => {
         left: "5%",
       }}
     >
-      <Button variant="contained" onClick={() => console.log("beni")
-      }>
-        Add row
-      </Button>
-      <DataGrid rows={rows} columns={columns} disableRowSelectionOnClick  />
+      <Box sx={{ mb: 2 }}>
+        <Button variant="contained" onClick={() => setOpen(true)}>
+          יצירת מתנדב חדש
+        </Button>
+      </Box>
+      <Box sx={{height: "90%"}}><DataGrid rows={rows} columns={columns} disableRowSelectionOnClick /></Box>
+      {open && <CreateVolunteer open={open} onClose={() => setOpen(false)} />}
     </Box>
   );
 };
