@@ -20,12 +20,21 @@ export class UserService {
   };
 
   async createUser(userData: IUser) {
-    console.log("sending:", userData);
+    console.log(userData);
+    
     const res = await this.api.post("/create", userData);
-    console.log(res);
 
     return res.data;
   }
+
+  getAllVolunteers = () => {
+    return this.api
+      .get("get-all-volunteers")
+      .then((res) => res.data)
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 }
 
 const userService = new UserService();
