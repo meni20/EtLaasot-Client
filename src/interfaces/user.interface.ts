@@ -11,3 +11,4 @@ export interface IUser {
   updatedAt?: Date;
   deletedAt?: Date | null;
 }
+

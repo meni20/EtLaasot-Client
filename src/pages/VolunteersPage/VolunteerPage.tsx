@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import type { GridColDef } from "@mui/x-data-grid";
 import { DataGrid } from "@mui/x-data-grid";
 import { useQuery } from "@tanstack/react-query";
@@ -17,7 +17,6 @@ export const VolunteerPage: React.FC = () => {
     queryFn: () => userService.getAllUsers(),
   });
 
-  console.log(allVolunteers);
 
   const columns: GridColDef[] = [
     { field: "name", headerName: "Name", flex: 1 },
@@ -35,7 +34,11 @@ export const VolunteerPage: React.FC = () => {
         left: "5%",
       }}
     >
-      <DataGrid rows={rows} columns={columns} disableRowSelectionOnClick />
+      <Button variant="contained" onClick={() => console.log("beni")
+      }>
+        Add row
+      </Button>
+      <DataGrid rows={rows} columns={columns} disableRowSelectionOnClick  />
     </Box>
   );
 };
