@@ -14,7 +14,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import userService from "../../services/user.service";
 import type { IUser } from "../../interfaces/user.interface";
 import {
-  validateForm,
+  validateFormVolunteer,
   type ValidationErrors,
 } from "../../utils/validators.util";
 import type { ICreateVolunteerProps } from "./CreateVolunteer.interface";
@@ -51,7 +51,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
   };
 
   const handleCreateVolunteer = async () => {
-    const validationErrors = validateForm(form);
+    const validationErrors = validateFormVolunteer(form);
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -83,10 +83,6 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
 
   return (
     <React.Fragment>
-      <Button variant="outlined" onClick={onClose}>
-        Open dialog
-      </Button>
-
       <Dialog
         open={open}
         onClose={onClose}

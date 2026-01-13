@@ -1,8 +1,12 @@
 import { Box, Button } from "@mui/material";
 import { BasicCard } from "../../components/Card/Card";
 import type { IEvent } from "../../interfaces/event.interface";
+import { CreateEvent } from "../../components/CreateEvent/CreateEvent";
+import { useState } from "react";
 
 export const EventPage: React.FC = () => {
+  const [open, setOpen] = useState<boolean>(false);
+
   const data = [
     {
       id: "11",
@@ -37,10 +41,10 @@ export const EventPage: React.FC = () => {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3, pt: 3, position: "fixed", top: "10%" }}>
       <Box sx={{pl: 3}}>
-        <Button variant="contained">יצירת אירוע</Button>
+        <Button onClick={() => setOpen(true)} variant="contained">יצירת אירוע</Button>
       </Box>
       <Box sx={{display:"flex",flexDirection: "row", gap: 3, pl: 3}}>
-        {data.map((event: IEvent) => (
+        {data.map((event) => (
           <BasicCard
             eventName={event.name}
             eventDate={event.startDate}
@@ -48,6 +52,7 @@ export const EventPage: React.FC = () => {
           ></BasicCard>
         ))}
       </Box>
+      {open && <CreateEvent open={open} onClose={() => setOpen(false)} />}
     </Box>
   );
 };
