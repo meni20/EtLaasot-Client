@@ -6,11 +6,16 @@ import { AppBar, Toolbar, Typography, Box } from "@mui/material";
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
   return (
     <AppBar position="fixed">
-      <Toolbar sx={{ justifyContent: "flex-end" }}>
+      <Toolbar sx={{ justifyContent: "flex-end", color: "purple" }}>
         <Typography
-          variant="h4"
+          variant="h3"
           component="div"
-          sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}
+          sx={{
+            flexGrow: 1,
+            display: "flex",
+            justifyContent: "center",
+            fontFamily: "Rubik",
+          }}
         >
           {title}
         </Typography>

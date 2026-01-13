@@ -9,7 +9,7 @@ const AppRouter: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <Box>
-      <Navbar title="Et Laasot" onMenuClick={() => setMenuOpen(true)} />
+      <Navbar title="עת לעשות" onMenuClick={() => setMenuOpen(true)} />
       <SideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
       <Routes>
         {ALL_ROUTES.map(({ path, element }) => (
