@@ -13,10 +13,20 @@ import DialogActions from "@mui/material/DialogActions";
 import CloseIcon from "@mui/icons-material/Close";
 import userService from "../../services/user.service";
 import type { IUser } from "../../interfaces/user.interface";
+import {
+  validateForm,
+  type ValidationErrors,
+} from "../../utils/validators.util";
 import type { ICreateVolunteerProps } from "./CreateVolunteer.interface";
+import { useQueryClient } from "@tanstack/react-query";
 
-export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({ open, onClose }) => {
-  const [loading, setLoading] = useState<boolean>(false)
+export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
+  open,
+  onClose,
+}) => {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const queryClient = useQueryClient();
   const [form, setFrom] = useState<IUser>({
     name: "",
     id: "",
@@ -41,13 +51,22 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({ open, onClose
   };
 
   const handleCreateVolunteer = async () => {
-    setLoading(true)
+    const validationErrors = validateForm(form);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
     const payload: IUser = {
       ...form,
       age: Number(form.age),
     };
 
+    setLoading(true);
+
     await userService.createUser(payload);
+
+    await queryClient.invalidateQueries({ queryKey: ["users"] });
 
     setFrom({
       name: "",
@@ -57,12 +76,14 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({ open, onClose
       address: "",
       email: "",
     });
-    setLoading(false)
+    setErrors({});
+    setLoading(false);
+    onClose();
   };
 
   return (
     <React.Fragment>
-      <Button variant="outlined" onClick={() => { }}>
+      <Button variant="outlined" onClick={onClose}>
         Open dialog
       </Button>
 
@@ -95,12 +116,16 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({ open, onClose
                 value={form.name}
                 onChange={handleChange}
                 name="name"
+                error={!!errors.name}
+                helperText={errors.id}
               />
               <TextField
                 label={"ID"}
                 value={form.id}
                 onChange={handleChange}
                 name="id"
+                error={!!errors.id}
+                helperText={errors.id}
               />
               <TextField
                 label={"age"}
@@ -108,6 +133,8 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({ open, onClose
                 value={form.age}
                 onChange={handleChange}
                 name="age"
+                error={!!errors.age}
+                helperText={errors.age}
               />
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -116,18 +143,24 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({ open, onClose
                 value={form.phoneNumber}
                 onChange={handleChange}
                 name="phoneNumber"
+                error={!!errors.phoneNumber}
+                helperText={errors.phoneNumber}
               />
               <TextField
                 label={"address"}
                 value={form.address}
                 onChange={handleChange}
                 name="address"
+                error={!!errors.address}
+                helperText={errors.address}
               />
               <TextField
                 label={"Email"}
                 value={form.email}
                 onChange={handleChange}
                 name="email"
+                error={!!errors.email}
+                helperText={errors.email}
               />
             </Box>
           </Box>

@@ -21,7 +21,7 @@ export class UserService {
 
   async createUser(userData: IUser) {
     console.log(userData);
-    
+
     const res = await this.api.post("/create", userData);
 
     return res.data;
