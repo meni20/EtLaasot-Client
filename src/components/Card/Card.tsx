@@ -24,24 +24,85 @@ export const BasicCard: React.FC<ICardProps> = ({
     { id: "5", name: "משה פרץ", email: "moshe@example.com" },
     { id: "6", name: "מיכל כהן", email: "michal@example.com" },
     { id: "7", name: "אבי לוי", email: "avi@example.com" },
-  ]
+  ];
+
   return (
-    <Box>
-      <Card sx={{ minWidth: 200, direction: "rtl" }}>
+    <Box
+      sx={{
+        width: 280,
+        m: 2,
+        display: "inline-block",
+        verticalAlign: "top",
+      }}
+    >
+      <Card
+        sx={{
+          minWidth: 250,
+          borderRadius: 3,
+          boxShadow: 4,
+          direction: "rtl",
+          transition: "transform 0.2s, box-shadow 0.2s",
+          "&:hover": {
+            transform: "translateY(-5px)",
+            boxShadow: 6,
+          },
+        }}
+      >
         <CardContent>
-          <Typography variant="h5" component="div">
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{ fontWeight: 600, mb: 1 }}
+          >
             {eventName}
           </Typography>
-          <Typography sx={{ color: "text.secondary", mb: 1.5 }}>
-            {formatDate(eventDate)}
+          <Typography
+            sx={{
+              color: "text.secondary",
+              fontSize: 14,
+              mb: 1.5,
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            📅 {formatDate(eventDate)}
           </Typography>
-          <Typography variant="body2">{address}</Typography>
+          <Typography
+            variant="body2"
+            sx={{ color: "text.primary", fontSize: 15 }}
+          >
+            📍 {address}
+          </Typography>
         </CardContent>
         <CardActions>
-          <Button size="small" onClick={() => setOpen(true)}>הצג משתתפים</Button>
+          <Button
+            size="small"
+            variant="contained"
+            color="primary"
+            sx={{
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 500,
+              "&:hover": {
+                backgroundColor: "primary.dark",
+              },
+            }}
+            onClick={() => setOpen(true)}
+          >
+            הצג משתתפים
+          </Button>
         </CardActions>
       </Card>
-      {open && <EventAtendeeDialog open={open} onClose={() => setOpen(false)} atendees={atendees} onDelete={() => {}} />}
+
+      {open && (
+        <EventAtendeeDialog
+          open={open}
+          onClose={() => setOpen(false)}
+          atendees={atendees}
+          onDelete={() => {}}
+        />
+      )}
     </Box>
   );
 };

@@ -52,9 +52,9 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
 
     setLoading(true);
 
-    await eventService.createEvent(form)
+    await eventService.createEvent(form);
 
-    // await queryClient.invalidateQueries({ queryKey: ["events"] });
+    await queryClient.invalidateQueries({ queryKey: ["events"] });
 
     setFrom({
       name: "",
@@ -67,8 +67,6 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
     setLoading(false);
     onClose();
   };
-
-  console.log(form);
 
   return (
     <React.Fragment>

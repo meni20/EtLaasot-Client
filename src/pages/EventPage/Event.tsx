@@ -3,48 +3,31 @@ import { BasicCard } from "../../components/Card/Card";
 import type { IEvent } from "../../interfaces/event.interface";
 import { CreateEvent } from "../../components/CreateEvent/CreateEvent";
 import { useState } from "react";
+import eventService from "../../services/event.service";
+import { useQuery } from "@tanstack/react-query";
+import { useStyles } from "./Event.styles";
+import { useDataContext } from "../../contexts/DataContext.context";
 
 export const EventPage: React.FC = () => {
+  const styles = useStyles();
   const [open, setOpen] = useState<boolean>(false);
+  const { events } = useDataContext();
 
-  const data = [
-    {
-      id: "11",
-      name: "אירוע 1",
-      startDate: new Date(),
-      endDate: new Date(),
-      address: "כתובת 1",
-    },
-    {
-      id: "2",
-      name: "אירוע 2",
-      startDate: new Date("2024-08-15"),
-      endDate: new Date("2024-08-15"),
-      address: "כתובת 2",
-    },
-    {
-      id: "3",
-      name: "אירוע 3",
-      startDate: new Date("2024-09-10"),
-      endDate: new Date("2024-09-10"),
-      address: "כתובת 3",
-    },
-    {
-      id: "4",
-      name: "אירוע 4",
-      startDate: new Date("2024-10-05"),
-      endDate: new Date("2024-10-05"),
-      address: "כתובת 4",
-    },
-  ];
+  console.log(events);
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3, pt: 3, position: "fixed", top: "10%" }}>
-      <Box sx={{pl: 3}}>
-        <Button onClick={() => setOpen(true)} variant="contained">יצירת אירוע</Button>
+    <Box className={styles.container}>
+      <Box sx={{ pl: 3 }}>
+        <Button
+          onClick={() => setOpen(true)}
+          variant="outlined"
+          className={styles.createButton}
+        >
+          יצירת אירוע
+        </Button>
       </Box>
-      <Box sx={{display:"flex",flexDirection: "row", gap: 3, pl: 3}}>
-        {data.map((event) => (
+      <Box className={styles.cardsContainer}>
+        {events?.map((event: IEvent) => (
           <BasicCard
             eventName={event.name}
             eventDate={event.startDate}
