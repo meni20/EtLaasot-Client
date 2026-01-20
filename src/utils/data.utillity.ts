@@ -1,9 +1,10 @@
 import type { IUser } from "../interfaces/user.interface";
 
 export const formatDate = (date: Date): string => {
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
+  const dateObj = new Date(date);
+  const day = String(dateObj?.getDate()).padStart(2, "0");
+  const month = String(dateObj?.getMonth() + 1).padStart(2, "0");
+  const year = dateObj?.getFullYear();
 
   return `${day}/${month}/${year}`;
 };

@@ -12,12 +12,21 @@ export class EventService {
 
   public async createEvent(eventData: IEvent) {
     try {
-          const res = await this.api
-              .post("/create-event", eventData);
-          return res.data;
-      } catch (err) {
-          console.log(err);
-      }
+      const res = await this.api.post("/create-event", eventData);
+      return res.data;
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  public async getAllEvents() {
+    try {
+      const res = await this.api.get("get-all-events");
+      return res.data;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
   }
 }
 
