@@ -10,26 +10,37 @@ export class UserService {
     });
   }
 
-  public getAllUsers = async () => {
+  public getAllVolunteers = async () => {
     return this.api
-      .get("get-all-users")
+      .get("get-all-volunteers")
       .then((res) => res.data)
       .catch((err) => {
         console.log(err);
       });
   };
 
-  async createUser(userData: IUser) {
-    console.log(userData);
+  public getAllTreanees = async () => {
+    return this.api
+      .get("get-all-trainees")
+      .then((res) => res.data)
+      .catch((err) => {
+        console.log(err);
+      });
+  }
 
-    const res = await this.api.post("/create", userData);
-
+  async createVolunteer(userData: IUser) {
+    const res = await this.api.post("/create-volunteer", userData);
     return res.data;
   }
 
-  getAllVolunteers = () => {
+  async createTrainee(userData: IUser) {
+    const res = await this.api.post("/create-trainee", userData);
+    return res.data;
+  }
+
+  public getAllUsers = async () => {
     return this.api
-      .get("get-all-volunteers")
+      .get("/get-all")
       .then((res) => res.data)
       .catch((err) => {
         console.log(err);

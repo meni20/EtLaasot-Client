@@ -17,10 +17,10 @@ import {
   validateFormVolunteer,
   type ValidationErrors,
 } from "../../utils/validators.util";
-import type { ICreateVolunteerProps } from "./CreateVolunteer.interface";
 import { useQueryClient } from "@tanstack/react-query";
+import type { ICreateTraineeProps } from "./CreateTrainee.interface";
 
-export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
+export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
   open,
   onClose,
 }) => {
@@ -64,9 +64,9 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
 
     setLoading(true);
 
-    await userService.createVolunteer(payload);
+    await userService.createTrainee(payload);
 
-    await queryClient.invalidateQueries({ queryKey: ["volunteers"] });
+    await queryClient.invalidateQueries({ queryKey: ["trainees"] });
 
     setFrom({
       name: "",
@@ -90,7 +90,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
         aria-describedby="alert-dialog-description"
       >
         <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
-          Create Volunteer
+          יצירת חניך
         </DialogTitle>
         <IconButton
           aria-label="close"
@@ -163,7 +163,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
         </DialogContent>
         <DialogActions>
           <Button autoFocus onClick={handleCreateVolunteer} disabled={loading}>
-            {loading ? "Creating..." : "Create Volunteer"}
+            {loading ? "Creating..." : "Create Trainee"}
           </Button>
         </DialogActions>
       </Dialog>

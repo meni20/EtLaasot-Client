@@ -3,8 +3,6 @@ import { BasicCard } from "../../components/Card/Card";
 import type { IEvent } from "../../interfaces/event.interface";
 import { CreateEvent } from "../../components/CreateEvent/CreateEvent";
 import { useState } from "react";
-import eventService from "../../services/event.service";
-import { useQuery } from "@tanstack/react-query";
 import { useStyles } from "./Event.styles";
 import { useDataContext } from "../../contexts/DataContext.context";
 
@@ -12,8 +10,6 @@ export const EventPage: React.FC = () => {
   const styles = useStyles();
   const [open, setOpen] = useState<boolean>(false);
   const { events } = useDataContext();
-
-  console.log(events);
 
   return (
     <Box className={styles.container}>
@@ -29,6 +25,8 @@ export const EventPage: React.FC = () => {
       <Box className={styles.cardsContainer}>
         {events?.map((event: IEvent) => (
           <BasicCard
+            key={event.id}
+            eventId={event.id ?? ""}
             eventName={event.name}
             eventDate={event.startDate}
             address={event.address}

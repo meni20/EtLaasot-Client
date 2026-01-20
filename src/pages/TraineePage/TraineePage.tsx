@@ -7,6 +7,7 @@ import userService from "../../services/user.service";
 import { CreateVolunteer } from "../../components/CreateVolunteerPopup/CreateVolunteer";
 import type { IUser } from "../../interfaces/user.interface";
 import { VolunteerDetails } from "../../components/VolunteerDetails/VolunteerDetails";
+import { CreateTrainee } from "../../components/CreateTrainee/CreateTrainee";
 
 export const TraineePage: React.FC = () => {
   const [open, setOpen] = useState<boolean>(false);
@@ -14,8 +15,8 @@ export const TraineePage: React.FC = () => {
   const [selectedVolunteer, setSelectedVolunteer] = useState<IUser>({} as IUser);
 
   const { data: allVolunteers } = useQuery({
-    queryKey: ["users"],
-    queryFn: () => userService.getAllUsers(),
+    queryKey: ["trainees"],
+    queryFn: () => userService.getAllTreanees(),
   });
 
   const rowsData = useMemo(() => {
@@ -57,7 +58,7 @@ export const TraineePage: React.FC = () => {
           }}
         />
       </Box>
-      {open && <CreateVolunteer open={open} onClose={() => setOpen(false)} />}
+      {open && <CreateTrainee open={open} onClose={() => setOpen(false)} />}
       {isDialogDetailsOpen && <VolunteerDetails open={isDialogDetailsOpen} onClose={() => setIsDialogDetailsOpen(false)} volunteerData={selectedVolunteer} />}
     </Box>
   );

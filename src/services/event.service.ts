@@ -28,6 +28,26 @@ export class EventService {
       throw err;
     }
   }
+
+  public async addAttendeeToEvent(userId: string, eventId: string) {
+    try {
+      const res = await this.api.post("/add-attendee", { userId, eventId });
+      return res.data;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+
+  public async getEventAttendees(eventId: string) {
+    try {
+      const res = await this.api.post(`/get-attendees-by-event/${eventId}`)
+      return res.data;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
 }
 
 const eventService = new EventService();
