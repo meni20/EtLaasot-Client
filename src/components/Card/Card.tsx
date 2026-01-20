@@ -6,25 +6,40 @@ import CardContent from "@mui/material/CardContent";
 import CardActions from "@mui/material/CardActions";
 import { formatDate } from "../../utils/data.utillity";
 import { Box } from "@mui/material";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { EventAtendeeDialog } from "../EventAtendeeDialog/EventAtendeeDialog";
+import AddIcon from "@mui/icons-material/Add";
+import { AddAttendeeDialog } from "../AddAttendeeDialog/AddAttendeeDialog";
+import { useQuery } from "@tanstack/react-query";
+import userService from "../../services/user.service";
+import type { IUser } from "../../interfaces/user.interface";
+import eventService from "../../services/event.service";
 
 export const BasicCard: React.FC<ICardProps> = ({
+  eventId,
   eventName,
   eventDate,
   address,
 }) => {
   const [open, setOpen] = useState<boolean>(false);
+  const [isAddAttenddeOpen, setIsAddAtendeeOpen] = useState<boolean>(false);
 
-  const atendees = [
-    { id: "1", name: "יוסי כהן", email: "yossi@example.com" },
-    { id: "2", name: "שרה לוי", email: "sara@example.com" },
-    { id: "3", name: "דוד מזרחי", email: "david@example.com" },
-    { id: "4", name: "רונית ישראלי", email: "ronit@example.com" },
-    { id: "5", name: "משה פרץ", email: "moshe@example.com" },
-    { id: "6", name: "מיכל כהן", email: "michal@example.com" },
-    { id: "7", name: "אבי לוי", email: "avi@example.com" },
-  ];
+  const { data: allUsers } = useQuery({
+    queryKey: ["users"],
+    queryFn: () => userService.getAllUsers(),
+  });
+
+  
+
+  const formattedVolunteers = useMemo(() => {
+    return allUsers?.map((user: IUser) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    }));
+  }, [allUsers]);
+
+
 
   return (
     <Box
@@ -92,14 +107,30 @@ export const BasicCard: React.FC<ICardProps> = ({
           >
             הצג משתתפים
           </Button>
+          <Box
+            sx={{ paddingRight: "50%", cursor: "pointer" }}
+            onClick={() => setIsAddAtendeeOpen(true)}
+          >
+            <AddIcon />
+          </Box>
         </CardActions>
       </Card>
+
+      {isAddAttenddeOpen && (
+        <AddAttendeeDialog
+          eventId={eventId}
+          open={isAddAttenddeOpen}
+          onClose={() => setIsAddAtendeeOpen(false)}
+          users={formattedVolunteers || []}
+          onDelete={() => {}}
+        />
+      )}
 
       {open && (
         <EventAtendeeDialog
           open={open}
           onClose={() => setOpen(false)}
-          atendees={atendees}
+          eventId={eventId}
           onDelete={() => {}}
         />
       )}

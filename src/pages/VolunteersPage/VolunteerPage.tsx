@@ -14,8 +14,8 @@ export const VolunteerPage: React.FC = () => {
   const [selectedVolunteer, setSelectedVolunteer] = useState<IUser>({} as IUser);
 
   const { data: allVolunteers } = useQuery({
-    queryKey: ["users"],
-    queryFn: () => userService.getAllUsers(),
+    queryKey: ["volunteers"],
+    queryFn: () => userService.getAllVolunteers(),
   });
 
   const rowsData = useMemo(() => {

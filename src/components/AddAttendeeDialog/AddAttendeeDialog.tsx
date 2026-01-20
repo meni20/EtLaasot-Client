@@ -1,41 +1,36 @@
 import * as React from "react";
 import {
-  Box,
-  List,
   Dialog,
-  Avatar,
-  ListItem,
-  IconButton,
   DialogTitle,
-  ListItemText,
   DialogContent,
+  List,
+  ListItem,
   ListItemAvatar,
+  Avatar,
+  ListItemText,
+  IconButton,
+  Box,
 } from "@mui/material";
-import { useQuery } from "@tanstack/react-query";
-import eventService from "../../services/event.service";
-import type { IUser } from "../../interfaces/user.interface";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
-import type { IEventAtendeeDialogProps } from "./EventAtendeeDialog.interface";
+import type { IAddAttendeeDialogProps } from "./AddAttendeeDialog.interface";
+import AddIcon from "@mui/icons-material/Add";
+import eventService from "../../services/event.service";
 
-export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
+export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
   open,
-  onClose,
   eventId,
+  onClose,
+  users,
   onDelete,
 }) => {
-  const { data: attendeesByEvent, isFetching: isFetchingAttendees } = useQuery({
-    queryKey: ["attendeesByEvent", eventId],
-    queryFn: () => eventService.getEventAttendees(eventId),
-  });
+  const handleAddAttendee = async (userId: string) => {
+    try {
+      await eventService.addAttendeeToEvent(userId, eventId);
+    } catch (error) {
+      console.error("Error adding attendee to event:", error);
+    }
+  };
 
-  const formatteedAttendees = React.useMemo(() => {
-    return attendeesByEvent?.map((attendee: any) => ({
-      id: attendee.user.id,
-      name: attendee.user.name,
-      email: attendee.user.email,
-    }));
-  }, [attendeesByEvent]);
   return (
     <Dialog
       open={open}
@@ -49,14 +44,14 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
       }}
     >
       <DialogTitle sx={{ fontWeight: 600, textAlign: "center" }}>
-        רשומים לאירוע
+        הוספת משתתפים לאירוע
       </DialogTitle>
 
-      {isFetchingAttendees ? "loading...":<DialogContent sx={{ pt: 0, maxHeight: 300, overflowY: "auto" }}>
+      <DialogContent sx={{ pt: 0, maxHeight: 300, overflowY: "auto" }}>
         <List disablePadding>
-          {formatteedAttendees?.map((atendee: IUser) => (
+          {users.map((user) => (
             <ListItem
-              key={atendee.id}
+              key={user.id}
               sx={{
                 px: 1,
                 py: 1,
@@ -66,12 +61,12 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
               <IconButton
                 edge="end"
                 aria-label="delete"
-                onClick={() => onDelete(atendee.id)}
+                onClick={() => handleAddAttendee(user.id)}
               >
-                <DeleteOutlineIcon />
+                <AddIcon />
               </IconButton>
               <ListItemText
-                primary={atendee.name}
+                primary={user.name}
                 primaryTypographyProps={{
                   sx: { fontSize: 16, textAlign: "right" },
                 }}
@@ -93,7 +88,7 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
           ))}
         </List>
         <Box sx={{ height: 6 }} />
-      </DialogContent>}
+      </DialogContent>
     </Dialog>
   );
 };
