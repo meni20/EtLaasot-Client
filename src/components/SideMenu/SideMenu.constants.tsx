@@ -14,4 +14,5 @@ export const menuItems: MenuItem[] = [
   { label: "Volunteers", icon: <PeopleIcon />, path: "/volunteers" },
   {label: "Calendar", icon: <CalendarIcon />, path: "/calendar"},
   {label: "Events" , icon: <ReportIcon/>, path: "/events"},
+  {label: "Trainee", icon: <PeopleIcon/>, path: "/trainee"}
 ];
