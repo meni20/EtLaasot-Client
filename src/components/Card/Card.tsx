@@ -30,12 +30,14 @@ export const BasicCard: React.FC<ICardProps> = ({
   });
 
   
+console.log(allUsers);
 
   const formattedVolunteers = useMemo(() => {
     return allUsers?.map((user: IUser) => ({
       id: user.id,
       name: user.name,
       email: user.email,
+      role: user?.userRole?.[0]?.roleId,
     }));
   }, [allUsers]);
 

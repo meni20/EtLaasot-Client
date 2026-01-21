@@ -5,10 +5,17 @@ export interface IUser {
   address: string;
   email: string;
   age: number;
+    userRole: IUserRole[];
+
 
   // Timestamps
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date | null;
+}
+
+export interface IUserRole {
+  roleId: number;
+
 }
 

@@ -30,6 +30,7 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
       console.error("Error adding attendee to event:", error);
     }
   };
+console.log(users);
 
   return (
     <Dialog

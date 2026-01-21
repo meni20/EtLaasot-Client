@@ -1,9 +1,9 @@
+import { useState } from "react";
+import { Box } from "@mui/material";
+import Navbar from "../components/Navbar/Navbar";
 import { Route, Routes } from "react-router-dom";
 import { ALL_ROUTES } from "../constants/route.constants";
-import { Box } from "@mui/material";
 import { SideMenu } from "../components/SideMenu/SideMenu";
-import Navbar from "../components/Navbar/Navbar";
-import { useState } from "react";
 
 const AppRouter: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
