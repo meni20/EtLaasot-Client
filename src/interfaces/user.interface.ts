@@ -1,3 +1,5 @@
+import type { IEvent } from "./event.interface";
+
 export interface IUser {
   id: string;
   name: string;
@@ -5,8 +7,8 @@ export interface IUser {
   address: string;
   email: string;
   age: number;
-    userRole: IUserRole[];
-
+  userRoles: IUserRole[];
+  events?: IEvent[];
 
   // Timestamps
   createdAt?: Date;
@@ -16,6 +18,4 @@ export interface IUser {
 
 export interface IUserRole {
   roleId: number;
-
 }
-

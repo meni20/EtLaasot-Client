@@ -13,7 +13,6 @@ import { AddAttendeeDialog } from "../AddAttendeeDialog/AddAttendeeDialog";
 import { useQuery } from "@tanstack/react-query";
 import userService from "../../services/user.service";
 import type { IUser } from "../../interfaces/user.interface";
-import eventService from "../../services/event.service";
 
 export const BasicCard: React.FC<ICardProps> = ({
   eventId,
@@ -27,21 +26,23 @@ export const BasicCard: React.FC<ICardProps> = ({
   const { data: allUsers } = useQuery({
     queryKey: ["users"],
     queryFn: () => userService.getAllUsers(),
+    select: (data) =>
+      [...data].sort((a, b) => {
+        const roleA = a.userRoles?.[0]?.roleId ?? Infinity;
+        const roleB = b.userRoles?.[0]?.roleId ?? Infinity;
+        return roleA - roleB;
+      }),
   });
-
-  
-console.log(allUsers);
 
   const formattedVolunteers = useMemo(() => {
     return allUsers?.map((user: IUser) => ({
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user?.userRole?.[0]?.roleId,
+      role: user.userRoles?.[0]?.roleId,
+      events: user.events,
     }));
   }, [allUsers]);
-
-
 
   return (
     <Box

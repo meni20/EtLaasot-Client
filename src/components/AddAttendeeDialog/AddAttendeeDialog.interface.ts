@@ -1,3 +1,5 @@
+import type { IEvent } from "../../interfaces/event.interface";
+
 export interface IAddAttendeeDialogProps {
   eventId: string;
   open: boolean;
@@ -6,6 +8,8 @@ export interface IAddAttendeeDialogProps {
     id: string;
     name: string;
     email: string;
+    role: number;
+    events?: IEvent[];
   }>;
   onDelete: (id: string) => void;
 }

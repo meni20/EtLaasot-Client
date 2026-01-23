@@ -7,13 +7,17 @@ import userService from "../../services/user.service";
 import { CreateVolunteer } from "../../components/CreateVolunteerPopup/CreateVolunteer";
 import type { IUser } from "../../interfaces/user.interface";
 import { VolunteerDetails } from "../../components/VolunteerDetails/VolunteerDetails";
+import { CustomLoadingOverlay } from "../../components/CustomLoadingOverlay/CustomLoadingOverlay";
 
 export const VolunteerPage: React.FC = () => {
   const [open, setOpen] = useState<boolean>(false);
-  const [isDialogDetailsOpen, setIsDialogDetailsOpen] = useState<boolean>(false);
-  const [selectedVolunteer, setSelectedVolunteer] = useState<IUser>({} as IUser);
+  const [isDialogDetailsOpen, setIsDialogDetailsOpen] =
+    useState<boolean>(false);
+  const [selectedVolunteer, setSelectedVolunteer] = useState<IUser>(
+    {} as IUser
+  );
 
-  const { data: allVolunteers } = useQuery({
+  const { data: allVolunteers, isFetching: isFetchingVolunteers } = useQuery({
     queryKey: ["volunteers"],
     queryFn: () => userService.getAllVolunteers(),
   });
@@ -50,15 +54,22 @@ export const VolunteerPage: React.FC = () => {
         <DataGrid
           rows={rowsData}
           columns={COLUMNS}
+          loading={isFetchingVolunteers}
           onRowClick={(params) => {
             setIsDialogDetailsOpen(true);
             setSelectedVolunteer(params.row);
-            
           }}
         />
       </Box>
+
       {open && <CreateVolunteer open={open} onClose={() => setOpen(false)} />}
-      {isDialogDetailsOpen && <VolunteerDetails open={isDialogDetailsOpen} onClose={() => setIsDialogDetailsOpen(false)} volunteerData={selectedVolunteer} />}
+      {isDialogDetailsOpen && (
+        <VolunteerDetails
+          open={isDialogDetailsOpen}
+          onClose={() => setIsDialogDetailsOpen(false)}
+          volunteerData={selectedVolunteer}
+        />
+      )}
     </Box>
   );
 };
