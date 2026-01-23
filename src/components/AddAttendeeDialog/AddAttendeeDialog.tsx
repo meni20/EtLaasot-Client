@@ -69,7 +69,15 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
         },
       }}
     >
-      <DialogTitle sx={{ fontWeight: 600, textAlign: "center" }}>
+      <DialogTitle
+        sx={{
+          fontWeight: 600,
+          textAlign: "center",
+          background: "linear-gradient(135deg, #9a5188 0%, #7a3e6b 100%)",
+          color: "#fff",
+          padding: "12px 0",
+        }}
+      >
         הוספת משתתפים לאירוע
       </DialogTitle>
 

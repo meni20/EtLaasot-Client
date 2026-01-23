@@ -13,6 +13,7 @@ import { AddAttendeeDialog } from "../AddAttendeeDialog/AddAttendeeDialog";
 import { useQuery } from "@tanstack/react-query";
 import userService from "../../services/user.service";
 import type { IUser } from "../../interfaces/user.interface";
+import { useCardStyles } from "./Card.styles";
 
 export const BasicCard: React.FC<ICardProps> = ({
   eventId,
@@ -20,6 +21,7 @@ export const BasicCard: React.FC<ICardProps> = ({
   eventDate,
   address,
 }) => {
+  const classes = useCardStyles();
   const [open, setOpen] = useState<boolean>(false);
   const [isAddAttenddeOpen, setIsAddAtendeeOpen] = useState<boolean>(false);
 
@@ -45,73 +47,27 @@ export const BasicCard: React.FC<ICardProps> = ({
   }, [allUsers]);
 
   return (
-    <Box
-      sx={{
-        width: 280,
-        m: 2,
-        display: "inline-block",
-        verticalAlign: "top",
-      }}
-    >
-      <Card
-        sx={{
-          minWidth: 250,
-          borderRadius: 3,
-          boxShadow: 4,
-          direction: "rtl",
-          transition: "transform 0.2s, box-shadow 0.2s",
-          "&:hover": {
-            transform: "translateY(-5px)",
-            boxShadow: 6,
-          },
-        }}
-      >
+    <Box className={classes.cardContainer}>
+      <Card className={classes.card}>
         <CardContent>
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{ fontWeight: 600, mb: 1 }}
-          >
+          <Typography variant="h6" className={classes.eventName}>
             {eventName}
           </Typography>
-          <Typography
-            sx={{
-              color: "text.secondary",
-              fontSize: 14,
-              mb: 1.5,
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-            }}
-          >
+          <Typography className={classes.eventDate}>
             📅 {formatDate(eventDate)}
           </Typography>
-          <Typography
-            variant="body2"
-            sx={{ color: "text.primary", fontSize: 15 }}
-          >
-            📍 {address}
-          </Typography>
+          <Typography className={classes.eventAddress}>📍 {address}</Typography>
         </CardContent>
-        <CardActions>
+        <CardActions className={classes.cardActions}>
           <Button
             size="small"
-            variant="contained"
-            color="primary"
-            sx={{
-              borderRadius: 2,
-              textTransform: "none",
-              fontWeight: 500,
-              "&:hover": {
-                backgroundColor: "primary.dark",
-              },
-            }}
+            className={classes.showButton}
             onClick={() => setOpen(true)}
           >
             הצג משתתפים
           </Button>
           <Box
-            sx={{ paddingRight: "50%", cursor: "pointer" }}
+            className={classes.addIconBox}
             onClick={() => setIsAddAtendeeOpen(true)}
           >
             <AddIcon />

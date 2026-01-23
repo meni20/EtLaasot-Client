@@ -13,10 +13,10 @@ export const EventPage: React.FC = () => {
 
   return (
     <Box className={styles.container}>
-      <Box sx={{ pl: 3 }}>
+      <Box className={styles.buttonContainer}>
         <Button
           onClick={() => setOpen(true)}
-          variant="outlined"
+          variant="contained"
           className={styles.createButton}
         >
           יצירת אירוע

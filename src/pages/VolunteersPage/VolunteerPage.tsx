@@ -1,15 +1,16 @@
 import { Box, Button } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { COLUMNS } from "./Volunteer.constants";
 import { useQuery } from "@tanstack/react-query";
 import userService from "../../services/user.service";
 import { CreateVolunteer } from "../../components/CreateVolunteerPopup/CreateVolunteer";
 import type { IUser } from "../../interfaces/user.interface";
 import { VolunteerDetails } from "../../components/VolunteerDetails/VolunteerDetails";
-import { CustomLoadingOverlay } from "../../components/CustomLoadingOverlay/CustomLoadingOverlay";
+import { useVolunteerPageStyles } from "./VolunteerPage.styles";
 
 export const VolunteerPage: React.FC = () => {
+  const styles = useVolunteerPageStyles();
   const [open, setOpen] = useState<boolean>(false);
   const [isDialogDetailsOpen, setIsDialogDetailsOpen] =
     useState<boolean>(false);
@@ -46,7 +47,7 @@ export const VolunteerPage: React.FC = () => {
       }}
     >
       <Box sx={{ mb: 2 }}>
-        <Button variant="contained" onClick={() => setOpen(true)}>
+        <Button className={styles.createButton} onClick={() => setOpen(true)}>
           יצירת מתנדב חדש
         </Button>
       </Box>
