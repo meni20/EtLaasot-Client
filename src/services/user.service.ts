@@ -6,7 +6,7 @@ export class UserService {
   private api: AxiosInstance;
   constructor() {
     this.api = axios.create({
-      baseURL: "http://localhost:3000/user",
+      baseURL: `${import.meta.env.ET_LAASOT_SERVER}/user`,
     });
   }
 

@@ -6,7 +6,7 @@ export class EventService {
   private api: AxiosInstance;
   constructor() {
     this.api = axios.create({
-      baseURL: "http://localhost:3000/event",
+      baseURL:  `${import.meta.env.ET_LAASOT_SERVER}/event`,
     });
   }
 
