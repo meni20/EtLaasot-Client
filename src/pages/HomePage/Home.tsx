@@ -1,3 +1,9 @@
+import { LineChart } from "../../components/LIneChart/LineChart";
+
 export const HomePage: React.FC = () => {
-  return <div></div>;
+  return (
+    <div>
+      <LineChart />
+    </div>
+  );
 };
