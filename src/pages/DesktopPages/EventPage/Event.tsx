@@ -1,10 +1,10 @@
-import { Box, Button } from "@mui/material";
-import { BasicCard } from "../../components/Card/Card";
-import type { IEvent } from "../../interfaces/event.interface";
-import { CreateEvent } from "../../components/CreateEvent/CreateEvent";
 import { useState } from "react";
 import { useStyles } from "./Event.styles";
-import { useDataContext } from "../../contexts/DataContext.context";
+import { Box, Button } from "@mui/material";
+import { BasicCard } from "../../../components/Card/Card";
+import type { IEvent } from "../../../interfaces/event.interface";
+import { useDataContext } from "../../../contexts/DataContext.context";
+import { CreateEvent } from "../../../components/CreateEvent/CreateEvent";
 
 export const EventPage: React.FC = () => {
   const styles = useStyles();

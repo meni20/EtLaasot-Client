@@ -1,9 +1,9 @@
+import * as React from "react";
+import { Box } from "@mui/material";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import { Box } from "@mui/material";
-import { useDataContext } from "../../contexts/DataContext.context";
-import * as React from "react";
-import { EventDetailsDialog } from "../../components/EventDetailsDialog/EventDetailsDialog";
+import { useDataContext } from "../../../contexts/DataContext.context";
+import { EventDetailsDialog } from "../../../components/EventDetailsDialog/EventDetailsDialog";
 
 export const CalendarPage: React.FC = () => {
   const { events } = useDataContext();

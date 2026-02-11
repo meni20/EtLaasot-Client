@@ -3,10 +3,10 @@ import { DataGrid } from "@mui/x-data-grid";
 import { useMemo, useState } from "react";
 import { COLUMNS } from "./Trainee.constants";
 import { useQuery } from "@tanstack/react-query";
-import userService from "../../services/user.service";
-import type { IUser } from "../../interfaces/user.interface";
-import { VolunteerDetails } from "../../components/VolunteerDetails/VolunteerDetails";
-import { CreateTrainee } from "../../components/CreateTrainee/CreateTrainee";
+import userService from "../../../services/user.service";
+import type { IUser } from "../../../interfaces/user.interface";
+import { CreateTrainee } from "../../../components/CreateTrainee/CreateTrainee";
+import { VolunteerDetails } from "../../../components/VolunteerDetails/VolunteerDetails";
 
 export const TraineePage: React.FC = () => {
   const [open, setOpen] = useState<boolean>(false);

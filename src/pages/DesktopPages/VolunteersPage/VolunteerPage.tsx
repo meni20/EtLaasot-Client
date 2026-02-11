@@ -3,10 +3,10 @@ import { DataGrid } from "@mui/x-data-grid";
 import { useMemo, useState } from "react";
 import { COLUMNS } from "./Volunteer.constants";
 import { useQuery } from "@tanstack/react-query";
-import userService from "../../services/user.service";
-import { CreateVolunteer } from "../../components/CreateVolunteerPopup/CreateVolunteer";
-import type { IUser } from "../../interfaces/user.interface";
-import { VolunteerDetails } from "../../components/VolunteerDetails/VolunteerDetails";
+import userService from "../../../services/user.service";
+import { CreateVolunteer } from "../../../components/CreateVolunteerPopup/CreateVolunteer";
+import type { IUser } from "../../../interfaces/user.interface";
+import { VolunteerDetails } from "../../../components/VolunteerDetails/VolunteerDetails";
 import { useVolunteerPageStyles } from "./VolunteerPage.styles";
 
 export const VolunteerPage: React.FC = () => {
