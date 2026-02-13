@@ -6,7 +6,7 @@ export class EventService {
   private api: AxiosInstance;
   constructor() {
     this.api = axios.create({
-      baseURL: "http://localhost:3000/event",
+      baseURL: `${import.meta.env.VITE_SERVER_URL}/event`,
     });
   }
 
@@ -41,7 +41,7 @@ export class EventService {
 
   public async getEventAttendees(eventId: string) {
     try {
-      const res = await this.api.post(`/get-attendees-by-event/${eventId}`)
+      const res = await this.api.post(`/get-attendees-by-event/${eventId}`);
       return res.data;
     } catch (err) {
       console.error(err);
