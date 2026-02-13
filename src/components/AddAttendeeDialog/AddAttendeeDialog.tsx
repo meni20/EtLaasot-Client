@@ -21,7 +21,6 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
   eventId,
   onClose,
   users,
-  onDelete,
 }) => {
   const handleAddAttendee = async (userId: string) => {
     try {
