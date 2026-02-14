@@ -2,28 +2,20 @@ import React from "react";
 import SideMenuIcon from "../../icons/SideMenuIcon";
 import type { NavbarProps } from "./Navbar.interface";
 import { AppBar, Toolbar, Typography, Box } from "@mui/material";
+import { useNavbarStyles } from "./Navbar.styles";
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
-  return (
-    <AppBar position="fixed">
-      <Toolbar sx={{ justifyContent: "flex-end", color: "purple" }}>
-        <Typography
-          variant="h3"
-          component="div"
-          sx={{
-            flexGrow: 1,
-            display: "flex",
-            justifyContent: "center",
-            fontFamily: "Rubik",
-          }}
-        >
-          {title}
-        </Typography>
+  const classes = useNavbarStyles();
 
-        <Box sx={{ cursor: "pointer" }} onClick={onMenuClick}>
+  return (
+    <AppBar position="fixed" className={classes.appBar}>
+      <Toolbar className={classes.toolbar}>
+        <Box className={classes.menuIconBox} onClick={onMenuClick}>
           <SideMenuIcon />
         </Box>
-        <Box sx={{ display: "flex", gap: 1 }}></Box>
+        <Typography variant="h5" component="div" className={classes.title}>
+          {title}
+        </Typography>
       </Toolbar>
     </AppBar>
   );

@@ -1,19 +1,24 @@
 import { Box, Button } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { COLUMNS } from "./Volunteer.constants";
 import { useQuery } from "@tanstack/react-query";
-import userService from "../../services/user.service";
-import { CreateVolunteer } from "../../components/CreateVolunteerPopup/CreateVolunteer";
-import type { IUser } from "../../interfaces/user.interface";
-import { VolunteerDetails } from "../../components/VolunteerDetails/VolunteerDetails";
+import userService from "../../../services/user.service";
+import { CreateVolunteer } from "../../../components/CreateVolunteerPopup/CreateVolunteer";
+import type { IUser } from "../../../interfaces/user.interface";
+import { VolunteerDetails } from "../../../components/VolunteerDetails/VolunteerDetails";
+import { useVolunteerPageStyles } from "./VolunteerPage.styles";
 
 export const VolunteerPage: React.FC = () => {
+  const styles = useVolunteerPageStyles();
   const [open, setOpen] = useState<boolean>(false);
-  const [isDialogDetailsOpen, setIsDialogDetailsOpen] = useState<boolean>(false);
-  const [selectedVolunteer, setSelectedVolunteer] = useState<IUser>({} as IUser);
+  const [isDialogDetailsOpen, setIsDialogDetailsOpen] =
+    useState<boolean>(false);
+  const [selectedVolunteer, setSelectedVolunteer] = useState<IUser>(
+    {} as IUser
+  );
 
-  const { data: allVolunteers } = useQuery({
+  const { data: allVolunteers, isFetching: isFetchingVolunteers } = useQuery({
     queryKey: ["volunteers"],
     queryFn: () => userService.getAllVolunteers(),
   });
@@ -42,7 +47,7 @@ export const VolunteerPage: React.FC = () => {
       }}
     >
       <Box sx={{ mb: 2 }}>
-        <Button variant="contained" onClick={() => setOpen(true)}>
+        <Button className={styles.createButton} onClick={() => setOpen(true)}>
           יצירת מתנדב חדש
         </Button>
       </Box>
@@ -50,15 +55,22 @@ export const VolunteerPage: React.FC = () => {
         <DataGrid
           rows={rowsData}
           columns={COLUMNS}
+          loading={isFetchingVolunteers}
           onRowClick={(params) => {
             setIsDialogDetailsOpen(true);
             setSelectedVolunteer(params.row);
-            
           }}
         />
       </Box>
+
       {open && <CreateVolunteer open={open} onClose={() => setOpen(false)} />}
-      {isDialogDetailsOpen && <VolunteerDetails open={isDialogDetailsOpen} onClose={() => setIsDialogDetailsOpen(false)} volunteerData={selectedVolunteer} />}
+      {isDialogDetailsOpen && (
+        <VolunteerDetails
+          open={isDialogDetailsOpen}
+          onClose={() => setIsDialogDetailsOpen(false)}
+          volunteerData={selectedVolunteer}
+        />
+      )}
     </Box>
   );
 };

@@ -10,6 +10,7 @@ import {
   ListItemText,
   DialogContent,
   ListItemAvatar,
+  CircularProgress,
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import eventService from "../../services/event.service";
@@ -17,6 +18,7 @@ import type { IUser } from "../../interfaces/user.interface";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import type { IEventAtendeeDialogProps } from "./EventAtendeeDialog.interface";
+import { useStyles } from "./EventAtendeeDialog.styles";
 
 export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
   open,
@@ -24,76 +26,74 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
   eventId,
   onDelete,
 }) => {
+  const classes = useStyles();
+
   const { data: attendeesByEvent, isFetching: isFetchingAttendees } = useQuery({
     queryKey: ["attendeesByEvent", eventId],
     queryFn: () => eventService.getEventAttendees(eventId),
   });
 
-  const formatteedAttendees = React.useMemo(() => {
-    return attendeesByEvent?.map((attendee: any) => ({
-      id: attendee.user.id,
-      name: attendee.user.name,
-      email: attendee.user.email,
-    }));
-  }, [attendeesByEvent]);
+  const formattedAttendees = React.useMemo(
+    () =>
+      attendeesByEvent?.map((attendee: any) => ({
+        id: attendee.user.id,
+        name: attendee.user.name,
+        email: attendee.user.email,
+      })),
+    [attendeesByEvent]
+  );
+
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      PaperProps={{
-        sx: {
-          width: 340,
-          borderRadius: 2,
-          overflow: "hidden",
-        },
-      }}
+      PaperProps={{ className: classes.dialogPaper }}
     >
-      <DialogTitle sx={{ fontWeight: 600, textAlign: "center" }}>
-        רשומים לאירוע
-      </DialogTitle>
+      <DialogTitle className={classes.dialogTitle}>רשומים לאירוע</DialogTitle>
 
-      {isFetchingAttendees ? "loading...":<DialogContent sx={{ pt: 0, maxHeight: 300, overflowY: "auto" }}>
-        <List disablePadding>
-          {formatteedAttendees?.map((atendee: IUser) => (
-            <ListItem
-              key={atendee.id}
-              sx={{
-                px: 1,
-                py: 1,
-                gap: 3,
-              }}
-            >
-              <IconButton
-                edge="end"
-                aria-label="delete"
-                onClick={() => onDelete(atendee.id)}
+      <DialogContent className={classes.dialogContent}>
+        {isFetchingAttendees ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: 200,
+            }}
+          >
+            <CircularProgress sx={{ color: "#9a5188" }} />
+          </Box>
+        ) : (
+          <List disablePadding>
+            {formattedAttendees?.map((attendee: IUser) => (
+              <ListItem
+                key={attendee.id}
+                className={classes.listItem}
+                secondaryAction={
+                  <IconButton
+                    edge="start"
+                    aria-label="delete"
+                    onClick={() => onDelete(attendee.id)}
+                  >
+                    <DeleteOutlineIcon sx={{ color: "#7a3e6b" }} />
+                  </IconButton>
+                }
               >
-                <DeleteOutlineIcon />
-              </IconButton>
-              <ListItemText
-                primary={atendee.name}
-                primaryTypographyProps={{
-                  sx: { fontSize: 16, textAlign: "right" },
-                }}
-                sx={{ my: 0 }}
-              />
-              <ListItemAvatar>
-                <Avatar
-                  sx={{
-                    width: 34,
-                    height: 34,
-                    bgcolor: "grey.200",
-                    color: "grey.600",
-                  }}
-                >
-                  <PersonOutlineIcon fontSize="small" />
-                </Avatar>
-              </ListItemAvatar>
-            </ListItem>
-          ))}
-        </List>
-        <Box sx={{ height: 6 }} />
-      </DialogContent>}
+                <ListItemAvatar>
+                  <Avatar className={classes.avatar}>
+                    <PersonOutlineIcon fontSize="small" />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  className={classes.attendeeName}
+                  primary={attendee.name}
+                  primaryTypographyProps={{ className: classes.attendeeName }}
+                />
+              </ListItem>
+            ))}
+          </List>
+        )}
+      </DialogContent>
     </Dialog>
   );
 };

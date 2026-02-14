@@ -1,27 +1,27 @@
 import { Box, Button } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { COLUMNS } from "./Trainee.constants";
 import { useQuery } from "@tanstack/react-query";
-import userService from "../../services/user.service";
-import { CreateVolunteer } from "../../components/CreateVolunteerPopup/CreateVolunteer";
-import type { IUser } from "../../interfaces/user.interface";
-import { VolunteerDetails } from "../../components/VolunteerDetails/VolunteerDetails";
-import { CreateTrainee } from "../../components/CreateTrainee/CreateTrainee";
+import userService from "../../../services/user.service";
+import type { IUser } from "../../../interfaces/user.interface";
+import { CreateTrainee } from "../../../components/CreateTrainee/CreateTrainee";
+import { VolunteerDetails } from "../../../components/VolunteerDetails/VolunteerDetails";
 
 export const TraineePage: React.FC = () => {
   const [open, setOpen] = useState<boolean>(false);
-  const [isDialogDetailsOpen, setIsDialogDetailsOpen] = useState<boolean>(false);
-  const [selectedVolunteer, setSelectedVolunteer] = useState<IUser>({} as IUser);
+  const [isDialogDetailsOpen, setIsDialogDetailsOpen] =
+    useState<boolean>(false);
+  const [selectedTrainee, setSelectedTrainee] = useState<IUser>({} as IUser);
 
-  const { data: allVolunteers } = useQuery({
+  const { data: allTrainees, isFetching: isFetchingTrainees } = useQuery({
     queryKey: ["trainees"],
     queryFn: () => userService.getAllTreanees(),
   });
 
   const rowsData = useMemo(() => {
     return (
-      allVolunteers?.map((trainee: IUser) => ({
+      allTrainees?.map((trainee: IUser) => ({
         id: trainee.id,
         name: trainee.name,
         age: trainee.age,
@@ -30,7 +30,7 @@ export const TraineePage: React.FC = () => {
         address: trainee.address,
       })) ?? []
     );
-  }, [allVolunteers]);
+  }, [allTrainees]);
 
   return (
     <Box
@@ -51,15 +51,21 @@ export const TraineePage: React.FC = () => {
         <DataGrid
           rows={rowsData}
           columns={COLUMNS}
+          loading={isFetchingTrainees}
           onRowClick={(params) => {
             setIsDialogDetailsOpen(true);
-            setSelectedVolunteer(params.row);
-            
+            setSelectedTrainee(params.row);
           }}
         />
       </Box>
       {open && <CreateTrainee open={open} onClose={() => setOpen(false)} />}
-      {isDialogDetailsOpen && <VolunteerDetails open={isDialogDetailsOpen} onClose={() => setIsDialogDetailsOpen(false)} volunteerData={selectedVolunteer} />}
+      {isDialogDetailsOpen && (
+        <VolunteerDetails
+          open={isDialogDetailsOpen}
+          onClose={() => setIsDialogDetailsOpen(false)}
+          volunteerData={selectedTrainee}
+        />
+      )}
     </Box>
   );
 };
