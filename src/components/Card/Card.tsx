@@ -41,7 +41,7 @@ export const BasicCard: React.FC<ICardProps> = ({
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.userRoles?.[0]?.roleId,
+      role: user.userRoles?.[0]?.roleId ?? 0,
       events: user.events,
     }));
   }, [allUsers]);

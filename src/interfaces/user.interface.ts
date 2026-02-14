@@ -7,7 +7,7 @@ export interface IUser {
   address: string;
   email: string;
   age: number;
-  userRoles: IUserRole[];
+  userRoles?: IUserRole[];
   events?: IEvent[];
 
   // Timestamps

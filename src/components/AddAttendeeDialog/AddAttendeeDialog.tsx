@@ -17,7 +17,6 @@ import type { IAddAttendeeDialogProps } from "./AddAttendeeDialog.interface";
 import AddIcon from "@mui/icons-material/Add";
 import eventService from "../../services/event.service";
 import { AUTH_ROLES } from "../../constants/auth.const";
-import type { IEvent } from "../../interfaces/event.interface";
 import { useQueryClient } from "@tanstack/react-query";
 
 export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
@@ -82,7 +81,7 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
 
       <DialogContent sx={{ pt: 0, maxHeight: 300, overflowY: "auto" }}>
         <List disablePadding>
-          {users.map((user, index) => {
+          {users?.map((user, index) => {
             const prevRole = users[index - 1]?.role;
             const isFirstOfRole = index === 0 || user.role !== prevRole;
 

@@ -1,13 +1,5 @@
 import * as React from "react";
-import CloseIcon from "@mui/icons-material/Close";
-import {
-  Dialog,
-  DialogContent,
-  Typography,
-  IconButton,
-  Stack,
-  Box,
-} from "@mui/material";
+import { Dialog, DialogContent, Typography, Stack, Box } from "@mui/material";
 import type { IEventDetailsDialogProps } from "./EventDetailsDialog.inteface";
 import { useStyles } from "./EventDetailsDialog.styles";
 import { formatDate } from "../../utils/data.utillity";
