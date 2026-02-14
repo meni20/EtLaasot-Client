@@ -1,14 +1,22 @@
-import { HomePage } from "../pages/HomePage/Home";
-import { EventPage } from "../pages/EventPage/Event";
-import { CalendarPage } from "../pages/CalendarPage/Calendar";
-import { VolunteerPage } from "../pages/VolunteersPage/VolunteerPage";
-import { TraineePage } from "../pages/TraineePage/TraineePage";
+import { HomePage } from "../pages/DesktopPages/HomePage/Home";
+import { HomeMobile } from "../pages/Mobile/HomePage/HomeMobile";
+import { EventPage } from "../pages/DesktopPages/EventPage/Event";
+import { EventMobile } from "../pages/Mobile/EventMobile/EventMobile";
+import { CalendarPage } from "../pages/DesktopPages/CalendarPage/Calendar";
+import { TraineePage } from "../pages/DesktopPages/TraineePage/TraineePage";
+import { VolunteerPage } from "../pages/DesktopPages/VolunteersPage/VolunteerPage";
 
-export const ALL_ROUTES = [
+export const DESKTOP_ROUTES = [
   { path: "/", element: <HomePage /> },
   { path: "/home", element: <HomePage /> },
   { path: "/volunteers", element: <VolunteerPage /> },
   { path: "/calendar", element: <CalendarPage /> },
   { path: "/events", element: <EventPage /> },
   { path: "/trainee", element: <TraineePage /> },
+];
+
+export const MOBILE_ROUTES = [
+  {path: "/", element: <HomeMobile /> },
+  {path: "/home", element: <HomeMobile /> },
+  {path: "/events", element: <EventMobile /> },
 ];

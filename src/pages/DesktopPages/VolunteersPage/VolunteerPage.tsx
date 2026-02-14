@@ -3,12 +3,14 @@ import { DataGrid } from "@mui/x-data-grid";
 import { useMemo, useState } from "react";
 import { COLUMNS } from "./Volunteer.constants";
 import { useQuery } from "@tanstack/react-query";
-import userService from "../../services/user.service";
-import type { IUser } from "../../interfaces/user.interface";
-import { VolunteerDetails } from "../../components/VolunteerDetails/VolunteerDetails";
-import { CreateVolunteer } from "../../components/CreateVolunteerPopup/CreateVolunteer";
+import userService from "../../../services/user.service";
+import { CreateVolunteer } from "../../../components/CreateVolunteerPopup/CreateVolunteer";
+import type { IUser } from "../../../interfaces/user.interface";
+import { VolunteerDetails } from "../../../components/VolunteerDetails/VolunteerDetails";
+import { useVolunteerPageStyles } from "./VolunteerPage.styles";
 
 export const VolunteerPage: React.FC = () => {
+  const styles = useVolunteerPageStyles();
   const [open, setOpen] = useState<boolean>(false);
   const [isDialogDetailsOpen, setIsDialogDetailsOpen] =
     useState<boolean>(false);
@@ -16,7 +18,7 @@ export const VolunteerPage: React.FC = () => {
     {} as IUser
   );
 
-  const { data: allVolunteers } = useQuery({
+  const { data: allVolunteers, isFetching: isFetchingVolunteers } = useQuery({
     queryKey: ["volunteers"],
     queryFn: () => userService.getAllVolunteers(),
   });
@@ -45,7 +47,7 @@ export const VolunteerPage: React.FC = () => {
       }}
     >
       <Box sx={{ mb: 2 }}>
-        <Button variant="contained" onClick={() => setOpen(true)}>
+        <Button className={styles.createButton} onClick={() => setOpen(true)}>
           יצירת מתנדב חדש
         </Button>
       </Box>
@@ -53,12 +55,14 @@ export const VolunteerPage: React.FC = () => {
         <DataGrid
           rows={rowsData}
           columns={COLUMNS}
+          loading={isFetchingVolunteers}
           onRowClick={(params) => {
             setIsDialogDetailsOpen(true);
             setSelectedVolunteer(params.row);
           }}
         />
       </Box>
+
       {open && <CreateVolunteer open={open} onClose={() => setOpen(false)} />}
       {isDialogDetailsOpen && (
         <VolunteerDetails
