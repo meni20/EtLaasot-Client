@@ -1,7 +1,7 @@
 import HomeIcon from "@mui/icons-material/Home";
+import {ReportIcon} from "../../icons/ReportsIcon";
 import PeopleIcon from "@mui/icons-material/People";
 import { CalendarIcon } from "../../icons/CalendarIcon";
-import {ReportIcon} from "../../icons/ReportsIcon";
 
 export interface MenuItem {
   label: string;

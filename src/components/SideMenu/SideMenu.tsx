@@ -8,8 +8,8 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { menuItems } from "./SideMenu.constants";
-import { type SideMenuProps } from "./SideMenu.interface";
 import { useSideMenuStyles } from "./SIdeMenu.styles";
+import { type SideMenuProps } from "./SideMenu.interface";
 
 export const SideMenu: React.FC<SideMenuProps> = ({ open, onClose }) => {
   const navigate = useNavigate();

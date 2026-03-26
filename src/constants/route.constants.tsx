@@ -4,6 +4,7 @@ import { EventPage } from "../pages/DesktopPages/EventPage/Event";
 import { EventMobile } from "../pages/Mobile/EventMobile/EventMobile";
 import { CalendarPage } from "../pages/DesktopPages/CalendarPage/Calendar";
 import { TraineePage } from "../pages/DesktopPages/TraineePage/TraineePage";
+import { CalendarMobile } from "../pages/Mobile/CalendarMobile/CalendarMobile";
 import { VolunteerPage } from "../pages/DesktopPages/VolunteersPage/VolunteerPage";
 
 export const DESKTOP_ROUTES = [
@@ -19,4 +20,5 @@ export const MOBILE_ROUTES = [
   {path: "/", element: <HomeMobile /> },
   {path: "/home", element: <HomeMobile /> },
   {path: "/events", element: <EventMobile /> },
+  {path: "/calendar", element: <CalendarMobile /> },
 ];

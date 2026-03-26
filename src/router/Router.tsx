@@ -6,6 +6,7 @@ import { useIsMobile } from "../hooks/window.hook";
 import { SideMenu } from "../components/SideMenu/SideMenu";
 import { NavbarMobile } from "../components/NavbarMobile/NavbarMobile";
 import { DESKTOP_ROUTES, MOBILE_ROUTES } from "../constants/route.constants";
+import MobileSideMenu from "../components/SideMenu/MobileSideMenu";
 
 const AppRouter: React.FC = () => {
   const isMobile = useIsMobile();
@@ -21,6 +22,8 @@ const AppRouter: React.FC = () => {
               <Route key={path} path={path} element={element} />
             ))}
           </Routes>
+
+          <MobileSideMenu />
         </Box>
       ) : (
         <Box>
