@@ -6,7 +6,7 @@ export class UserService {
   private api: AxiosInstance;
   constructor() {
     this.api = axios.create({
-      baseURL: `http://localhost:3000/user`,
+      baseURL: `${import.meta.env.VITE_SERVER_URL}/user`,
     });
   }
 
@@ -26,7 +26,7 @@ export class UserService {
       .catch((err) => {
         console.log(err);
       });
-  }
+  };
 
   async createVolunteer(userData: IUser) {
     const res = await this.api.post("/create-volunteer", userData);
