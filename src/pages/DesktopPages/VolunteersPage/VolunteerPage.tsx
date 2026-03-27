@@ -8,6 +8,7 @@ import { CreateVolunteer } from "../../../components/CreateVolunteerPopup/Create
 import type { IUser } from "../../../interfaces/user.interface";
 import { VolunteerDetails } from "../../../components/VolunteerDetails/VolunteerDetails";
 import { useVolunteerPageStyles } from "./VolunteerPage.styles";
+import { isAdmin } from "../../../constants/auth.const";
 
 export const VolunteerPage: React.FC = () => {
   const styles = useVolunteerPageStyles();
@@ -17,6 +18,7 @@ export const VolunteerPage: React.FC = () => {
   const [selectedVolunteer, setSelectedVolunteer] = useState<IUser>(
     {} as IUser
   );
+  const canManageVolunteers = isAdmin();
 
   const { data: allVolunteers, isFetching: isFetchingVolunteers } = useQuery({
     queryKey: ["volunteers"],
@@ -46,11 +48,13 @@ export const VolunteerPage: React.FC = () => {
         left: "5%",
       }}
     >
-      <Box sx={{ mb: 2 }}>
-        <Button className={styles.createButton} onClick={() => setOpen(true)}>
-          יצירת מתנדב חדש
-        </Button>
-      </Box>
+      {canManageVolunteers && (
+        <Box sx={{ mb: 2 }}>
+          <Button className={styles.createButton} onClick={() => setOpen(true)}>
+            ׳™׳¦׳™׳¨׳× ׳׳×׳ ׳“׳‘ ׳—׳“׳©
+          </Button>
+        </Box>
+      )}
       <Box sx={{ height: "90%" }}>
         <DataGrid
           rows={rowsData}
@@ -63,7 +67,9 @@ export const VolunteerPage: React.FC = () => {
         />
       </Box>
 
-      {open && <CreateVolunteer open={open} onClose={() => setOpen(false)} />}
+      {canManageVolunteers && open && (
+        <CreateVolunteer open={open} onClose={() => setOpen(false)} />
+      )}
       {isDialogDetailsOpen && (
         <VolunteerDetails
           open={isDialogDetailsOpen}

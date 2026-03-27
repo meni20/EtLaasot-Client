@@ -1,12 +1,24 @@
-// utils/validators.ts
 import type { IEvent } from "../interfaces/event.interface";
-import type { IUser } from "../interfaces/user.interface";
+import type { IUserFormData } from "../interfaces/user.interface";
 import { isValidIsraeliId, isValidIsraeliPhone } from "./data.utillity";
 
-export type ValidationErrors = Partial<Record<keyof IUser, string>>;
+export interface IEventFormData extends Omit<IEvent, "startDate" | "endDate"> {
+  startDate: Date | null;
+  endDate: Date | null;
+}
 
-export const validateFormVolunteer = (form: IUser): ValidationErrors => {
-  const newErrors: ValidationErrors = {};
+export type UserValidationErrors = Partial<Record<keyof IUserFormData, string>>;
+export type EventValidationErrors = Partial<
+  Record<"name" | "address" | "startDate" | "endDate", string>
+>;
+
+const isValidDate = (value: Date | null): value is Date =>
+  value instanceof Date && !Number.isNaN(value.getTime());
+
+export const validateFormVolunteer = (
+  form: IUserFormData
+): UserValidationErrors => {
+  const newErrors: UserValidationErrors = {};
 
   if (!form.name.trim()) {
     newErrors.name = "Name is required";
@@ -27,11 +39,33 @@ export const validateFormVolunteer = (form: IUser): ValidationErrors => {
   return newErrors;
 };
 
-export const validateFormEvent = (form: IEvent): ValidationErrors => {
-  const newErrors: ValidationErrors = {};
+export const validateFormEvent = (
+  form: IEventFormData
+): EventValidationErrors => {
+  const newErrors: EventValidationErrors = {};
 
   if (!form.name.trim()) {
     newErrors.name = "Name is required";
+  }
+
+  if (!form.address.trim()) {
+    newErrors.address = "Address is required";
+  }
+
+  if (!isValidDate(form.startDate)) {
+    newErrors.startDate = "Start date is required";
+  }
+
+  if (!isValidDate(form.endDate)) {
+    newErrors.endDate = "End date is required";
+  }
+
+  if (
+    isValidDate(form.startDate) &&
+    isValidDate(form.endDate) &&
+    form.endDate.getTime() <= form.startDate.getTime()
+  ) {
+    newErrors.endDate = "End date must be after start date";
   }
 
   return newErrors;

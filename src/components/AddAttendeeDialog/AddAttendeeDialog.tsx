@@ -17,7 +17,6 @@ import type { IAddAttendeeDialogProps } from "./AddAttendeeDialog.interface";
 import AddIcon from "@mui/icons-material/Add";
 import eventService from "../../services/event.service";
 import { AUTH_ROLES } from "../../constants/auth.const";
-import type { IEvent } from "../../interfaces/event.interface";
 import { useQueryClient } from "@tanstack/react-query";
 
 export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
@@ -25,7 +24,6 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
   eventId,
   onClose,
   users,
-  onDelete,
 }) => {
   const queryClient = useQueryClient();
 

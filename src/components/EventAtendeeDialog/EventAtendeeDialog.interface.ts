@@ -3,4 +3,5 @@ export interface IEventAtendeeDialogProps {
   onClose: () => void;
   eventId: string;
   onDelete: (id: string) => void;
+  canDelete?: boolean;
 }

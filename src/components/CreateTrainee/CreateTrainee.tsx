@@ -4,42 +4,43 @@ import {
   Dialog,
   IconButton,
   TextField,
-  Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import CloseIcon from "@mui/icons-material/Close";
 import userService from "../../services/user.service";
-import type { IUser } from "../../interfaces/user.interface";
+import type { IUserFormData } from "../../interfaces/user.interface";
 import {
   validateFormVolunteer,
-  type ValidationErrors,
+  type UserValidationErrors,
 } from "../../utils/validators.util";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ICreateTraineeProps } from "./CreateTrainee.interface";
+
+const createInitialForm = (): IUserFormData => ({
+  name: "",
+  id: "",
+  age: 0,
+  phoneNumber: "",
+  address: "",
+  email: "",
+});
 
 export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
   open,
   onClose,
 }) => {
   const [loading, setLoading] = useState<boolean>(false);
-  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [errors, setErrors] = useState<UserValidationErrors>({});
   const queryClient = useQueryClient();
-  const [form, setFrom] = useState<IUser>({
-    name: "",
-    id: "",
-    age: 0,
-    phoneNumber: "",
-    address: "",
-    email: "",
-  });
+  const [form, setForm] = useState<IUserFormData>(createInitialForm());
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, valueAsNumber } = e.target;
 
-    setFrom((prev) => ({
+    setForm((prev) => ({
       ...prev,
       [name]:
         name === "age"
@@ -57,28 +58,27 @@ export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
       setErrors(validationErrors);
       return;
     }
-    const payload: IUser = {
+    const payload: IUserFormData = {
       ...form,
+      name: form.name.trim(),
+      id: form.id.trim(),
+      phoneNumber: form.phoneNumber.trim(),
+      address: form.address.trim(),
+      email: form.email.trim(),
       age: Number(form.age),
     };
 
     setLoading(true);
 
-    await userService.createTrainee(payload);
-
-    await queryClient.invalidateQueries({ queryKey: ["trainees"] });
-
-    setFrom({
-      name: "",
-      id: "",
-      age: 0,
-      phoneNumber: "",
-      address: "",
-      email: "",
-    });
-    setErrors({});
-    setLoading(false);
-    onClose();
+    try {
+      await userService.createTrainee(payload);
+      await queryClient.invalidateQueries({ queryKey: ["trainees"] });
+      setForm(createInitialForm());
+      setErrors({});
+      onClose();
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -113,7 +113,7 @@ export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
                 onChange={handleChange}
                 name="name"
                 error={!!errors.name}
-                helperText={errors.id}
+                helperText={errors.name}
               />
               <TextField
                 label={"ID"}

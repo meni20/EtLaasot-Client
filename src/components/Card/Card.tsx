@@ -20,6 +20,7 @@ export const BasicCard: React.FC<ICardProps> = ({
   eventName,
   eventDate,
   address,
+  canManage = false,
 }) => {
   const classes = useCardStyles();
   const [open, setOpen] = useState<boolean>(false);
@@ -54,9 +55,9 @@ export const BasicCard: React.FC<ICardProps> = ({
             {eventName}
           </Typography>
           <Typography className={classes.eventDate}>
-            📅 {formatDate(eventDate)}
+            נ“… {formatDate(eventDate)}
           </Typography>
-          <Typography className={classes.eventAddress}>📍 {address}</Typography>
+          <Typography className={classes.eventAddress}>נ“ {address}</Typography>
         </CardContent>
         <CardActions className={classes.cardActions}>
           <Button
@@ -64,18 +65,20 @@ export const BasicCard: React.FC<ICardProps> = ({
             className={classes.showButton}
             onClick={() => setOpen(true)}
           >
-            הצג משתתפים
+            ׳”׳¦׳’ ׳׳©׳×׳×׳₪׳™׳
           </Button>
-          <Box
-            className={classes.addIconBox}
-            onClick={() => setIsAddAtendeeOpen(true)}
-          >
-            <AddIcon />
-          </Box>
+          {canManage && (
+            <Box
+              className={classes.addIconBox}
+              onClick={() => setIsAddAtendeeOpen(true)}
+            >
+              <AddIcon />
+            </Box>
+          )}
         </CardActions>
       </Card>
 
-      {isAddAttenddeOpen && (
+      {canManage && isAddAttenddeOpen && (
         <AddAttendeeDialog
           eventId={eventId}
           open={isAddAttenddeOpen}
@@ -91,6 +94,7 @@ export const BasicCard: React.FC<ICardProps> = ({
           onClose={() => setOpen(false)}
           eventId={eventId}
           onDelete={() => {}}
+          canDelete={canManage}
         />
       )}
     </Box>

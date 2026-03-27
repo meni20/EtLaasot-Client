@@ -20,11 +20,16 @@ import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import type { IEventAtendeeDialogProps } from "./EventAtendeeDialog.interface";
 import { useStyles } from "./EventAtendeeDialog.styles";
 
+interface IEventAttendeeApiRecord {
+  user: IUser;
+}
+
 export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
   open,
   onClose,
   eventId,
   onDelete,
+  canDelete = false,
 }) => {
   const classes = useStyles();
 
@@ -35,7 +40,7 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
 
   const formattedAttendees = React.useMemo(
     () =>
-      attendeesByEvent?.map((attendee: any) => ({
+      attendeesByEvent?.map((attendee: IEventAttendeeApiRecord) => ({
         id: attendee.user.id,
         name: attendee.user.name,
         email: attendee.user.email,
@@ -49,7 +54,7 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
       onClose={onClose}
       PaperProps={{ className: classes.dialogPaper }}
     >
-      <DialogTitle className={classes.dialogTitle}>רשומים לאירוע</DialogTitle>
+      <DialogTitle className={classes.dialogTitle}>׳¨׳©׳•׳׳™׳ ׳׳׳™׳¨׳•׳¢</DialogTitle>
 
       <DialogContent className={classes.dialogContent}>
         {isFetchingAttendees ? (
@@ -70,13 +75,15 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
                 key={attendee.id}
                 className={classes.listItem}
                 secondaryAction={
-                  <IconButton
-                    edge="start"
-                    aria-label="delete"
-                    onClick={() => onDelete(attendee.id)}
-                  >
-                    <DeleteOutlineIcon sx={{ color: "#7a3e6b" }} />
-                  </IconButton>
+                  canDelete ? (
+                    <IconButton
+                      edge="start"
+                      aria-label="delete"
+                      onClick={() => onDelete(attendee.id)}
+                    >
+                      <DeleteOutlineIcon sx={{ color: "#7a3e6b" }} />
+                    </IconButton>
+                  ) : undefined
                 }
               >
                 <ListItemAvatar>

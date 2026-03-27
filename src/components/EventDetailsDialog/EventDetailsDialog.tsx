@@ -1,10 +1,8 @@
 import * as React from "react";
-import CloseIcon from "@mui/icons-material/Close";
 import {
   Dialog,
   DialogContent,
   Typography,
-  IconButton,
   Stack,
   Box,
 } from "@mui/material";

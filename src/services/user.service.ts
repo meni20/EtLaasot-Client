@@ -1,13 +1,36 @@
 import axios from "axios";
-import type { AxiosInstance } from "axios";
-import type { IUser } from "../interfaces/user.interface";
+import type { AxiosInstance, InternalAxiosRequestConfig } from "axios";
+import type { IUserFormData } from "../interfaces/user.interface";
+import { getAuthToken } from "../constants/auth.const";
+
+const serverUrl = import.meta.env.VITE_SERVER_URL?.trim();
+
+if (!serverUrl) {
+  throw new Error("Missing VITE_SERVER_URL environment variable.");
+}
+
+const apiBaseUrl = serverUrl.replace(/\/$/, "");
+
+const attachAuthorizationHeader = (config: InternalAxiosRequestConfig) => {
+  const token = getAuthToken();
+
+  if (token) {
+    config.headers.set("Authorization", `Bearer ${token}`);
+  } else {
+    config.headers.delete("Authorization");
+  }
+
+  return config;
+};
 
 export class UserService {
   private api: AxiosInstance;
   constructor() {
     this.api = axios.create({
-      baseURL: `${import.meta.env.VITE_SERVER_URL}/user`,
+      baseURL: `${apiBaseUrl}/user`,
     });
+
+    this.api.interceptors.request.use(attachAuthorizationHeader);
   }
 
   public getAllVolunteers = async () => {
@@ -28,12 +51,12 @@ export class UserService {
       });
   };
 
-  async createVolunteer(userData: IUser) {
+  async createVolunteer(userData: IUserFormData) {
     const res = await this.api.post("/create-volunteer", userData);
     return res.data;
   }
 
-  async createTrainee(userData: IUser) {
+  async createTrainee(userData: IUserFormData) {
     const res = await this.api.post("/create-trainee", userData);
     return res.data;
   }

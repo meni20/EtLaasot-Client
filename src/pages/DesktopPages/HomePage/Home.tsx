@@ -1,5 +1,4 @@
-import { Box, Grid, Paper } from "@mui/material";
-import { LineChart } from "../../../components/LIneChart/LineChart";
+import { Box } from "@mui/material";
 
 
 export const HomePage: React.FC = () => {

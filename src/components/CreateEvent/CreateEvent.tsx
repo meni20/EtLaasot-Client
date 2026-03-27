@@ -1,19 +1,20 @@
 import {
+  Alert,
   Box,
   Button,
   Dialog,
   IconButton,
   TextField,
-  Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import CloseIcon from "@mui/icons-material/Close";
 import {
+  type EventValidationErrors,
+  type IEventFormData,
   validateFormEvent,
-  type ValidationErrors,
 } from "../../utils/validators.util";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ICreateEventProps } from "./CreateEvent.interface";
@@ -21,25 +22,40 @@ import type { IEvent } from "../../interfaces/event.interface";
 import { DatePicker } from "@mui/x-date-pickers";
 import eventService from "../../services/event.service";
 
+const createInitialForm = (): IEventFormData => ({
+  name: "",
+  address: "",
+  description: "",
+  startDate: new Date(),
+  endDate: new Date(),
+});
+
 export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<EventValidationErrors>({});
+  const [submitError, setSubmitError] = useState("");
   const queryClient = useQueryClient();
-  const [form, setFrom] = useState<IEvent>({
-    name: "",
-    address: "",
-    description: "",
-    startDate: new Date(),
-    endDate: new Date(),
-  });
+  const [form, setForm] = useState<IEventFormData>(createInitialForm());
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    setFrom((prev) => ({
+    setForm((prev) => ({
       ...prev,
       [name]: value,
     }));
+    setSubmitError("");
+  };
+
+  const handleDateChange = (
+    field: "startDate" | "endDate",
+    value: Date | null
+  ) => {
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+    setSubmitError("");
   };
 
   const handleCreateEvent = async () => {
@@ -50,22 +66,35 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
       return;
     }
 
+    if (!form.startDate || !form.endDate) {
+      return;
+    }
+
+    const payload: IEvent = {
+      ...form,
+      name: form.name.trim(),
+      address: form.address.trim(),
+      description: form.description?.trim() || undefined,
+      startDate: form.startDate,
+      endDate: form.endDate,
+    };
+
     setLoading(true);
+    setSubmitError("");
 
-    await eventService.createEvent(form);
-
-    await queryClient.invalidateQueries({ queryKey: ["events"] });
-
-    setFrom({
-      name: "",
-      address: "",
-      description: "",
-      startDate: new Date(),
-      endDate: new Date(),
-    });
-    setErrors({});
-    setLoading(false);
-    onClose();
+    try {
+      await eventService.createEvent(payload);
+      await queryClient.invalidateQueries({ queryKey: ["events"] });
+      setForm(createInitialForm());
+      setErrors({});
+      onClose();
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "Failed to create event."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -93,6 +122,7 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
         </IconButton>
         <DialogContent dividers>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            {submitError && <Alert severity="error">{submitError}</Alert>}
             <Box sx={{ display: "flex", flexDirection: "row", gap: 4 }}>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 <TextField
@@ -101,17 +131,21 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
                   onChange={handleChange}
                   name="name"
                   error={!!errors.name}
-                  helperText={errors.id}
+                  helperText={errors.name}
                 />
               </Box>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 <DatePicker
-                  label="תאריך התחלה"
+                  label="׳×׳׳¨׳™׳ ׳”׳×׳—׳׳”"
                   value={form.startDate}
-                  onChange={(newValue) =>
-                    setFrom({ ...form, startDate: newValue! })
-                  }
-                  slotProps={{ textField: { fullWidth: true } }}
+                  onChange={(newValue) => handleDateChange("startDate", newValue)}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      error: !!errors.startDate,
+                      helperText: errors.startDate,
+                    },
+                  }}
                 />
               </Box>
             </Box>
@@ -128,12 +162,16 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
               </Box>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 <DatePicker
-                  label="תאריך סיום"
+                  label="׳×׳׳¨׳™׳ ׳¡׳™׳•׳"
                   value={form.endDate}
-                  onChange={(newValue) =>
-                    setFrom({ ...form, endDate: newValue! })
-                  }
-                  slotProps={{ textField: { fullWidth: true } }}
+                  onChange={(newValue) => handleDateChange("endDate", newValue)}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      error: !!errors.endDate,
+                      helperText: errors.endDate,
+                    },
+                  }}
                 />
               </Box>
             </Box>

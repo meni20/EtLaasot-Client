@@ -1,7 +1,8 @@
 
 export interface ICardProps {
-    eventId: string;
-    eventName: string;
-    eventDate: Date;
-    address: string;
+  eventId: string;
+  eventName: string;
+  eventDate: Date;
+  address: string;
+  canManage?: boolean;
 }
