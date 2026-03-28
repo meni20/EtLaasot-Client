@@ -9,7 +9,6 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useBranch } from "../../../contexts/useBranch";
 import { useAuth } from "../../../contexts/useAuth";
 import { useDataContext } from "../../../contexts/useDataContext";
 import { formatDate } from "../../../utils/data.utillity";
@@ -38,7 +37,6 @@ export const EventMobile: React.FC = () => {
   const styles = useStyles();
   const navigate = useNavigate();
   const { events } = useDataContext();
-  const { activeBranch } = useBranch();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
