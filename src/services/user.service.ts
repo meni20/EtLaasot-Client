@@ -8,24 +8,27 @@ export class UserService {
     this.api = axios.create({
       baseURL: `${import.meta.env.VITE_SERVER_URL}/user`,
     });
+    this.api.interceptors.request.use((config) => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    });
   }
 
-  public getAllVolunteers = async () => {
-    return this.api
-      .get("get-all-volunteers")
-      .then((res) => res.data)
-      .catch((err) => {
-        console.log(err);
-      });
+  public getAllVolunteers = async (branchId?: string) => {
+    const res = await this.api.get("/get-all-volunteers", {
+      params: branchId ? { branchId } : {},
+    });
+    return res.data;
   };
 
-  public getAllTreanees = async () => {
-    return this.api
-      .get("get-all-trainees")
-      .then((res) => res.data)
-      .catch((err) => {
-        console.log(err);
-      });
+  public getAllTrainees = async (branchId?: string) => {
+    const res = await this.api.get("/get-all-trainees", {
+      params: branchId ? { branchId } : {},
+    });
+    return res.data;
   };
 
   async createVolunteer(userData: IUser) {
@@ -38,13 +41,16 @@ export class UserService {
     return res.data;
   }
 
-  public getAllUsers = async () => {
-    return this.api
-      .get("/get-all")
-      .then((res) => res.data)
-      .catch((err) => {
-        console.log(err);
-      });
+  public getAllUsers = async (branchId?: string) => {
+    const res = await this.api.get("/get-all", {
+      params: branchId ? { branchId } : {},
+    });
+    return res.data;
+  };
+
+  public getUserById = async (userId: string) => {
+    const res = await this.api.get(`/${userId}`);
+    return res.data;
   };
 }
 

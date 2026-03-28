@@ -4,6 +4,7 @@ import type { IUser } from "../interfaces/user.interface";
 import { isValidIsraeliId, isValidIsraeliPhone } from "./data.utillity";
 
 export type ValidationErrors = Partial<Record<keyof IUser, string>>;
+export type EventValidationErrors = Partial<Record<keyof IEvent, string>>;
 
 export const validateFormVolunteer = (form: IUser): ValidationErrors => {
   const newErrors: ValidationErrors = {};
@@ -27,8 +28,8 @@ export const validateFormVolunteer = (form: IUser): ValidationErrors => {
   return newErrors;
 };
 
-export const validateFormEvent = (form: IEvent): ValidationErrors => {
-  const newErrors: ValidationErrors = {};
+export const validateFormEvent = (form: IEvent): EventValidationErrors => {
+  const newErrors: EventValidationErrors = {};
 
   if (!form.name.trim()) {
     newErrors.name = "Name is required";
@@ -36,3 +37,5 @@ export const validateFormEvent = (form: IEvent): ValidationErrors => {
 
   return newErrors;
 };
+
+export const isValidTAZ = (taz: string): boolean => isValidIsraeliId(taz);

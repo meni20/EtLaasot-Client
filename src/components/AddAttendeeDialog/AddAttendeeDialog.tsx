@@ -9,7 +9,6 @@ import {
   Avatar,
   ListItemText,
   IconButton,
-  Box,
   Typography,
 } from "@mui/material";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
@@ -17,7 +16,6 @@ import type { IAddAttendeeDialogProps } from "./AddAttendeeDialog.interface";
 import AddIcon from "@mui/icons-material/Add";
 import eventService from "../../services/event.service";
 import { AUTH_ROLES } from "../../constants/auth.const";
-import type { IEvent } from "../../interfaces/event.interface";
 import { useQueryClient } from "@tanstack/react-query";
 
 export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
@@ -25,14 +23,18 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
   eventId,
   onClose,
   users,
-  onDelete,
 }) => {
   const queryClient = useQueryClient();
 
   const handleAddAttendee = async (userId: string) => {
     try {
       await eventService.addAttendeeToEvent(userId, eventId);
-      await queryClient.invalidateQueries({ queryKey: ["users"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["users"] }),
+        queryClient.invalidateQueries({ queryKey: ["events"] }),
+        queryClient.invalidateQueries({ queryKey: ["eventAttendees"] }),
+        queryClient.invalidateQueries({ queryKey: ["upcomingEvents"] }),
+      ]);
     } catch (error) {
       console.error("Error adding attendee to event:", error);
     }
@@ -63,25 +65,37 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
       onClose={onClose}
       PaperProps={{
         sx: {
-          width: 340,
-          borderRadius: 2,
+          width: 380,
+          borderRadius: 4,
           overflow: "hidden",
+          direction: "rtl",
+          fontFamily: "Rubik, sans-serif",
         },
       }}
     >
       <DialogTitle
         sx={{
-          fontWeight: 600,
+          fontWeight: 700,
+          fontSize: 18,
           textAlign: "center",
           background: "linear-gradient(135deg, #9a5188 0%, #7a3e6b 100%)",
           color: "#fff",
-          padding: "12px 0",
+          padding: "14px 0",
+          fontFamily: "Rubik, sans-serif",
         }}
       >
         הוספת משתתפים לאירוע
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 0, maxHeight: 300, overflowY: "auto" }}>
+      <DialogContent
+        sx={{
+          pt: 1,
+          pb: 2,
+          maxHeight: 340,
+          overflowY: "auto",
+          backgroundColor: "#faf8f9",
+        }}
+      >
         <List disablePadding>
           {users.map((user, index) => {
             const prevRole = users[index - 1]?.role;
@@ -94,27 +108,48 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
                     sx={{
                       px: 2,
                       py: 1,
-                      fontWeight: 600,
-                      fontSize: 14,
-                      color: "text.secondary",
+                      fontWeight: 700,
+                      fontSize: 13,
+                      color: "#9a5188",
                       textAlign: "right",
+                      fontFamily: "Rubik, sans-serif",
                     }}
                   >
-                    {getRoleTitle(user.role)}
+                    {getRoleTitle(user.role!)}
                   </Typography>
                 )}
 
                 <ListItem
                   sx={{
-                    px: 1,
+                    px: 1.5,
                     py: 1,
-                    gap: 3,
+                    gap: 2,
+                    borderRadius: 3,
+                    marginBottom: 0.5,
+                    backgroundColor: isUserAssignedToEvent(user.id)
+                      ? "#f0fdf4"
+                      : "#fff",
+                    border: "1px solid",
+                    borderColor: isUserAssignedToEvent(user.id)
+                      ? "#bbf7d0"
+                      : "#f0ecef",
+                    transition: "all 0.15s ease",
+                    "&:hover": {
+                      backgroundColor: isUserAssignedToEvent(user.id)
+                        ? "#f0fdf4"
+                        : "#f8f4f9",
+                    },
                   }}
                 >
                   <IconButton
                     edge="end"
                     onClick={() => handleAddAttendee(user.id)}
                     disabled={isUserAssignedToEvent(user.id)}
+                    sx={{
+                      color: isUserAssignedToEvent(user.id)
+                        ? "#22c55e"
+                        : "#9a5188",
+                    }}
                   >
                     <AddIcon />
                   </IconButton>
@@ -122,20 +157,27 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
                   <ListItemText
                     primary={user.name}
                     primaryTypographyProps={{
-                      sx: { fontSize: 16, textAlign: "right" },
+                      sx: {
+                        fontSize: 14,
+                        fontWeight: 500,
+                        textAlign: "right",
+                        fontFamily: "Rubik, sans-serif",
+                      },
                     }}
                   />
 
                   <ListItemAvatar>
                     <Avatar
                       sx={{
-                        width: 34,
-                        height: 34,
+                        width: 36,
+                        height: 36,
                         bgcolor:
                           user.role === AUTH_ROLES.TRAINEE.id
-                            ? "grey.300"
+                            ? "#e8e8e8"
                             : "#dc87b8",
-                        color: "grey.600",
+                        color:
+                          user.role === AUTH_ROLES.TRAINEE.id ? "#888" : "#fff",
+                        fontSize: 14,
                       }}
                     >
                       <PersonOutlineIcon fontSize="small" />
@@ -146,8 +188,6 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
             );
           })}
         </List>
-
-        <Box sx={{ height: 6 }} />
       </DialogContent>
     </Dialog>
   );

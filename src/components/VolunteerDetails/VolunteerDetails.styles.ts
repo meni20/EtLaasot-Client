@@ -2,12 +2,13 @@ import { makeStyles } from "@mui/styles";
 
 export const useVolunteerDetailsStyles = makeStyles({
   paper: {
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: "hidden",
-    boxShadow: "0 18px 60px rgba(0,0,0,0.18)",
+    boxShadow: "0 16px 48px rgba(0,0,0,0.18)",
+    fontFamily: "Rubik, sans-serif",
   },
   header: {
-    padding: "14px 16px",
+    padding: "18px 20px",
     background: "linear-gradient(135deg, #9a5188 0%, #7a3e6b 100%)",
     color: "#fff",
   },

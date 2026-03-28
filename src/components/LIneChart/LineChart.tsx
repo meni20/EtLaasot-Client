@@ -1,16 +1,10 @@
 import { type EChartsOption } from "echarts";
 import ReactECharts from "echarts-for-react";
-import { useDataContext } from "../../contexts/DataContext.context";
-import { useEffect, useMemo } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useDataContext } from "../../contexts/useDataContext";
+import { useMemo } from "react";
 
 export const LineChart = () => {
   const { events } = useDataContext();
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ["events"] });
-  }, []);
 
   const labels = useMemo(() => {
     return events
@@ -34,6 +28,13 @@ export const LineChart = () => {
     tooltip: {
       trigger: "axis",
     },
+    grid: {
+      left: 40,
+      right: 20,
+      top: 20,
+      bottom: 60,
+      containLabel: true,
+    },
     yAxis: {
       type: "value",
       scale: true,
@@ -43,6 +44,8 @@ export const LineChart = () => {
       data: labels,
       axisLabel: {
         rotate: 45,
+        fontFamily: "Rubik, sans-serif",
+        fontSize: 12,
       },
     },
     series: [
@@ -50,9 +53,15 @@ export const LineChart = () => {
         data: values,
         type: "line",
         smooth: true,
-        color: "red",
+        color: "#9a5188",
+        areaStyle: { opacity: 0.1, color: "#9a5188" },
+        lineStyle: { width: 3 },
+        symbolSize: 8,
+        itemStyle: { color: "#9a5188" },
       },
     ],
   };
-  return <ReactECharts option={option} style={{ height: 500, width: 1200 }} />;
+  return (
+    <ReactECharts option={option} style={{ height: 400, width: "100%" }} />
+  );
 };
