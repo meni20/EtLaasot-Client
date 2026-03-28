@@ -12,6 +12,7 @@ import CardActions from "@mui/material/CardActions";
 import { formatDate } from "../../utils/data.utillity";
 import userService from "../../services/user.service";
 import type { IUser } from "../../interfaces/user.interface";
+import { useBranch } from "../../contexts/useBranch";
 import { AddAttendeeDialog } from "../AddAttendeeDialog/AddAttendeeDialog";
 import { EventAtendeeDialog } from "../EventAtendeeDialog/EventAtendeeDialog";
 
@@ -22,12 +23,13 @@ export const BasicCard: React.FC<ICardProps> = ({
   address,
 }) => {
   const classes = useCardStyles();
+  const { activeBranch } = useBranch();
   const [open, setOpen] = useState<boolean>(false);
   const [isAddAttenddeOpen, setIsAddAtendeeOpen] = useState<boolean>(false);
 
   const { data: allUsers } = useQuery({
-    queryKey: ["users"],
-    queryFn: () => userService.getAllUsers(),
+    queryKey: ["users", activeBranch],
+    queryFn: () => userService.getAllUsers(activeBranch ?? undefined),
     select: (data) =>
       [...data].sort((a, b) => {
         const roleA = a.userRoles?.[0]?.roleId ?? Infinity;
@@ -81,7 +83,6 @@ export const BasicCard: React.FC<ICardProps> = ({
           open={isAddAttenddeOpen}
           onClose={() => setIsAddAtendeeOpen(false)}
           users={formattedVolunteers || []}
-          onDelete={() => {}}
         />
       )}
 
@@ -90,7 +91,6 @@ export const BasicCard: React.FC<ICardProps> = ({
           open={open}
           onClose={() => setOpen(false)}
           eventId={eventId}
-          onDelete={() => {}}
         />
       )}
     </Box>

@@ -23,7 +23,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({ open, onClose }) => {
       PaperProps={{ className: classes.drawerPaper }}
     >
       <Typography variant="h6" className={classes.header}>
-        Menu
+        תפריט
       </Typography>
 
       <List>

@@ -8,8 +8,7 @@ export interface IAddAttendeeDialogProps {
     id: string;
     name: string;
     email: string;
-    role: number;
+    role?: number;
     events?: IEvent[];
   }>;
-  onDelete: (id: string) => void;
 }

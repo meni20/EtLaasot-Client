@@ -8,45 +8,42 @@ export class EventService {
     this.api = axios.create({
       baseURL: `${import.meta.env.VITE_SERVER_URL}/event`,
     });
+    this.api.interceptors.request.use((config) => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    });
   }
 
   public async createEvent(eventData: IEvent) {
-    try {
-      const res = await this.api.post("/create-event", eventData);
-      return res.data;
-    } catch (err) {
-      console.log(err);
-    }
+    const res = await this.api.post("/create-event", eventData);
+    return res.data;
   }
 
-  public async getAllEvents() {
-    try {
-      const res = await this.api.get("get-all-events");
-      return res.data;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
+  public async getAllEvents(branchId?: string) {
+    const res = await this.api.get("/get-all-events", {
+      params: branchId ? { branchId } : {},
+    });
+    return res.data;
+  }
+
+  public async getUpcomingEvents(branchId: string, limit = 5) {
+    const res = await this.api.get(`/upcoming/${branchId}`, {
+      params: { limit },
+    });
+    return res.data;
   }
 
   public async addAttendeeToEvent(userId: string, eventId: string) {
-    try {
-      const res = await this.api.post("/add-attendee", { userId, eventId });
-      return res.data;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
+    const res = await this.api.post("/add-attendee", { userId, eventId });
+    return res.data;
   }
 
   public async getEventAttendees(eventId: string) {
-    try {
-      const res = await this.api.post(`/get-attendees-by-event/${eventId}`);
-      return res.data;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
+    const res = await this.api.get(`/get-attendees-by-event/${eventId}`);
+    return res.data;
   }
 }
 

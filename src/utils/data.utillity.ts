@@ -6,19 +6,23 @@ export const formatDate = (date: Date): string => {
 
   return `${day}/${month}/${year}`;
 };
-export const isValidIsraeliId = (id: string): boolean => {
-  if (!/^\d{9}$/.test(id)) return false;
-
-  const digits = id.split("").map(Number);
-
-  const sum = digits.reduce((acc, digit, index) => {
-    const step = digit * ((index % 2) + 1);
-    return acc + (step > 9 ? step - 9 : step);
-  }, 0);
-
-  return sum % 10 === 0;
-};
 
 export const isValidIsraeliPhone = (phone: string): boolean => {
   return /^(\+972|972|0)5\d{8}$/.test(phone);
+};
+
+export const isValidIsraeliId = (id: string): boolean => {
+  if (!/^\d{5,9}$/.test(id)) return false;
+
+  const paddedId = id.padStart(9, "0");
+
+  const sum = paddedId
+    .split("")
+    .map((digit, index) => {
+      const num = Number(digit) * ((index % 2) + 1);
+      return num > 9 ? num - 9 : num;
+    })
+    .reduce((acc, curr) => acc + curr, 0);
+
+  return sum % 10 === 0;
 };

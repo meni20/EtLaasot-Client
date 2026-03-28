@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Box, Button } from "@mui/material";
+import { useState, useMemo } from "react";
+import { Box, Button, Typography } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { COLUMNS } from "./Volunteer.constants";
 import { useQuery } from "@tanstack/react-query";
@@ -8,19 +8,22 @@ import type { IUser } from "../../../interfaces/user.interface";
 import { useVolunteerPageStyles } from "./VolunteerPage.styles";
 import { VolunteerDetails } from "../../../components/VolunteerDetails/VolunteerDetails";
 import { CreateVolunteer } from "../../../components/CreateVolunteerPopup/CreateVolunteer";
+import { useBranch } from "../../../contexts/useBranch";
 
 export const VolunteerPage: React.FC = () => {
   const styles = useVolunteerPageStyles();
+  const { activeBranch } = useBranch();
   const [open, setOpen] = useState<boolean>(false);
   const [isDialogDetailsOpen, setIsDialogDetailsOpen] =
     useState<boolean>(false);
   const [selectedVolunteer, setSelectedVolunteer] = useState<IUser>(
-    {} as IUser
+    {} as IUser,
   );
 
   const { data: allVolunteers, isFetching: isFetchingVolunteers } = useQuery({
-    queryKey: ["volunteers"],
-    queryFn: () => userService.getAllVolunteers(),
+    queryKey: ["volunteers", activeBranch],
+    queryFn: () => userService.getAllVolunteers(activeBranch ?? undefined),
+    enabled: !!activeBranch,
   });
 
   const rowsData = useMemo(() => {
@@ -37,21 +40,14 @@ export const VolunteerPage: React.FC = () => {
   }, [allVolunteers]);
 
   return (
-    <Box
-      sx={{
-        height: "85%",
-        width: "90%",
-        position: "absolute",
-        top: "12%",
-        left: "5%",
-      }}
-    >
-      <Box sx={{ mb: 2 }}>
+    <Box className={styles.container}>
+      <Box className={styles.header}>
+        <Typography className={styles.pageTitle}>מתנדבים</Typography>
         <Button className={styles.createButton} onClick={() => setOpen(true)}>
-          יצירת מתנדב חדש
+          + יצירת מתנדב חדש
         </Button>
       </Box>
-      <Box sx={{ height: "90%" }}>
+      <Box className={styles.dataGridBox}>
         <DataGrid
           rows={rowsData}
           columns={COLUMNS}

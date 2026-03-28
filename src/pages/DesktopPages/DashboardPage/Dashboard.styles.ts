@@ -1,0 +1,150 @@
+import { makeStyles } from "@mui/styles";
+
+export const useDashboardStyles = makeStyles({
+    root: {
+        padding: "88px 24px 24px",
+        direction: "rtl",
+        minHeight: "100vh",
+        backgroundColor: "#f9f9f9",
+        animation: "fadeIn 0.4s ease-out",
+    },
+    header: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 24,
+        animation: "fadeInDown 0.5s ease-out",
+    },
+    title: {
+        fontFamily: "Rubik, sans-serif",
+        fontWeight: 700,
+        color: "#333",
+    },
+    summaryGrid: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+        gap: 16,
+        marginBottom: 32,
+    },
+    summaryCard: {
+        background: "#fff",
+        borderRadius: 20,
+        padding: "24px 20px",
+        textAlign: "center",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+        border: "1px solid #f0ecef",
+        transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
+        animation: "fadeInUp 0.5s ease-out both",
+        cursor: "default",
+        "&:hover": {
+            transform: "translateY(-6px) scale(1.02)",
+            boxShadow: "0 12px 32px rgba(154, 81, 136, 0.16)",
+            borderColor: "rgba(154, 81, 136, 0.2)",
+        },
+    },
+    summaryIcon: {
+        fontSize: "2.2rem",
+        marginBottom: 6,
+        transition: "transform 0.3s ease",
+        "$summaryCard:hover &": {
+            transform: "scale(1.15)",
+        },
+    },
+    summaryValue: {
+        fontSize: "1.8rem",
+        fontWeight: 700,
+        color: "#9a5188",
+        fontFamily: "Rubik, sans-serif",
+        transition: "color 0.2s ease",
+    },
+    summaryLabel: {
+        fontSize: "0.85rem",
+        color: "#666",
+        fontFamily: "Rubik, sans-serif",
+    },
+    chartsGrid: {
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 24,
+        marginBottom: 32,
+    },
+    chartCard: {
+        background: "#fff",
+        borderRadius: 20,
+        padding: 24,
+        boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+        border: "1px solid #f0ecef",
+        transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s ease",
+        animation: "fadeInUp 0.6s ease-out both",
+        "&:hover": {
+            transform: "translateY(-3px)",
+            boxShadow: "0 8px 28px rgba(154, 81, 136, 0.1)",
+        },
+    },
+    chartTitle: {
+        fontFamily: "Rubik, sans-serif",
+        fontWeight: 600,
+        color: "#333",
+        marginBottom: 12,
+        fontSize: "1rem",
+    },
+    tableCard: {
+        background: "#fff",
+        borderRadius: 20,
+        padding: 24,
+        boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+        border: "1px solid #f0ecef",
+        marginBottom: 24,
+        animation: "fadeInUp 0.7s ease-out both",
+        transition: "box-shadow 0.3s ease",
+        "&:hover": {
+            boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+        },
+    },
+    alertsContainer: {
+        display: "flex",
+        flexDirection: "column" as const,
+        gap: 8,
+        marginBottom: 24,
+    },
+    alertItem: {
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        padding: "12px 18px",
+        borderRadius: 14,
+        fontFamily: "Rubik, sans-serif",
+        fontSize: "0.9rem",
+        animation: "slideInRight 0.4s ease-out both",
+        transition: "transform 0.2s ease, box-shadow 0.2s ease",
+        "&:hover": {
+            transform: "translateX(-2px)",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+        },
+    },
+    alertWarning: {
+        backgroundColor: "#fff3e0",
+        color: "#e65100",
+        borderRight: "4px solid #e65100",
+    },
+    alertSuccess: {
+        backgroundColor: "#e8f5e9",
+        color: "#2e7d32",
+        borderRight: "4px solid #2e7d32",
+    },
+    alertError: {
+        backgroundColor: "#fce4ec",
+        color: "#c62828",
+        borderRight: "4px solid #c62828",
+    },
+    alertInfo: {
+        backgroundColor: "#e3f2fd",
+        color: "#1565c0",
+        borderRight: "4px solid #1565c0",
+    },
+    "@media (max-width: 900px)": {
+        chartsGrid: {
+            gridTemplateColumns: "1fr",
+        },
+    },
+});

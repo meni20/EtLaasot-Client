@@ -1,4 +1,4 @@
-import { Box, Button } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { useMemo, useState } from "react";
 import { COLUMNS } from "./Trainee.constants";
@@ -7,8 +7,12 @@ import userService from "../../../services/user.service";
 import type { IUser } from "../../../interfaces/user.interface";
 import { CreateTrainee } from "../../../components/CreateTrainee/CreateTrainee";
 import { VolunteerDetails } from "../../../components/VolunteerDetails/VolunteerDetails";
+import { useBranch } from "../../../contexts/useBranch";
+import { useTraineePageStyles } from "./TraineePage.styles";
 
 export const TraineePage: React.FC = () => {
+  const styles = useTraineePageStyles();
+  const { activeBranch } = useBranch();
   const [open, setOpen] = useState<boolean>(false);
   const [isDialogDetailsOpen, setIsDialogDetailsOpen] =
     useState<boolean>(false);
@@ -17,8 +21,9 @@ export const TraineePage: React.FC = () => {
   );
 
   const { data: allTrainees, isFetching: isFetchingTrainees } = useQuery({
-    queryKey: ["trainees"],
-    queryFn: () => userService.getAllTreanees(),
+    queryKey: ["trainees", activeBranch],
+    queryFn: () => userService.getAllTrainees(activeBranch ?? undefined),
+    enabled: !!activeBranch,
   });
 
   const rowsData = useMemo(() => {
@@ -35,21 +40,14 @@ export const TraineePage: React.FC = () => {
   }, [allTrainees]);
 
   return (
-    <Box
-      sx={{
-        height: "85%",
-        width: "90%",
-        position: "absolute",
-        top: "12%",
-        left: "5%",
-      }}
-    >
-      <Box sx={{ mb: 2 }}>
-        <Button variant="contained" onClick={() => setOpen(true)}>
-          יצירת חניך חדש
+    <Box className={styles.container}>
+      <Box className={styles.header}>
+        <Typography className={styles.pageTitle}>חניכים</Typography>
+        <Button className={styles.createButton} onClick={() => setOpen(true)}>
+          + יצירת חניך חדש
         </Button>
       </Box>
-      <Box sx={{ height: "90%" }}>
+      <Box className={styles.dataGridBox}>
         <DataGrid
           rows={rowsData}
           columns={COLUMNS}
