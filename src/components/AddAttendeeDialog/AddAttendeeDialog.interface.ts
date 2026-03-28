@@ -4,7 +4,7 @@ export interface IAddAttendeeDialogProps {
   eventId: string;
   open: boolean;
   onClose: () => void;
-  users: Array<{
+  users?: Array<{
     id: string;
     name: string;
     email: string;

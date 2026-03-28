@@ -16,7 +16,9 @@ export const TraineePage: React.FC = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [isDialogDetailsOpen, setIsDialogDetailsOpen] =
     useState<boolean>(false);
-  const [selectedTrainee, setSelectedTrainee] = useState<IUser>({} as IUser);
+  const [selectedVolunteer, setSelectedVolunteer] = useState<IUser>(
+    {} as IUser
+  );
 
   const { data: allTrainees, isFetching: isFetchingTrainees } = useQuery({
     queryKey: ["trainees", activeBranch],
@@ -52,7 +54,7 @@ export const TraineePage: React.FC = () => {
           loading={isFetchingTrainees}
           onRowClick={(params) => {
             setIsDialogDetailsOpen(true);
-            setSelectedTrainee(params.row);
+            setSelectedVolunteer(params.row);
           }}
         />
       </Box>
@@ -61,7 +63,7 @@ export const TraineePage: React.FC = () => {
         <VolunteerDetails
           open={isDialogDetailsOpen}
           onClose={() => setIsDialogDetailsOpen(false)}
-          volunteerData={selectedTrainee}
+          volunteerData={selectedVolunteer}
         />
       )}
     </Box>

@@ -1,5 +1,3 @@
-import type { IUser } from "../interfaces/user.interface";
-
 export const formatDate = (date: Date): string => {
   const dateObj = new Date(date);
   const day = String(dateObj?.getDate()).padStart(2, "0");

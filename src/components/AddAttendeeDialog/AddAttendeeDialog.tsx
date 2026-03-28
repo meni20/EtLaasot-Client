@@ -97,7 +97,7 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
         }}
       >
         <List disablePadding>
-          {users.map((user, index) => {
+          {users?.map((user, index) => {
             const prevRole = users[index - 1]?.role;
             const isFirstOfRole = index === 0 || user.role !== prevRole;
 

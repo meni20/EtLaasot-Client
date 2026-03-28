@@ -1,16 +1,15 @@
+import { Box } from "@mui/material";
 import Card from "@mui/material/Card";
 import Button from "@mui/material/Button";
+import { useMemo, useState } from "react";
+import AddIcon from "@mui/icons-material/Add";
+import { useCardStyles } from "./Card.styles";
+import { useQuery } from "@tanstack/react-query";
 import Typography from "@mui/material/Typography";
 import type { ICardProps } from "./Card.interface";
 import CardContent from "@mui/material/CardContent";
 import CardActions from "@mui/material/CardActions";
 import { formatDate } from "../../utils/data.utillity";
-import { Box } from "@mui/material";
-import { useMemo, useState } from "react";
-import { EventAtendeeDialog } from "../EventAtendeeDialog/EventAtendeeDialog";
-import AddIcon from "@mui/icons-material/Add";
-import { AddAttendeeDialog } from "../AddAttendeeDialog/AddAttendeeDialog";
-import { useQuery } from "@tanstack/react-query";
 import userService from "../../services/user.service";
 import type { IUser } from "../../interfaces/user.interface";
 import { useCardStyles } from "./Card.styles";
@@ -43,7 +42,7 @@ export const BasicCard: React.FC<ICardProps> = ({
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.userRoles?.[0]?.roleId,
+      role: user.userRoles?.[0]?.roleId ?? 0,
       events: user.events,
     }));
   }, [allUsers]);
