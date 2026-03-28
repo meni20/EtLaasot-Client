@@ -12,8 +12,9 @@ import CardActions from "@mui/material/CardActions";
 import { formatDate } from "../../utils/data.utillity";
 import userService from "../../services/user.service";
 import type { IUser } from "../../interfaces/user.interface";
-import { useCardStyles } from "./Card.styles";
 import { useBranch } from "../../contexts/useBranch";
+import { AddAttendeeDialog } from "../AddAttendeeDialog/AddAttendeeDialog";
+import { EventAtendeeDialog } from "../EventAtendeeDialog/EventAtendeeDialog";
 
 export const BasicCard: React.FC<ICardProps> = ({
   eventId,
