@@ -7,7 +7,8 @@ export interface IUser {
   address: string;
   email: string;
   age: number;
-  userRoles: IUserRole[];
+  branchId?: string;
+  userRoles?: IUserRole[];
   events?: IEvent[];
 
   // Timestamps
@@ -18,4 +19,8 @@ export interface IUser {
 
 export interface IUserRole {
   roleId: number;
+  resourceId?: string;
+  branchId?: string;
+  branchName?: string;
+  role?: string;
 }

@@ -4,9 +4,10 @@ import {
   Dialog,
   IconButton,
   TextField,
-  Typography,
+  Snackbar,
+  Alert,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
@@ -19,6 +20,7 @@ import {
 } from "../../utils/validators.util";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ICreateTraineeProps } from "./CreateTrainee.interface";
+import { useBranch } from "../../contexts/useBranch";
 
 export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
   open,
@@ -26,8 +28,10 @@ export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
 }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const [errorMsg, setErrorMsg] = useState<string>("");
   const queryClient = useQueryClient();
-  const [form, setFrom] = useState<IUser>({
+  const { activeBranch } = useBranch();
+  const [form, setForm] = useState<IUser>({
     name: "",
     id: "",
     age: 0,
@@ -39,7 +43,7 @@ export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, valueAsNumber } = e.target;
 
-    setFrom((prev) => ({
+    setForm((prev) => ({
       ...prev,
       [name]:
         name === "age"
@@ -50,7 +54,7 @@ export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
     }));
   };
 
-  const handleCreateVolunteer = async () => {
+  const handleCreateTrainee = async () => {
     const validationErrors = validateFormVolunteer(form);
 
     if (Object.keys(validationErrors).length > 0) {
@@ -62,23 +66,32 @@ export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
       age: Number(form.age),
     };
 
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    await userService.createTrainee(payload);
+      await userService.createTrainee({
+        ...payload,
+        branchId: activeBranch ?? undefined,
+      });
 
-    await queryClient.invalidateQueries({ queryKey: ["trainees"] });
+      await queryClient.invalidateQueries({ queryKey: ["trainees"] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
 
-    setFrom({
-      name: "",
-      id: "",
-      age: 0,
-      phoneNumber: "",
-      address: "",
-      email: "",
-    });
-    setErrors({});
-    setLoading(false);
-    onClose();
+      setForm({
+        name: "",
+        id: "",
+        age: 0,
+        phoneNumber: "",
+        address: "",
+        email: "",
+      });
+      setErrors({});
+      onClose();
+    } catch (error) {
+      setErrorMsg("שגיאה ביצירת חניך, נסה שוב");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -86,87 +99,164 @@ export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
       <Dialog
         open={open}
         onClose={onClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
+        PaperProps={{
+          sx: {
+            overflow: "hidden",
+            minWidth: 440,
+            direction: "rtl",
+            fontFamily: "Rubik, sans-serif",
+          },
+        }}
       >
-        <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
+        <DialogTitle
+          sx={{
+            fontWeight: 700,
+            fontSize: 18,
+            textAlign: "center",
+            background: "linear-gradient(135deg, #9a5188 0%, #7a3e6b 100%)",
+            color: "#fff",
+            padding: "14px 24px",
+            fontFamily: "Rubik, sans-serif",
+          }}
+        >
           יצירת חניך
         </DialogTitle>
         <IconButton
           aria-label="close"
           onClick={onClose}
-          sx={(theme) => ({
+          sx={{
             position: "absolute",
-            right: 8,
+            left: 8,
             top: 8,
-            color: theme.palette.grey[500],
-          })}
+            color: "#fff",
+            backgroundColor: "rgba(0,0,0,0.15)",
+            "&:hover": { backgroundColor: "rgba(0,0,0,0.25)" },
+          }}
         >
-          <CloseIcon />
+          <CloseIcon fontSize="small" />
         </IconButton>
-        <DialogContent dividers>
-          <Box sx={{ display: "flex", gap: 3 }}>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <DialogContent sx={{ padding: "24px", backgroundColor: "#faf8f9" }}>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 2.5,
+                flex: 1,
+              }}
+            >
               <TextField
-                label={"name"}
+                label="שם מלא"
                 value={form.name}
                 onChange={handleChange}
                 name="name"
                 error={!!errors.name}
-                helperText={errors.id}
+                helperText={errors.name}
+                fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
               <TextField
-                label={"ID"}
+                label="תעודת זהות"
                 value={form.id}
                 onChange={handleChange}
                 name="id"
                 error={!!errors.id}
                 helperText={errors.id}
+                fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
               <TextField
-                label={"age"}
+                label="גיל"
                 type="number"
                 value={form.age}
                 onChange={handleChange}
                 name="age"
                 error={!!errors.age}
                 helperText={errors.age}
+                fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
             </Box>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 2.5,
+                flex: 1,
+              }}
+            >
               <TextField
-                label={"Phone number"}
+                label="טלפון"
                 value={form.phoneNumber}
                 onChange={handleChange}
                 name="phoneNumber"
                 error={!!errors.phoneNumber}
                 helperText={errors.phoneNumber}
+                fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
               <TextField
-                label={"address"}
+                label="כתובת"
                 value={form.address}
                 onChange={handleChange}
                 name="address"
                 error={!!errors.address}
                 helperText={errors.address}
+                fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
               <TextField
-                label={"Email"}
+                label="אימייל"
                 value={form.email}
                 onChange={handleChange}
                 name="email"
                 error={!!errors.email}
                 helperText={errors.email}
+                fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
             </Box>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button autoFocus onClick={handleCreateVolunteer} disabled={loading}>
-            {loading ? "Creating..." : "Create Trainee"}
+        <DialogActions
+          sx={{ padding: "12px 24px 16px", backgroundColor: "#faf8f9" }}
+        >
+          <Button
+            onClick={handleCreateTrainee}
+            disabled={loading || !form.name.trim() || !form.id.trim()}
+            variant="contained"
+            fullWidth
+            sx={{
+              borderRadius: 3,
+              height: 44,
+              fontWeight: 700,
+              fontSize: 15,
+              textTransform: "none",
+              fontFamily: "Rubik, sans-serif",
+              background: "linear-gradient(135deg, #9a5188 0%, #7a3e6b 100%)",
+              boxShadow: "0 4px 14px rgba(154, 81, 136, 0.3)",
+              "&:hover": {
+                background: "linear-gradient(135deg, #7a3e6b 0%, #5c2d52 100%)",
+              },
+            }}
+          >
+            {loading ? "יוצר..." : "צור חניך"}
           </Button>
         </DialogActions>
       </Dialog>
+      <Snackbar
+        open={!!errorMsg}
+        autoHideDuration={4000}
+        onClose={() => setErrorMsg("")}
+      >
+        <Alert
+          severity="error"
+          onClose={() => setErrorMsg("")}
+          sx={{ width: "100%" }}
+        >
+          {errorMsg}
+        </Alert>
+      </Snackbar>
     </React.Fragment>
   );
 };

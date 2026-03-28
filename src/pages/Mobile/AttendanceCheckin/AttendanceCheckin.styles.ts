@@ -1,0 +1,92 @@
+import { makeStyles } from "@mui/styles";
+
+export const useStyles = makeStyles({
+    root: {
+        direction: "rtl",
+        padding: "88px 16px 90px",
+        maxWidth: 520,
+        margin: "0 auto",
+        minHeight: "100vh",
+        backgroundColor: "#f9f9f9",
+        animation: "fadeIn 0.4s ease-out",
+    },
+    header: {
+        fontWeight: 700,
+        fontSize: 22,
+        marginBottom: 4,
+        color: "#333",
+        fontFamily: "Rubik, sans-serif",
+        animation: "fadeInDown 0.5s ease-out",
+    },
+    subtitle: {
+        fontSize: 13,
+        color: "#999",
+        marginBottom: 24,
+        fontFamily: "Rubik, sans-serif",
+        animation: "fadeInDown 0.5s 0.1s ease-out both",
+    },
+    attendeeRow: {
+        borderRadius: 16,
+        padding: "12px 16px",
+        backgroundColor: "#fff",
+        border: "1px solid #f0ecef",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+        marginBottom: 8,
+        transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
+        animation: "fadeInUp 0.4s ease-out both",
+        "&:active": { transform: "scale(0.98)" },
+    },
+    attendeeName: {
+        fontWeight: 600,
+        fontSize: 14,
+        color: "#333",
+        fontFamily: "Rubik, sans-serif",
+    },
+    checkedIn: {
+        backgroundColor: "#f0fdf4",
+        borderColor: "#bbf7d0",
+        boxShadow: "0 2px 12px rgba(34, 197, 94, 0.12)",
+        borderRight: "4px solid #22c55e",
+    },
+    saveButton: {
+        borderRadius: 14,
+        height: 50,
+        fontWeight: 700,
+        fontSize: 15,
+        textTransform: "none" as const,
+        marginTop: 24,
+        fontFamily: "Rubik, sans-serif",
+        boxShadow: "0 4px 16px rgba(154, 81, 136, 0.25)",
+        transition: "all 0.3s ease",
+        animation: "fadeInUp 0.6s ease-out both",
+        "&:hover": {
+            transform: "translateY(-2px)",
+            boxShadow: "0 8px 24px rgba(154, 81, 136, 0.35)",
+        },
+        "&:active": { transform: "scale(0.98)" },
+    },
+    notesField: {
+        "& .MuiOutlinedInput-root": {
+            borderRadius: 14,
+            transition: "box-shadow 0.3s ease",
+            "&.Mui-focused": {
+                boxShadow: "0 0 0 3px rgba(154, 81, 136, 0.12)",
+            },
+        },
+    },
+    loading: {
+        textAlign: "center" as const,
+        marginTop: 60,
+        color: "#bbb",
+        animation: "pulse 1.5s ease-in-out infinite",
+    },
+    backButton: {
+        marginBottom: 12,
+        textTransform: "none" as const,
+        fontWeight: 600,
+        fontFamily: "Rubik, sans-serif",
+        color: "#9a5188",
+        transition: "all 0.2s ease",
+        "&:hover": { transform: "translateX(4px)" },
+    },
+});
