@@ -9,6 +9,7 @@ export const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const [identifyId, setIdentifyId] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleSubmit = async () => {
     if (!identifyId) {
@@ -22,10 +23,13 @@ export const LoginPage: React.FC = () => {
     }
 
     setError("");
+    setLoading(true);
     try {
       await login(identifyId);
     } catch {
       setError("Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -58,8 +62,9 @@ export const LoginPage: React.FC = () => {
           variant="contained"
           className={styles.button}
           onClick={handleSubmit}
+          disabled={loading || !identifyId}
         >
-          התחבר
+          {loading ? "מתחבר..." : "התחבר"}
         </Button>
       </Box>
     </Box>

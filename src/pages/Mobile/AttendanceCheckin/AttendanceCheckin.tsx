@@ -125,7 +125,7 @@ export const AttendanceCheckinPage: React.FC = () => {
           variant="contained"
           className={styles.saveButton}
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || checkedIds.size === 0}
           sx={{
             bgcolor: "#9a5188",
             "&:hover": { bgcolor: "#7a3e6b" },

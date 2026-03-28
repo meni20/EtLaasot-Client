@@ -224,7 +224,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
         >
           <Button
             onClick={handleCreateVolunteer}
-            disabled={loading}
+            disabled={loading || !form.name.trim() || !form.id.trim()}
             variant="contained"
             fullWidth
             sx={{

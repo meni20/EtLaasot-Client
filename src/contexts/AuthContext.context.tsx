@@ -12,7 +12,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [token, setToken] = useState<string | null>(() =>
     localStorage.getItem("token"),
   );
-  const [loading, setLoading] = useState<boolean>(() => !!localStorage.getItem("token"));
+  const [loading, setLoading] = useState<boolean>(
+    () => !!localStorage.getItem("token"),
+  );
 
   useEffect(() => {
     if (token) {
@@ -34,6 +36,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     const data = await authService.login(userId);
     const accessToken = data.token;
     localStorage.setItem("token", accessToken);
+    setLoading(true);
     setToken(accessToken);
   }, []);
 

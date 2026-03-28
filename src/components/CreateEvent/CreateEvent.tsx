@@ -208,7 +208,7 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
         >
           <Button
             onClick={handleCreateEvent}
-            disabled={loading}
+            disabled={loading || !form.name.trim()}
             variant="contained"
             fullWidth
             sx={{

@@ -14,9 +14,14 @@ export const ProfilePage: React.FC = () => {
   const { user, logout } = useAuth();
   const { activeBranch, availableBranches } = useBranch();
 
+  const isVolunteer = user?.roles?.some(
+    (r) => r.roleId === AUTH_ROLES.VOLUNTEER.id,
+  );
+
   const { data: myTrainees = [] } = useQuery<IMentorAssignment[]>({
     queryKey: ["myTrainees"],
     queryFn: () => mentorAssignmentService.getMyTrainees(),
+    enabled: !!isVolunteer,
   });
 
   const activeTrainees = myTrainees.filter((a) => a.isActive).length;
@@ -40,10 +45,14 @@ export const ProfilePage: React.FC = () => {
       <Typography className={styles.role}>{userRoles.join(" • ")}</Typography>
 
       <Box className={styles.statsRow}>
-        <Box className={styles.statCard}>
-          <Typography className={styles.statValue}>{activeTrainees}</Typography>
-          <Typography className={styles.statLabel}>חניכים</Typography>
-        </Box>
+        {isVolunteer && (
+          <Box className={styles.statCard}>
+            <Typography className={styles.statValue}>
+              {activeTrainees}
+            </Typography>
+            <Typography className={styles.statLabel}>חניכים</Typography>
+          </Box>
+        )}
         <Box className={styles.statCard}>
           <Typography className={styles.statValue}>
             {user?.roles?.length ?? 0}

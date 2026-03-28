@@ -223,7 +223,7 @@ export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
         >
           <Button
             onClick={handleCreateTrainee}
-            disabled={loading}
+            disabled={loading || !form.name.trim() || !form.id.trim()}
             variant="contained"
             fullWidth
             sx={{
