@@ -9,10 +9,13 @@ export class AuthService {
     });
   }
 
-  public async login(userId: string) {
-    const res = await this.api.post("/login", { userId });
-    return res.data;
-  }
+  public async login(userId: string, captchaToken: string) {
+  const res = await this.api.post("/login", {
+    userId,
+    captchaToken,
+  });
+  return res.data;
+}
 
   public async getMe(token: string) {
     const res = await this.api.get("/me", {
