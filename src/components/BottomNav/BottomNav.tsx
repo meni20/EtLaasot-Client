@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { BottomNavigation, BottomNavigationAction } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import EventIcon from "@mui/icons-material/Event";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import PeopleIcon from "@mui/icons-material/People";
 import PersonIcon from "@mui/icons-material/Person";
 import { useStyles } from "./BottomNav.styles";
@@ -13,12 +14,17 @@ interface NavItem {
   label: string;
   icon: React.ReactNode;
   path: string;
-  /** If set, only these roleIds see this tab */
   allowedRoles?: number[];
 }
 
 const allNavItems: NavItem[] = [
   { label: "בית", icon: <HomeIcon />, path: "/home" },
+  {
+    label: "פעילות",
+    icon: <AccessTimeIcon />,
+    path: "/activity",
+    allowedRoles: [AUTH_ROLES.VOLUNTEER.id],
+  },
   { label: "אירועים", icon: <EventIcon />, path: "/events" },
   {
     label: "החניכים שלי",
@@ -36,7 +42,7 @@ export const BottomNav: React.FC = () => {
   const { user } = useAuth();
 
   const userRoleIds = useMemo(
-    () => user?.roles?.map((r) => r.roleId) ?? [],
+    () => user?.roles?.map((role) => role.roleId) ?? [],
     [user?.roles],
   );
 
@@ -45,7 +51,7 @@ export const BottomNav: React.FC = () => {
       allNavItems.filter(
         (item) =>
           !item.allowedRoles ||
-          item.allowedRoles.some((id) => userRoleIds.includes(id)),
+          item.allowedRoles.some((roleId) => userRoleIds.includes(roleId)),
       ),
     [userRoleIds],
   );

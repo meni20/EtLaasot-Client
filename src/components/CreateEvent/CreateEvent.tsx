@@ -8,7 +8,7 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
@@ -25,7 +25,12 @@ import eventService from "../../services/event.service";
 import { useBranch } from "../../contexts/useBranch";
 import { EVENT_TYPES } from "../../constants/auth.const";
 
-export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
+export const CreateEvent: React.FC<ICreateEventProps> = ({
+  open,
+  onClose,
+  event,
+}) => {
+
   const [loading, setLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [errorMsg, setErrorMsg] = useState<string>("");
@@ -37,7 +42,30 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
     description: "",
     startDate: new Date(),
     endDate: new Date(),
+    eventType: "",
   });
+  useEffect(() => {
+  if (event) {
+    setForm({
+      ...event,
+      name: event.name ?? "",
+      address: event.address ?? "",
+      description: event.description ?? "",
+      startDate: new Date(event.startDate),
+      endDate: new Date(event.endDate),
+      eventType: event.eventType,
+    });
+  } else {
+    setForm({
+      name: "",
+      address: "",
+      description: "",
+      startDate: new Date(),
+      endDate: new Date(),
+      eventType: "",
+    });
+  }
+}, [event]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -59,10 +87,17 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
     try {
       setLoading(true);
 
-      await eventService.createEvent({
-        ...form,
-        branchId: activeBranch ?? undefined,
-      });
+      if (event?.id) {
+  await eventService.updateEvent(event.id, {
+    ...form,
+    branchId: activeBranch ?? undefined,
+  });
+} else {
+  await eventService.createEvent({
+    ...form,
+    branchId: activeBranch ?? undefined,
+  });
+}
 
       await queryClient.invalidateQueries({ queryKey: ["events"] });
       await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
@@ -73,11 +108,12 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
         description: "",
         startDate: new Date(),
         endDate: new Date(),
+        eventType: "",
       });
       setErrors({});
       onClose();
     } catch {
-      setErrorMsg("שגיאה ביצירת אירוע, נסה שוב");
+      setErrorMsg(event ? "שגיאה בעריכת אירוע, נסה שוב" : "שגיאה ביצירת אירוע, נסה שוב");
     } finally {
       setLoading(false);
     }
@@ -108,7 +144,7 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
             fontFamily: "Rubik, sans-serif",
           }}
         >
-          יצירת אירוע
+         {event ? "עריכת אירוע" : "יצירת אירוע"}
         </DialogTitle>
         <IconButton
           aria-label="close"
@@ -225,7 +261,11 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
               },
             }}
           >
-            {loading ? "יוצר..." : "צור אירוע"}
+            {loading
+  ? "טוען..."
+  : event
+  ? "שמור שינויים"
+  : "צור אירוע"}
           </Button>
         </DialogActions>
       </Dialog>

@@ -3,24 +3,26 @@ import type { AxiosInstance } from "axios";
 
 export class AuthService {
   private api: AxiosInstance;
+
   constructor() {
     this.api = axios.create({
       baseURL: `${import.meta.env.VITE_SERVER_URL}/auth`,
     });
   }
 
-  public async login(userId: string, captchaToken: string) {
-  const res = await this.api.post("/login", {
-    userId,
-    captchaToken,
-  });
-  return res.data;
-}
+  public async login(userId: string) {
+    const res = await this.api.post('/login', {
+      userId,
+    });
+
+    return res.data;
+  }
 
   public async getMe(token: string) {
-    const res = await this.api.get("/me", {
+    const res = await this.api.get('/me', {
       headers: { Authorization: `Bearer ${token}` },
     });
+
     return res.data;
   }
 }

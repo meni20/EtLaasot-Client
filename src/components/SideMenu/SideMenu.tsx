@@ -5,15 +5,18 @@ import {
   ListItemIcon,
   ListItemButton,
   Typography,
+  Box,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/useAuth";
 import { menuItems } from "./SideMenu.constants";
-import { type SideMenuProps } from "./SideMenu.interface";
 import { useSideMenuStyles } from "./SIdeMenu.styles";
+import { type SideMenuProps } from "./SideMenu.interface";
 
 export const SideMenu: React.FC<SideMenuProps> = ({ open, onClose }) => {
   const navigate = useNavigate();
   const classes = useSideMenuStyles();
+  const { logout } = useAuth();
 
   return (
     <Drawer
@@ -22,9 +25,23 @@ export const SideMenu: React.FC<SideMenuProps> = ({ open, onClose }) => {
       variant="temporary"
       PaperProps={{ className: classes.drawerPaper }}
     >
-      <Typography variant="h6" className={classes.header}>
-        תפריט
-      </Typography>
+      
+        <Box display="flex" justifyContent="space-between" alignItems="center" className={classes.header}>
+  <Typography variant="h6">תפריט</Typography>
+
+  <ListItemButton
+    onClick={() => {
+      logout();
+      navigate("/login");
+      onClose();
+    }}
+  >
+    <ListItemText primary="התנתקות" />
+  </ListItemButton>
+
+      </Box>
+
+
 
       <List>
         {menuItems.map((item) => (

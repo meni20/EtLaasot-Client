@@ -9,10 +9,10 @@ import Typography from "@mui/material/Typography";
 import type { ICardProps } from "./Card.interface";
 import CardContent from "@mui/material/CardContent";
 import CardActions from "@mui/material/CardActions";
+import { useBranch } from "../../contexts/useBranch";
 import { formatDate } from "../../utils/data.utillity";
 import userService from "../../services/user.service";
 import type { IUser } from "../../interfaces/user.interface";
-import { useBranch } from "../../contexts/useBranch";
 import { AddAttendeeDialog } from "../AddAttendeeDialog/AddAttendeeDialog";
 import { EventAtendeeDialog } from "../EventAtendeeDialog/EventAtendeeDialog";
 
@@ -21,6 +21,7 @@ export const BasicCard: React.FC<ICardProps> = ({
   eventName,
   eventDate,
   address,
+  onEdit,
 }) => {
   const classes = useCardStyles();
   const { activeBranch } = useBranch();
@@ -68,6 +69,13 @@ export const BasicCard: React.FC<ICardProps> = ({
           >
             הצג משתתפים
           </Button>
+          <Button
+           size="small"
+           onClick={onEdit}
+>
+  ערוך
+</Button>
+          
           <Box
             className={classes.addIconBox}
             onClick={() => setIsAddAtendeeOpen(true)}
