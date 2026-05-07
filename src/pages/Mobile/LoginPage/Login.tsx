@@ -1,6 +1,5 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useStyles } from "./Login.styles";
-import ReCAPTCHA from "react-google-recaptcha";
 import { useAuth } from "../../../contexts/useAuth";
 import { isValidIsraeliId } from "../../../utils/data.utillity";
 import { Box, Button, TextField, Typography } from "@mui/material";
@@ -11,7 +10,6 @@ export const LoginPage: React.FC = () => {
   const [identifyId, setIdentifyId] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     if (!identifyId) {
@@ -27,12 +25,8 @@ export const LoginPage: React.FC = () => {
     setError("");
     setLoading(true);
 
-    if (!captchaToken) {
-  setError("אנא אשר שאתה לא רובוט");
-  return;
-}
     try {
-      await login(identifyId, captchaToken);
+      await login(identifyId);
     } catch {
       setError("Login failed");
     } finally {
@@ -43,7 +37,7 @@ export const LoginPage: React.FC = () => {
   return (
     <Box className={styles.container}>
       <Box className={styles.card}>
-        <Typography className={styles.logo}>🤝</Typography>
+        <Typography className={styles.logo}>עת</Typography>
         <Typography className={styles.title}>עת לעשות</Typography>
         <Typography className={styles.subtitle}>
           הזן תעודת זהות כדי להתחבר
@@ -63,13 +57,6 @@ export const LoginPage: React.FC = () => {
           helperText={error}
           className={styles.input}
         />
-        <Box mt={2} display="flex" justifyContent="center">
-  <ReCAPTCHA
-    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-    onChange={(token) => setCaptchaToken(token)}
-  />
-</Box>
-
         <Button
           fullWidth
           variant="contained"
