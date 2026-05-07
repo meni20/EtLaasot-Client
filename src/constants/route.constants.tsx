@@ -2,6 +2,8 @@ import { HomePage } from "../pages/DesktopPages/HomePage/Home";
 import { HomeMobile } from "../pages/Mobile/HomePage/HomeMobile";
 import { EventPage } from "../pages/DesktopPages/EventPage/Event";
 import { EventMobile } from "../pages/Mobile/EventMobile/EventMobile";
+import { ActivitiesPage } from "../pages/DesktopPages/ActivitiesPage/ActivitiesPage";
+import { ActivityMobile } from "../pages/Mobile/ActivityMobile/ActivityMobile";
 import { CalendarPage } from "../pages/DesktopPages/CalendarPage/Calendar";
 import { TraineePage } from "../pages/DesktopPages/TraineePage/TraineePage";
 import { VolunteerPage } from "../pages/DesktopPages/VolunteersPage/VolunteerPage";
@@ -15,11 +17,9 @@ import { AUTH_ROLES } from "./auth.const";
 export interface AppRoute {
   path: string;
   element: React.ReactNode;
-  /** If set, only these roleIds can access this route */
   allowedRoles?: number[];
 }
 
-// Desktop routes — SUPER_ADMIN & BRANCH_ADMIN
 export const DESKTOP_ROUTES: AppRoute[] = [
   { path: "/", element: <DashboardPage /> },
   { path: "/dashboard", element: <DashboardPage /> },
@@ -27,14 +27,19 @@ export const DESKTOP_ROUTES: AppRoute[] = [
   { path: "/volunteers", element: <VolunteerPage /> },
   { path: "/calendar", element: <CalendarPage /> },
   { path: "/events", element: <EventPage /> },
+  { path: "/activities", element: <ActivitiesPage /> },
   { path: "/trainee", element: <TraineePage /> },
   { path: "/mentor-assignments", element: <MentorAssignmentPage /> },
 ];
 
-// Mobile routes — VOLUNTEER & TRAINEE
 export const MOBILE_ROUTES: AppRoute[] = [
   { path: "/", element: <HomeMobile /> },
   { path: "/home", element: <HomeMobile /> },
+  {
+    path: "/activity",
+    element: <ActivityMobile />,
+    allowedRoles: [AUTH_ROLES.VOLUNTEER.id],
+  },
   { path: "/events", element: <EventMobile /> },
   {
     path: "/events/:eventId/attendance",
@@ -49,11 +54,9 @@ export const MOBILE_ROUTES: AppRoute[] = [
   { path: "/profile", element: <ProfilePage /> },
 ];
 
-/** Desktop role IDs */
 export const DESKTOP_ROLE_IDS = [
   AUTH_ROLES.SUPER_ADMIN.id,
   AUTH_ROLES.BRANCH_ADMIN.id,
 ];
 
-/** Mobile role IDs */
 export const MOBILE_ROLE_IDS = [AUTH_ROLES.VOLUNTEER.id, AUTH_ROLES.TRAINEE.id];

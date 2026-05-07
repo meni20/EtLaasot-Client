@@ -2,6 +2,7 @@ import HomeIcon from "@mui/icons-material/Home";
 import PeopleIcon from "@mui/icons-material/People";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import GroupsIcon from "@mui/icons-material/Groups";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { CalendarIcon } from "../../icons/CalendarIcon";
 import { ReportIcon } from "../../icons/ReportsIcon";
 
@@ -17,6 +18,7 @@ export const menuItems: MenuItem[] = [
   { label: "מתנדבים", icon: <PeopleIcon />, path: "/volunteers" },
   { label: "לוח שנה", icon: <CalendarIcon />, path: "/calendar" },
   { label: "אירועים", icon: <ReportIcon />, path: "/events" },
+  { label: "פעילויות", icon: <AccessTimeIcon />, path: "/activities" },
   { label: "חניכים", icon: <PeopleIcon />, path: "/trainee" },
   { label: "שיבוץ חונכים", icon: <GroupsIcon />, path: "/mentor-assignments" },
 ];

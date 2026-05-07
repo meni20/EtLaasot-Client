@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
+import Navbar from "../components/Navbar/Navbar";
 import { Box, CircularProgress } from "@mui/material";
 import { Route, Routes, Navigate } from "react-router-dom";
-import Navbar from "../components/Navbar/Navbar";
 import { SideMenu } from "../components/SideMenu/SideMenu";
 import { NavbarMobile } from "../components/NavbarMobile/NavbarMobile";
 import {

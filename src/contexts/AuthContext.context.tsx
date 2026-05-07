@@ -32,13 +32,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [token]);
 
-  const login = useCallback(async (userId: string, captchaToken: string) => {
-  const data = await authService.login(userId, captchaToken);
-  const accessToken = data.token;
-  localStorage.setItem("token", accessToken);
-  setLoading(true);
-  setToken(accessToken);
-}, []);
+  const login = useCallback(async (userId: string) => {
+    const data = await authService.login(userId);
+    const accessToken = data.token;
+
+    localStorage.setItem('token', accessToken);
+    setLoading(true);
+    setToken(accessToken);
+  }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem("token");

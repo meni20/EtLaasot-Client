@@ -45,6 +45,11 @@ export class EventService {
     const res = await this.api.get(`/get-attendees-by-event/${eventId}`);
     return res.data;
   }
+
+  public async updateEvent(eventId: string, eventData: IEvent) {
+  const res = await this.api.put(`/update-event/${eventId}`, eventData);
+  return res.data;
+}
 }
 
 const eventService = new EventService();

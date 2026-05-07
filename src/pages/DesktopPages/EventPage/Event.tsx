@@ -9,6 +9,7 @@ import { CreateEvent } from "../../../components/CreateEvent/CreateEvent";
 export const EventPage: React.FC = () => {
   const styles = useStyles();
   const [open, setOpen] = useState<boolean>(false);
+  const [selectedEvent, setSelectedEvent] = useState<IEvent | null>(null);
   const { events } = useDataContext();
 
   return (
@@ -16,7 +17,10 @@ export const EventPage: React.FC = () => {
       <Box className={styles.header}>
         <Typography className={styles.pageTitle}>אירועים</Typography>
         <Button
-          onClick={() => setOpen(true)}
+          onClick={() => {
+  setSelectedEvent(null);
+  setOpen(true);
+}}
           variant="contained"
           className={styles.createButton}
         >
@@ -31,6 +35,10 @@ export const EventPage: React.FC = () => {
             eventName={event.name}
             eventDate={event.startDate}
             address={event.address}
+            onEdit={() => {
+  setSelectedEvent(event);
+  setOpen(true);
+}}
           />
         ))}
       </Box>
@@ -39,7 +47,16 @@ export const EventPage: React.FC = () => {
           אין אירועים להצגה. צור אירוע חדש!
         </Typography>
       )}
-      {open && <CreateEvent open={open} onClose={() => setOpen(false)} />}
+      {open && (
+  <CreateEvent
+    open={open}
+    onClose={() => {
+      setOpen(false);
+      setSelectedEvent(null);
+    }}
+    event={selectedEvent}
+  />
+)}
     </Box>
   );
 };
