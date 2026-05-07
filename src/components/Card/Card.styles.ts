@@ -1,0 +1,80 @@
+import { makeStyles } from "@mui/styles";
+
+export const useCardStyles = makeStyles({
+  cardContainer: {
+    width: "100%",
+  },
+  card: {
+    borderRadius: 18,
+    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+    direction: "rtl" as const,
+    transition: "all 0.35s cubic-bezier(0.4,0,0.2,1)",
+    height: "100%",
+    display: "flex",
+    flexDirection: "column" as const,
+    animation: "fadeInUp 0.5s ease-out both",
+    "&:hover": {
+      transform: "translateY(-6px)",
+      boxShadow: "0 16px 40px rgba(154, 81, 136, 0.18)",
+    },
+  },
+  eventName: {
+    fontWeight: 700,
+    marginBottom: 8,
+    fontFamily: "Rubik, sans-serif",
+    fontSize: "1.05rem",
+    color: "#333",
+  },
+  eventDate: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    color: "#9a5188",
+    fontSize: 14,
+    marginBottom: 8,
+    fontFamily: "Rubik, sans-serif",
+    fontWeight: 500,
+  },
+  eventAddress: {
+    color: "#666",
+    fontSize: 14,
+    fontFamily: "Rubik, sans-serif",
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+  },
+  showButton: {
+    borderRadius: 12,
+    fontWeight: 600,
+    textTransform: "none" as const,
+    fontFamily: "Rubik, sans-serif",
+    fontSize: 13,
+    background: "linear-gradient(135deg, #9a5188 0%, #7a3e6b 100%)",
+    color: "#fff",
+    padding: "6px 16px",
+    transition: "all 0.3s ease",
+    "&:hover": {
+      background: "linear-gradient(135deg, #7a3e6b 0%, #5a2d51 100%)",
+      transform: "translateY(-1px)",
+      boxShadow: "0 4px 12px rgba(154, 81, 136, 0.3)",
+    },
+    "&:active": { transform: "scale(0.97)" },
+  },
+  addIconBox: {
+    marginLeft: "auto",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    color: "#9a5188",
+    transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
+    "&:hover": {
+      color: "#7a3e6b",
+      transform: "scale(1.2) rotate(90deg)",
+    },
+  },
+  cardActions: {
+    display: "flex",
+    justifyContent: "space-between",
+    padding: "8px 16px 14px",
+  },
+});
