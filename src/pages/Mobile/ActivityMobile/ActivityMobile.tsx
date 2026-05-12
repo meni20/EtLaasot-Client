@@ -124,13 +124,11 @@ export const ActivityMobile: React.FC = () => {
   const sortedEvents = useMemo(
     () => {
       const now = Date.now();
-      const currentAndUpcoming = events.filter(
-        (event) => new Date(event.endDate).getTime() >= now - 24 * 60 * 60 * 1000,
+      const upcomingEvents = events.filter(
+        (event) => new Date(event.startDate).getTime() >= now,
       );
 
-      const source = currentAndUpcoming.length > 0 ? currentAndUpcoming : events;
-
-      return [...source].sort(
+      return [...upcomingEvents].sort(
         (first, second) =>
           new Date(first.startDate).getTime() - new Date(second.startDate).getTime(),
       );

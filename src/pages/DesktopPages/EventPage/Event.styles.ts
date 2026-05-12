@@ -46,6 +46,17 @@ export const useStyles = makeStyles({
       transform: "translateY(0) scale(0.98)",
     },
   },
+  section: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 16,
+  },
+  sectionTitle: {
+    fontFamily: "Rubik, sans-serif",
+    fontWeight: 700,
+    color: "#444",
+    fontSize: "1.2rem",
+  },
   cardsContainer: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
