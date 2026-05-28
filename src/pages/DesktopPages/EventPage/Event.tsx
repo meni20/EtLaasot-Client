@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, Tooltip, Typography } from "@mui/material";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import { useNavigate } from "react-router-dom";
 import { BasicCard } from "../../../components/Card/Card";
 import { CreateEvent } from "../../../components/CreateEvent/CreateEvent";
 import { useDataContext } from "../../../contexts/useDataContext";
@@ -8,6 +10,7 @@ import { useStyles } from "./Event.styles";
 
 export const EventPage: React.FC = () => {
   const styles = useStyles();
+  const navigate = useNavigate();
   const [open, setOpen] = useState<boolean>(false);
   const [selectedEvent, setSelectedEvent] = useState<IEvent | null>(null);
   const { events } = useDataContext();
@@ -18,12 +21,12 @@ export const EventPage: React.FC = () => {
     const sortedEvents = [...allEvents].sort(
       (firstEvent, secondEvent) =>
         new Date(firstEvent.startDate).getTime() -
-        new Date(secondEvent.startDate).getTime()
+        new Date(secondEvent.startDate).getTime(),
     );
 
     return {
       upcomingEvents: sortedEvents.filter(
-        (event) => new Date(event.startDate).getTime() >= now
+        (event) => new Date(event.startDate).getTime() >= now,
       ),
       pastEvents: sortedEvents
         .filter((event) => new Date(event.startDate).getTime() < now)
@@ -38,8 +41,12 @@ export const EventPage: React.FC = () => {
           key={event.id}
           eventId={event.id ?? ""}
           eventName={event.name}
-          eventDate={event.startDate}
+          startDate={event.startDate}
+          endDate={event.endDate}
           address={event.address}
+          description={event.description}
+          eventType={event.eventType}
+          participantsCount={event.attendees?.length}
           onEdit={() => {
             setSelectedEvent(event);
             setOpen(true);
@@ -53,16 +60,28 @@ export const EventPage: React.FC = () => {
     <Box className={styles.container}>
       <Box className={styles.header}>
         <Typography className={styles.pageTitle}>אירועים</Typography>
-        <Button
-          onClick={() => {
-            setSelectedEvent(null);
-            setOpen(true);
-          }}
-          variant="contained"
-          className={styles.createButton}
-        >
-          + יצירת אירוע
-        </Button>
+        <Box className={styles.headerActions}>
+          <Tooltip title="הצג אירועים בלוח שנה">
+            <Button
+              onClick={() => navigate("/calendar")}
+              variant="outlined"
+              className={styles.calendarButton}
+              startIcon={<CalendarMonthIcon />}
+            >
+              תצוגת לוח שנה
+            </Button>
+          </Tooltip>
+          <Button
+            onClick={() => {
+              setSelectedEvent(null);
+              setOpen(true);
+            }}
+            variant="contained"
+            className={styles.createButton}
+          >
+            + יצירת אירוע
+          </Button>
+        </Box>
       </Box>
 
       <Box className={styles.section}>

@@ -1,27 +1,59 @@
-import React, { useMemo } from "react";
-import { Box, Typography, CircularProgress } from "@mui/material";
-import ReactECharts from "echarts-for-react";
+import React, { Suspense, lazy, useMemo, useState } from "react";
+import { Box, Typography, CircularProgress, IconButton, Tooltip } from "@mui/material";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import branchService from "../../../services/branch.service";
 import { useBranch } from "../../../contexts/useBranch";
 import { useDashboardStyles } from "./Dashboard.styles";
-import { EVENT_TYPES } from "../../../constants/auth.const";
-import type { IDashboardData } from "../../../interfaces/event.interface";
+import { menuItems } from "../../../components/SideMenu/SideMenu.constants";
+import { BasicCard } from "../../../components/Card/Card";
+import { CreateEvent } from "../../../components/CreateEvent/CreateEvent";
+import type { IDashboardData, IEvent } from "../../../interfaces/event.interface";
+
+const DASHBOARD_CAROUSEL_VISIBLE_EVENTS = 3;
+const LineChart = lazy(() =>
+  import("../../../components/LIneChart/LineChart").then((module) => ({
+    default: module.LineChart,
+  })),
+);
 
 export const DashboardPage: React.FC = () => {
   const classes = useDashboardStyles();
+  const navigate = useNavigate();
   const { activeBranch, availableBranches } = useBranch();
+  const [carouselStart, setCarouselStart] = useState(0);
+  const [isEventFormOpen, setIsEventFormOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<IEvent | null>(null);
 
   const branchName = useMemo(
     () => availableBranches.find((b) => b.id === activeBranch)?.name ?? "",
     [activeBranch, availableBranches],
   );
 
-  const { data, isLoading, isFetching } = useQuery<IDashboardData>({
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isError,
+  } = useQuery<IDashboardData>({
     queryKey: ["dashboard", activeBranch],
     queryFn: () => branchService.getDashboard(activeBranch!),
     enabled: !!activeBranch,
   });
+
+  const dashboardUpcomingEvents = useMemo(() => {
+    const now = Date.now();
+
+    return [...(data?.upcomingEvents ?? [])]
+      .filter((event) => new Date(event.startDate).getTime() >= now)
+      .sort(
+        (firstEvent, secondEvent) =>
+          new Date(firstEvent.startDate).getTime() -
+          new Date(secondEvent.startDate).getTime(),
+      );
+  }, [data?.upcomingEvents]);
 
   if (!activeBranch || isLoading || isFetching) {
     return (
@@ -32,6 +64,23 @@ export const DashboardPage: React.FC = () => {
         alignItems="center"
       >
         <CircularProgress sx={{ color: "#9a5188" }} />
+      </Box>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Box className={classes.root}>
+        <Typography
+          sx={{
+            textAlign: "center",
+            mt: 10,
+            color: "#999",
+            fontFamily: "Rubik, sans-serif",
+          }}
+        >
+          לא הצלחנו לטעון את נתוני הדשבורד.
+        </Typography>
       </Box>
     );
   }
@@ -53,121 +102,53 @@ export const DashboardPage: React.FC = () => {
     );
   }
 
-  const { summary, upcomingEvents, monthlyStats, mentorAssignments } = data;
+  const { summary } = data;
+  const maxCarouselStart = Math.max(
+    dashboardUpcomingEvents.length - DASHBOARD_CAROUSEL_VISIBLE_EVENTS,
+    0,
+  );
+  const effectiveCarouselStart = Math.min(carouselStart, maxCarouselStart);
+  const visibleUpcomingEvents = dashboardUpcomingEvents.slice(
+    effectiveCarouselStart,
+    effectiveCarouselStart + DASHBOARD_CAROUSEL_VISIBLE_EVENTS,
+  );
+  const hasCarouselControls =
+    dashboardUpcomingEvents.length > DASHBOARD_CAROUSEL_VISIBLE_EVENTS;
 
-  // Chart 1: Monthly attendance line chart
-  const attendanceLineOption = {
-    tooltip: { trigger: "axis" as const },
-    xAxis: {
-      type: "category" as const,
-      data: monthlyStats.map((s) => s.month),
-    },
-    yAxis: { type: "value" as const, name: "% נוכחות", max: 100 },
-    series: [
-      {
-        type: "line" as const,
-        data: monthlyStats.map((s) => s.attendanceRate),
-        smooth: true,
-        color: "#9a5188",
-        areaStyle: { opacity: 0.15 },
-      },
-    ],
+  const handlePreviousEvents = () => {
+    setCarouselStart((currentStart) => Math.max(currentStart - 1, 0));
   };
 
-  // Chart 2: Event type pie chart
-  const eventTypeCounts: Record<string, number> = {};
-  upcomingEvents.forEach((e) => {
-    const t = e.eventType || "general";
-    eventTypeCounts[t] = (eventTypeCounts[t] || 0) + 1;
-  });
-  const eventTypePieOption = {
-    tooltip: { trigger: "item" as const },
-    series: [
-      {
-        type: "pie" as const,
-        radius: ["40%", "70%"],
-        data: Object.entries(eventTypeCounts).map(([key, value]) => ({
-          value,
-          name: EVENT_TYPES[key]?.label ?? key,
-        })),
-        color: [
-          "#9a5188",
-          "#dc87b8",
-          "#7a3e6b",
-          "#b76da6",
-          "#e6a8d7",
-          "#543b4e",
-          "#f0d0e5",
-        ],
-      },
-    ],
+  const handleNextEvents = () => {
+    setCarouselStart((currentStart) =>
+      Math.min(currentStart + 1, maxCarouselStart),
+    );
   };
 
-  // Chart 3: Attendance per event bar chart
-  const lastEvents = upcomingEvents.slice(0, 5);
-  const attendanceBarOption = {
-    tooltip: { trigger: "axis" as const },
-    xAxis: { type: "value" as const },
-    yAxis: {
-      type: "category" as const,
-      data: lastEvents.map((e) => e.name),
-    },
-    series: [
-      {
-        type: "bar" as const,
-        data: lastEvents.map((e) => e.attendees?.length ?? 0),
-        color: "#9a5188",
-      },
-    ],
+  const dashboardRoutes = {
+    volunteers:
+      menuItems.find((item) => item.path === "/volunteers")?.path ??
+      "/volunteers",
+    trainees:
+      menuItems.find((item) => item.path === "/trainee")?.path ?? "/trainee",
+    events: menuItems.find((item) => item.path === "/events")?.path ?? "/events",
+    mentorAssignments:
+      menuItems.find((item) => item.path === "/mentor-assignments")?.path ??
+      "/mentor-assignments",
   };
-
-  // Chart 4: Mentor-trainee ratio
-  const mentorCounts: Record<string, number> = {};
-  const mentorNames: Record<string, string> = {};
-  mentorAssignments.forEach((a) => {
-    mentorCounts[a.mentorId] = (mentorCounts[a.mentorId] || 0) + 1;
-    if (a.mentor) mentorNames[a.mentorId] = a.mentor.name;
-  });
-  const mentorRatioOption = {
-    tooltip: { trigger: "axis" as const },
-    xAxis: { type: "value" as const },
-    yAxis: {
-      type: "category" as const,
-      data: Object.keys(mentorCounts).map((id) => mentorNames[id] || id),
-    },
-    series: [
-      {
-        type: "bar" as const,
-        data: Object.values(mentorCounts),
-        color: "#dc87b8",
-      },
-    ],
-  };
-
-  // Alerts
   const alerts: { type: string; message: string }[] = [];
+
   if (summary.unassignedTrainees > 0) {
     alerts.push({
       type: "warning",
       message: `${summary.unassignedTrainees} חניכים ללא חונך מוקצה`,
     });
   }
-  if (summary.attendanceRate < 70) {
-    alerts.push({
-      type: "error",
-      message: `אחוז נוכחות נמוך — ${summary.attendanceRate}%`,
-    });
-  }
+
   if (summary.activeEvents === 0) {
     alerts.push({
       type: "error",
       message: "אין אירועים קרובים",
-    });
-  }
-  if (summary.attendanceRate >= 80) {
-    alerts.push({
-      type: "success",
-      message: `אחוז נוכחות טוב — ${summary.attendanceRate}%`,
     });
   }
 
@@ -177,8 +158,6 @@ export const DashboardPage: React.FC = () => {
         return `${classes.alertItem} ${classes.alertWarning}`;
       case "error":
         return `${classes.alertItem} ${classes.alertError}`;
-      case "success":
-        return `${classes.alertItem} ${classes.alertSuccess}`;
       default:
         return `${classes.alertItem} ${classes.alertInfo}`;
     }
@@ -188,34 +167,41 @@ export const DashboardPage: React.FC = () => {
     <Box className={classes.root}>
       <Box className={classes.header}>
         <Typography variant="h4" className={classes.title}>
-          {branchName} — דשבורד
+          {branchName} - בית
         </Typography>
       </Box>
 
-      {/* Summary Cards */}
       <Box className={classes.summaryGrid}>
-        <Box className={classes.summaryCard}>
+        <Box
+          className={classes.summaryCard}
+          onClick={() => navigate(dashboardRoutes.volunteers)}
+        >
           <Box className={classes.summaryIcon}>👥</Box>
           <Box className={classes.summaryValue}>{summary.totalVolunteers}</Box>
           <Box className={classes.summaryLabel}>מתנדבים</Box>
         </Box>
-        <Box className={classes.summaryCard}>
+
+        <Box
+          className={classes.summaryCard}
+          onClick={() => navigate(dashboardRoutes.trainees)}
+        >
           <Box className={classes.summaryIcon}>🎓</Box>
           <Box className={classes.summaryValue}>{summary.totalTrainees}</Box>
           <Box className={classes.summaryLabel}>חניכים</Box>
         </Box>
-        <Box className={classes.summaryCard}>
+
+        <Box
+          className={classes.summaryCard}
+          onClick={() => navigate(dashboardRoutes.events)}
+        >
           <Box className={classes.summaryIcon}>📅</Box>
           <Box className={classes.summaryValue}>{summary.activeEvents}</Box>
           <Box className={classes.summaryLabel}>אירועים קרובים</Box>
         </Box>
-        <Box className={classes.summaryCard}>
-          <Box className={classes.summaryIcon}>📊</Box>
-          <Box className={classes.summaryValue}>{summary.attendanceRate}%</Box>
-          <Box className={classes.summaryLabel}>נוכחות ממוצעת</Box>
-        </Box>
+
         <Box
           className={classes.summaryCard}
+          onClick={() => navigate(dashboardRoutes.mentorAssignments)}
           style={
             summary.unassignedTrainees > 0
               ? { borderLeft: "4px solid #e65100" }
@@ -230,39 +216,12 @@ export const DashboardPage: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Charts */}
-      <Box className={classes.chartsGrid}>
-        <Box className={classes.chartCard}>
-          <Typography className={classes.chartTitle}>
-            מגמת נוכחות חודשית
-          </Typography>
-          <ReactECharts option={attendanceLineOption} style={{ height: 280 }} />
-        </Box>
-        <Box className={classes.chartCard}>
-          <Typography className={classes.chartTitle}>
-            התפלגות אירועים לפי סוג
-          </Typography>
-          <ReactECharts option={eventTypePieOption} style={{ height: 280 }} />
-        </Box>
-        <Box className={classes.chartCard}>
-          <Typography className={classes.chartTitle}>
-            נוכחות באירועים אחרונים
-          </Typography>
-          <ReactECharts option={attendanceBarOption} style={{ height: 280 }} />
-        </Box>
-        <Box className={classes.chartCard}>
-          <Typography className={classes.chartTitle}>יחס חונך/חניך</Typography>
-          <ReactECharts option={mentorRatioOption} style={{ height: 280 }} />
-        </Box>
-      </Box>
-
-      {/* Alerts */}
       {alerts.length > 0 && (
         <Box className={classes.tableCard}>
-          <Typography className={classes.chartTitle}>התראות ודגלים</Typography>
+          <Typography className={classes.chartTitle}>התראות חשובות</Typography>
           <Box className={classes.alertsContainer}>
-            {alerts.map((alert, i) => (
-              <Box key={i} className={alertClass(alert.type)}>
+            {alerts.map((alert, index) => (
+              <Box key={`${alert.type}-${index}`} className={alertClass(alert.type)}>
                 {alert.message}
               </Box>
             ))}
@@ -270,102 +229,95 @@ export const DashboardPage: React.FC = () => {
         </Box>
       )}
 
-      {/* Upcoming Events Table */}
-      <Box className={classes.tableCard}>
-        <Typography className={classes.chartTitle}>אירועים קרובים</Typography>
-        <Box
-          component="table"
-          sx={{
-            width: "100%",
-            borderCollapse: "collapse",
-            fontFamily: "Rubik",
-          }}
-        >
-          <thead>
-            <tr>
-              <th
-                style={{
-                  textAlign: "right",
-                  padding: "8px 12px",
-                  borderBottom: "2px solid #eee",
-                  color: "#666",
-                }}
-              >
-                שם האירוע
-              </th>
-              <th
-                style={{
-                  textAlign: "right",
-                  padding: "8px 12px",
-                  borderBottom: "2px solid #eee",
-                  color: "#666",
-                }}
-              >
-                תאריך
-              </th>
-              <th
-                style={{
-                  textAlign: "right",
-                  padding: "8px 12px",
-                  borderBottom: "2px solid #eee",
-                  color: "#666",
-                }}
-              >
-                סוג
-              </th>
-              <th
-                style={{
-                  textAlign: "right",
-                  padding: "8px 12px",
-                  borderBottom: "2px solid #eee",
-                  color: "#666",
-                }}
-              >
-                נרשמו
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {upcomingEvents.map((event) => (
-              <tr key={event.id}>
-                <td
-                  style={{
-                    padding: "8px 12px",
-                    borderBottom: "1px solid #f0f0f0",
-                  }}
-                >
-                  {event.name}
-                </td>
-                <td
-                  style={{
-                    padding: "8px 12px",
-                    borderBottom: "1px solid #f0f0f0",
-                  }}
-                >
-                  {new Date(event.startDate).toLocaleDateString("he-IL")}
-                </td>
-                <td
-                  style={{
-                    padding: "8px 12px",
-                    borderBottom: "1px solid #f0f0f0",
-                  }}
-                >
-                  {EVENT_TYPES[event.eventType || "general"]?.icon}{" "}
-                  {EVENT_TYPES[event.eventType || "general"]?.label}
-                </td>
-                <td
-                  style={{
-                    padding: "8px 12px",
-                    borderBottom: "1px solid #f0f0f0",
-                  }}
-                >
-                  {event.attendees?.length ?? 0}
-                </td>
-              </tr>
-            ))}
-          </tbody>
+      {dashboardUpcomingEvents.length > 0 && (
+        <Box className={classes.upcomingSection}>
+          <Box className={classes.carouselHeader}>
+            <Typography className={classes.chartTitle}>אירועים קרובים</Typography>
+            {hasCarouselControls && (
+              <Box className={classes.carouselControls}>
+                <Tooltip title="אירועים קודמים">
+                  <span>
+                    <IconButton
+                      className={classes.carouselButton}
+                      onClick={handlePreviousEvents}
+                      disabled={effectiveCarouselStart === 0}
+                      size="small"
+                    >
+                      <ChevronRightIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+                <Tooltip title="אירועים נוספים">
+                  <span>
+                    <IconButton
+                      className={classes.carouselButton}
+                      onClick={handleNextEvents}
+                      disabled={effectiveCarouselStart >= maxCarouselStart}
+                      size="small"
+                    >
+                      <ChevronLeftIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              </Box>
+            )}
+          </Box>
+
+          <Box className={classes.eventsCarouselViewport}>
+            <Box className={classes.eventsCarouselTrack}>
+              {visibleUpcomingEvents.map((event) => (
+                <Box key={event.id} className={classes.carouselCard}>
+                  <BasicCard
+                    eventId={event.id ?? ""}
+                    eventName={event.name}
+                    startDate={event.startDate}
+                    endDate={event.endDate}
+                    address={event.address}
+                    description={event.description}
+                    eventType={event.eventType}
+                    participantsCount={event.attendees?.length}
+                    onEdit={() => {
+                      setSelectedEvent(event);
+                      setIsEventFormOpen(true);
+                    }}
+                  />
+                </Box>
+              ))}
+            </Box>
+          </Box>
         </Box>
+      )}
+
+      <Box className={classes.chartCard}>
+        <Typography className={classes.chartTitle}>
+          משתתפים לפי אירוע
+        </Typography>
+        <Suspense
+          fallback={
+            <Box
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              minHeight={160}
+            >
+              <CircularProgress size={24} sx={{ color: "#9a5188" }} />
+            </Box>
+          }
+        >
+          <LineChart height={220} emptyHeight={160} />
+        </Suspense>
       </Box>
+
+      {isEventFormOpen && (
+        <CreateEvent
+          open={isEventFormOpen}
+          onClose={() => {
+            setIsEventFormOpen(false);
+            setSelectedEvent(null);
+          }}
+          event={selectedEvent}
+        />
+      )}
     </Box>
   );
 };

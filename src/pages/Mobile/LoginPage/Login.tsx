@@ -8,6 +8,7 @@ export const LoginPage: React.FC = () => {
   const styles = useStyles();
   const { login } = useAuth();
   const [identifyId, setIdentifyId] = useState<string>("");
+  const [loginCode, setLoginCode] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -22,11 +23,16 @@ export const LoginPage: React.FC = () => {
       return;
     }
 
+    if (!loginCode.trim()) {
+      setError("Login code is required");
+      return;
+    }
+
     setError("");
     setLoading(true);
 
     try {
-      await login(identifyId);
+      await login(identifyId, loginCode);
     } catch {
       setError("Login failed");
     } finally {
@@ -40,7 +46,7 @@ export const LoginPage: React.FC = () => {
         <Typography className={styles.logo}>עת</Typography>
         <Typography className={styles.title}>עת לעשות</Typography>
         <Typography className={styles.subtitle}>
-          הזן תעודת זהות כדי להתחבר
+          הזן תעודת זהות וקוד התחברות
         </Typography>
 
         <TextField
@@ -57,12 +63,25 @@ export const LoginPage: React.FC = () => {
           helperText={error}
           className={styles.input}
         />
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="קוד התחברות"
+          value={loginCode}
+          onChange={(e) => {
+            setLoginCode(e.target.value);
+            setError("");
+          }}
+          type="password"
+          error={!!error}
+          className={styles.input}
+        />
         <Button
           fullWidth
           variant="contained"
           className={styles.button}
           onClick={handleSubmit}
-          disabled={loading || !identifyId}
+          disabled={loading || !identifyId || !loginCode}
         >
           {loading ? "מתחבר..." : "התחבר"}
         </Button>

@@ -15,6 +15,7 @@ export const useStyles = makeStyles({
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: 16,
     marginBottom: 8,
     animation: "fadeInDown 0.5s ease-out",
   },
@@ -27,6 +28,30 @@ export const useStyles = makeStyles({
   buttonContainer: {
     display: "flex",
     justifyContent: "flex-start",
+  },
+  headerActions: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    flexWrap: "wrap" as const,
+  },
+  calendarButton: {
+    color: "#7a3e6b",
+    borderColor: "#d8c4d2",
+    fontWeight: 700,
+    fontFamily: "Rubik, sans-serif",
+    borderRadius: 14,
+    padding: "9px 18px",
+    textTransform: "none" as const,
+    backgroundColor: "#fff",
+    "& .MuiButton-startIcon": {
+      marginLeft: 6,
+      marginRight: 0,
+    },
+    "&:hover": {
+      borderColor: "#9a5188",
+      backgroundColor: "#f8f0f6",
+    },
   },
   createButton: {
     background: "linear-gradient(135deg, #9a5188 0%, #7a3e6b 100%)",

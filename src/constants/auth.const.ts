@@ -27,7 +27,7 @@ export const BRANCHES = {
 
 export const EVENT_TYPES: Record<string, { label: string; icon: string }> = {
   shabbat: { label: "שבת", icon: "🕯️" },
-  camp: { label: "מחנה", icon: "⛺" },
+  camp: { label: "מחנה", icon: "🏕️" },
   playroom: { label: "משחקייה", icon: "🧸" },
   trip: { label: "טיול", icon: "🥾" },
   meeting: { label: "פגישה", icon: "🤝" },

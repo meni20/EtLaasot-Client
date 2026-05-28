@@ -21,6 +21,24 @@ export const useCalendarStyles = makeStyles({
         color: "#333",
         fontSize: "1.5rem",
     },
+    eventsButton: {
+        color: "#7a3e6b",
+        borderColor: "#d8c4d2",
+        backgroundColor: "#fff",
+        borderRadius: 14,
+        padding: "9px 18px",
+        fontWeight: 700,
+        fontFamily: "Rubik, sans-serif",
+        textTransform: "none" as const,
+        "& .MuiButton-startIcon": {
+            marginLeft: 6,
+            marginRight: 0,
+        },
+        "&:hover": {
+            borderColor: "#9a5188",
+            backgroundColor: "#f8f0f6",
+        },
+    },
     calendarWrapper: {
         background: "#fff",
         borderRadius: 20,
