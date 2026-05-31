@@ -34,6 +34,16 @@ const emptyEventForm = (): IEvent => ({
   eventType: "",
 });
 
+const toEventPayload = (form: IEvent, branchId: string | null): IEvent => ({
+  name: form.name,
+  address: form.address,
+  description: form.description,
+  startDate: form.startDate,
+  endDate: form.endDate,
+  eventType: form.eventType,
+  branchId: branchId ?? undefined,
+});
+
 export const CreateEvent: React.FC<ICreateEventProps> = ({
   open,
   onClose,
@@ -78,10 +88,7 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
 
     try {
       setLoading(true);
-      const payload = {
-        ...form,
-        branchId: activeBranch ?? undefined,
-      };
+      const payload = toEventPayload(form, activeBranch);
 
       if (event?.id) {
         await eventService.updateEvent(event.id, payload);

@@ -43,8 +43,12 @@ export const LoginPage: React.FC = () => {
   return (
     <Box className={styles.container}>
       <Box className={styles.card}>
-        <Typography className={styles.logo}>עת</Typography>
-        <Typography className={styles.title}>עת לעשות</Typography>
+        <Box
+          component="img"
+          src="/etlaasot-favicon.png"
+          alt="עת לעשות"
+          className={styles.logo}
+        />
         <Typography className={styles.subtitle}>
           הזן תעודת זהות וקוד התחברות
         </Typography>

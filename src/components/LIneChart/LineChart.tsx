@@ -1,47 +1,51 @@
-import { useDataContext } from "../../contexts/useDataContext";
 import { useMemo } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Tooltip, Typography } from "@mui/material";
+import { useDataContext } from "../../contexts/useDataContext";
+import type { IEvent } from "../../interfaces/event.interface";
 
 interface LineChartProps {
   height?: number;
   emptyHeight?: number;
+  events?: IEvent[];
+  maxEvents?: number;
 }
 
-export const LineChart = ({ height = 400, emptyHeight = 220 }: LineChartProps) => {
-  const { events } = useDataContext();
+const formatEventDate = (date: Date) =>
+  new Intl.DateTimeFormat("he-IL", {
+    day: "2-digit",
+    month: "2-digit",
+  }).format(date);
 
-  const sortedEvents = useMemo(() => {
-    return [...events].sort(
-      (a, b) =>
-        new Date(a?.startDate).getTime() - new Date(b?.startDate).getTime(),
-    );
-  }, [events]);
+export const LineChart = ({
+  height = 400,
+  emptyHeight = 220,
+  events: chartEvents,
+  maxEvents = 8,
+}: LineChartProps) => {
+  const { events: contextEvents } = useDataContext();
 
-  const labels = useMemo(() => {
-    return sortedEvents.map((event) => event.name);
-  }, [sortedEvents]);
+  const visibleEvents = useMemo(() => {
+    return [...(chartEvents ?? contextEvents)]
+      .map((event) => ({
+        ...event,
+        eventDate: new Date(event.startDate),
+        participantCount: event.attendees?.length ?? 0,
+      }))
+      .filter((event) => !Number.isNaN(event.eventDate.getTime()))
+      .sort(
+        (firstEvent, secondEvent) =>
+          firstEvent.eventDate.getTime() - secondEvent.eventDate.getTime(),
+      )
+      .slice(0, maxEvents);
+  }, [chartEvents, contextEvents, maxEvents]);
 
-  const values = useMemo(() => {
-    return sortedEvents.map((event) => event.attendees?.length || 0);
-  }, [sortedEvents]);
-  const maxValue = Math.max(...values, 1);
-  const chartWidth = 720;
-  const chartHeight = Math.max(height, 180);
-  const padding = { top: 16, right: 24, bottom: 64, left: 44 };
-  const innerWidth = chartWidth - padding.left - padding.right;
-  const innerHeight = chartHeight - padding.top - padding.bottom;
-  const points = values.map((value, index) => {
-    const x =
-      padding.left +
-      (values.length === 1 ? innerWidth / 2 : (index / (values.length - 1)) * innerWidth);
-    const y = padding.top + innerHeight - (value / maxValue) * innerHeight;
-    return { x, y, value, label: labels[index] };
-  });
-  const path = points
-    .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`)
-    .join(" ");
+  const maxParticipants = Math.max(
+    ...visibleEvents.map((event) => event.participantCount),
+    1,
+  );
+  const axisValues = [maxParticipants, Math.round(maxParticipants / 2), 0];
 
-  if (sortedEvents.length === 0) {
+  if (visibleEvents.length === 0) {
     return (
       <Box
         sx={{
@@ -59,79 +63,140 @@ export const LineChart = ({ height = 400, emptyHeight = 220 }: LineChartProps) =
   }
 
   return (
-    <Box sx={{ height, width: "100%", overflow: "hidden" }}>
-      <svg
-        role="img"
-        aria-label="משתתפים לפי אירוע"
-        viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-        width="100%"
-        height="100%"
-        preserveAspectRatio="none"
+    <Box
+      role="img"
+      aria-label="משתתפים לפי אירוע"
+      sx={{
+        height,
+        width: "100%",
+        minHeight: 180,
+        display: "grid",
+        gridTemplateColumns: "34px minmax(0, 1fr)",
+        gap: 1.5,
+        direction: "ltr",
+      }}
+    >
+      <Box
+        aria-hidden="true"
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          pt: 1,
+          pb: 7.2,
+          color: "#6B7280",
+          fontFamily: "Rubik, sans-serif",
+          fontSize: 11,
+          textAlign: "right",
+        }}
       >
-        <line
-          x1={padding.left}
-          x2={padding.left}
-          y1={padding.top}
-          y2={padding.top + innerHeight}
-          stroke="#E5E0E7"
-        />
-        <line
-          x1={padding.left}
-          x2={padding.left + innerWidth}
-          y1={padding.top + innerHeight}
-          y2={padding.top + innerHeight}
-          stroke="#E5E0E7"
-        />
-        {[0, 0.5, 1].map((ratio) => {
-          const y = padding.top + innerHeight - ratio * innerHeight;
-          return (
-            <g key={ratio}>
-              <line
-                x1={padding.left}
-                x2={padding.left + innerWidth}
-                y1={y}
-                y2={y}
-                stroke="#F2EEF4"
-              />
-              <text
-                x={padding.left - 10}
-                y={y + 4}
-                textAnchor="end"
-                fontSize="12"
-                fill="#6B7280"
-              >
-                {Math.round(maxValue * ratio)}
-              </text>
-            </g>
-          );
-        })}
-        <path
-          d={`${path} L ${points[points.length - 1].x} ${
-            padding.top + innerHeight
-          } L ${points[0].x} ${padding.top + innerHeight} Z`}
-          fill="rgba(154, 81, 136, 0.10)"
-        />
-        <path d={path} fill="none" stroke="#9a5188" strokeWidth="3" />
-        {points.map((point, index) => (
-          <g key={`${point.label}-${index}`}>
-            <circle cx={point.x} cy={point.y} r="5" fill="#9a5188" />
-            <title>{`${point.label}: ${point.value}`}</title>
-            <text
-              x={point.x}
-              y={chartHeight - 18}
-              textAnchor="end"
-              transform={`rotate(-35 ${point.x} ${chartHeight - 18})`}
-              fontSize="11"
-              fontFamily="Rubik, sans-serif"
-              fill="#4B5563"
-            >
-              {point.label.length > 18
-                ? `${point.label.slice(0, 18)}...`
-                : point.label}
-            </text>
-          </g>
+        {axisValues.map((value, index) => (
+          <Box key={`${value}-${index}`}>{value}</Box>
         ))}
-      </svg>
+      </Box>
+
+      <Box
+        sx={{
+          minWidth: 0,
+          display: "grid",
+          gridTemplateRows: "minmax(0, 1fr) 58px",
+          borderBottom: "1px solid #E5E0E7",
+          backgroundImage:
+            "linear-gradient(to bottom, #F2EEF4 1px, transparent 1px)",
+          backgroundSize: "100% calc((100% - 58px) / 2)",
+          backgroundRepeat: "repeat-y",
+        }}
+      >
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${visibleEvents.length}, minmax(52px, 1fr))`,
+            alignItems: "end",
+            gap: 1.5,
+            px: 0.5,
+            pt: 1,
+          }}
+        >
+          {visibleEvents.map((event) => {
+            const heightPercent =
+              event.participantCount === 0
+                ? 3
+                : Math.max((event.participantCount / maxParticipants) * 100, 8);
+            const tooltip = `${event.name} (${formatEventDate(
+              event.eventDate,
+            )}): ${event.participantCount} משתתפים`;
+
+            return (
+              <Tooltip key={event.id ?? event.name} title={tooltip} arrow>
+                <Box
+                  sx={{
+                    height: "100%",
+                    minWidth: 0,
+                    display: "flex",
+                    alignItems: "end",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: "100%",
+                      maxWidth: 46,
+                      height: `${heightPercent}%`,
+                      minHeight: 4,
+                      borderRadius: "8px 8px 2px 2px",
+                      background:
+                        "linear-gradient(180deg, #b76aa5 0%, #9a5188 100%)",
+                      boxShadow: "0 6px 14px rgba(154, 81, 136, 0.18)",
+                      transition: "height 0.2s ease, transform 0.2s ease",
+                      "&:hover": {
+                        transform: "translateY(-2px)",
+                      },
+                    }}
+                  />
+                </Box>
+              </Tooltip>
+            );
+          })}
+        </Box>
+
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${visibleEvents.length}, minmax(52px, 1fr))`,
+            gap: 1.5,
+            px: 0.5,
+            pt: 1,
+            direction: "rtl",
+          }}
+        >
+          {visibleEvents.map((event) => (
+            <Tooltip
+              key={event.id ?? event.name}
+              title={`${event.name} - ${formatEventDate(event.eventDate)}`}
+              arrow
+            >
+              <Box
+                sx={{
+                  minWidth: 0,
+                  color: "#4B5563",
+                  fontFamily: "Rubik, sans-serif",
+                  fontSize: 11,
+                  lineHeight: 1.25,
+                  textAlign: "center",
+                  direction: "rtl",
+                  unicodeBidi: "plaintext",
+                  overflow: "hidden",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                }}
+              >
+                {event.name}
+              </Box>
+            </Tooltip>
+          ))}
+        </Box>
+      </Box>
     </Box>
   );
 };

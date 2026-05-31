@@ -304,7 +304,12 @@ export const DashboardPage: React.FC = () => {
             </Box>
           }
         >
-          <LineChart height={220} emptyHeight={160} />
+          <LineChart
+            height={220}
+            emptyHeight={160}
+            events={dashboardUpcomingEvents}
+            maxEvents={8}
+          />
         </Suspense>
       </Box>
 
