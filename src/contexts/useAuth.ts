@@ -5,7 +5,7 @@ export interface IAuthContext {
     token: string | null;
     isAuthenticated: boolean;
     loading: boolean;
-    login: (userId: string) => Promise<void>;
+    login: (userId: string, loginCode: string) => Promise<void>;
     logout: () => void;
     isSuperAdmin: boolean;
 }

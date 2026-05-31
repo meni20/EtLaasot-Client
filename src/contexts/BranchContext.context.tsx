@@ -35,7 +35,14 @@ export const BranchProvider: React.FC<{ children: ReactNode }> = ({
   const switchBranch = useCallback(
     (branchId: string) => {
       setActiveBranch(branchId);
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["volunteers"] });
+      queryClient.invalidateQueries({ queryKey: ["trainees"] });
+      queryClient.invalidateQueries({ queryKey: ["mentor-assignments"] });
+      queryClient.invalidateQueries({ queryKey: ["unassigned-trainees"] });
+      queryClient.invalidateQueries({ queryKey: ["activities"] });
     },
     [queryClient],
   );

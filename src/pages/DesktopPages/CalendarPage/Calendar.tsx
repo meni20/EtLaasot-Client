@@ -1,8 +1,10 @@
 import * as React from "react";
-import { Box, CircularProgress, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Typography } from "@mui/material";
+import EventNoteIcon from "@mui/icons-material/EventNote";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import heLocale from "@fullcalendar/core/locales/he";
+import { useNavigate } from "react-router-dom";
 import { useDataContext } from "../../../contexts/useDataContext";
 import { EventDetailsDialog } from "../../../components/EventDetailsDialog/EventDetailsDialog";
 import { useCalendarStyles } from "./Calendar.styles";
@@ -12,13 +14,14 @@ export const CalendarPage: React.FC = () => {
   const { events, isLoading } = useDataContext();
   const [selectedEvent, setSelectedEvent] = React.useState<IEvent | null>(null);
   const styles = useCalendarStyles();
+  const navigate = useNavigate();
 
   const calendarEvents = events.map((event) => ({
     id: event.id?.toString(),
     title: event.name,
     start: event.startDate,
     end: event.endDate,
-    allDay: true,
+    allDay: false,
     backgroundColor: "#9a5188",
     borderColor: "#7a3e6b",
     textColor: "#fff",
@@ -35,6 +38,14 @@ export const CalendarPage: React.FC = () => {
     <Box className={styles.root}>
       <Box className={styles.header}>
         <Typography className={styles.pageTitle}>לוח שנה</Typography>
+        <Button
+          variant="outlined"
+          className={styles.eventsButton}
+          startIcon={<EventNoteIcon />}
+          onClick={() => navigate("/events")}
+        >
+          אירועים
+        </Button>
       </Box>
 
       {isLoading ? (
@@ -58,6 +69,11 @@ export const CalendarPage: React.FC = () => {
               end: "",
             }}
             dayMaxEvents={3}
+            eventTimeFormat={{
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            }}
             events={calendarEvents}
             eventClick={handleEventClick}
             stickyHeaderDates

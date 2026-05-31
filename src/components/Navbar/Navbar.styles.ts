@@ -2,11 +2,11 @@ import { makeStyles } from "@mui/styles";
 
 export const useNavbarStyles = makeStyles({
   appBar: {
-    background: "linear-gradient(135deg, #9a5188 0%, #7a3e6b 100%)",
+    background: "linear-gradient(135deg, #844173 0%, #5c2950 100%)",
     boxShadow: "0 4px 20px rgba(154, 81, 136, 0.25)",
     color: "#fff",
     zIndex: 1200,
-    animation: "fadeInDown 0.4s ease-out",
+    animation: "fadeInDown 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
   },
   toolbar: {
     justifyContent: "space-between",
@@ -19,9 +19,10 @@ export const useNavbarStyles = makeStyles({
     textAlign: "center" as const,
     fontFamily: "Rubik, sans-serif",
     fontWeight: 700,
-    letterSpacing: 0.5,
-    fontSize: "2rem",
-    paddingRight: "10%",
+    letterSpacing: "-0.02em", // צמצום רווחים קל למראה מודרני (כמו במותגי הייטק)
+    fontSize: "1.8rem",
+    paddingRight: "8%",
+    textShadow: "0 2px 4px rgba(0,0,0,0.15)", // צל עדין לטקסט כדי להקפיץ אותו
   },
   userInfo: {
     display: "flex",
@@ -48,9 +49,14 @@ export const useNavbarStyles = makeStyles({
   userTz: {
     fontFamily: "Rubik, sans-serif",
     fontWeight: 400,
-    fontSize: "0.75rem",
-    color: "rgba(255,255,255,0.8)",
-    lineHeight: 1.3,
+    fontSize: "0.72rem",
+    color: "rgba(255, 255, 255, 0.65)", // ניגודיות טובה ונעימה יותר לעין
+    marginTop: 1,
+  },
+  navActions: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
   },
   menuIconBox: {
     cursor: "pointer",
@@ -59,10 +65,25 @@ export const useNavbarStyles = makeStyles({
     justifyContent: "center",
     padding: 8,
     borderRadius: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.05)", // בסיס עדין לכפתור התפריט
+    transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
+    "&:hover": {
+      backgroundColor: "rgba(255, 255, 255, 0.15)",
+      transform: "translateY(-1px)",
+    },
+    "&:active": {
+      transform: "scale(0.95)",
+    },
+  },
+  homeButton: {
+    width: 38,
+    height: 38,
+    color: "#fff",
+    borderRadius: 10,
     transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
     "&:hover": {
       backgroundColor: "rgba(255,255,255,0.2)",
-      transform: "scale(1.1) rotate(5deg)",
+      transform: "scale(1.08)",
     },
     "&:active": {
       transform: "scale(0.95)",

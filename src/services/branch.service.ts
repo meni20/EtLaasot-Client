@@ -1,20 +1,11 @@
-import axios from "axios";
 import type { AxiosInstance } from "axios";
 import type { IBranch, IDashboardData } from "../interfaces/event.interface";
+import { createServerAxiosInstance } from "../config/axiosInstance";
 
 export class BranchService {
     private api: AxiosInstance;
     constructor() {
-        this.api = axios.create({
-            baseURL: `${import.meta.env.VITE_SERVER_URL}/branch`,
-        });
-        this.api.interceptors.request.use((config) => {
-            const token = localStorage.getItem("token");
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
-            return config;
-        });
+        this.api = createServerAxiosInstance("/branch");
     }
 
     public async getAllBranches(): Promise<IBranch[]> {

@@ -76,6 +76,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
 
       await queryClient.invalidateQueries({ queryKey: ["volunteers"] });
       await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      await queryClient.invalidateQueries({ queryKey: ["users"] });
 
       setForm({
         name: "",

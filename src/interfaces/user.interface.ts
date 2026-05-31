@@ -24,3 +24,21 @@ export interface IUserRole {
   branchName?: string;
   role?: string;
 }
+
+export interface ICurrentUserProfile {
+  id: string;
+  name: string;
+  phoneNumber?: string | null;
+  address?: string | null;
+  email?: string | null;
+  age?: number | null;
+  branchId?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
+export interface IUpdateCurrentUserProfilePayload {
+  email?: string | null;
+  phoneNumber?: string;
+  address?: string | null;
+}

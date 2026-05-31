@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import type { IEventDetailsDialogProps } from "./EventDetailsDialog.inteface";
 import { useStyles } from "./EventDetailsDialog.styles";
-import { formatDate } from "../../utils/data.utillity";
+import { formatDateTimeShort } from "../../utils/data.utillity";
 import { EVENT_TYPES } from "../../constants/auth.const";
 
 export const EventDetailsDialog: React.FC<IEventDetailsDialogProps> = ({
@@ -64,19 +64,19 @@ export const EventDetailsDialog: React.FC<IEventDetailsDialogProps> = ({
 
           <Box className={classes.section}>
             <Typography variant="body2" className={classes.label}>
-              התחלה:
+              תאריך התחלה:
             </Typography>
             <Typography variant="body1" className={classes.valuePrimary}>
-              {formatDate(eventData.startDate)}
+              {formatDateTimeShort(eventData.startDate)}
             </Typography>
           </Box>
 
           <Box className={classes.section}>
             <Typography variant="body2" className={classes.label}>
-              סוף:
+              תאריך סיום:
             </Typography>
             <Typography variant="body1" className={classes.valuePrimary}>
-              {formatDate(eventData.endDate)}
+              {formatDateTimeShort(eventData.endDate)}
             </Typography>
           </Box>
 

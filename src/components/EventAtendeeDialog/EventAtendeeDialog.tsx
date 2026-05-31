@@ -1,157 +1,317 @@
 import * as React from "react";
 import {
-  Box,
-  Dialog,
   Avatar,
-  IconButton,
-  Typography,
+  Box,
+  Button,
   CircularProgress,
+  Dialog,
+  IconButton,
+  Tooltip,
+  Typography,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import eventService from "../../services/event.service";
-import attendeeService from "../../services/attendee.service";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
+import attendeeService from "../../services/attendee.service";
+import eventService from "../../services/event.service";
+import type { IAttendees } from "../../interfaces/event.interface";
 import type { IEventAtendeeDialogProps } from "./EventAtendeeDialog.interface";
 import { useStyles } from "./EventAtendeeDialog.styles";
-
-interface FormattedAttendee {
-  attendeeId: string;
-  userId: string;
-  name: string;
-  email: string;
-}
+import { AddAttendeeDialog } from "../AddAttendeeDialog/AddAttendeeDialog";
 
 export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
   open,
   onClose,
   eventId,
+  users,
 }) => {
   const classes = useStyles();
   const queryClient = useQueryClient();
+  const [isAddAttendeeOpen, setIsAddAttendeeOpen] = React.useState(false);
+  const [selectedMentorId, setSelectedMentorId] = React.useState<string | null>(
+    null,
+  );
+  const [selectedTraineeId, setSelectedTraineeId] = React.useState<
+    string | null
+  >(null);
 
-  const { data: attendeesByEvent, isFetching: isFetchingAttendees } = useQuery({
+  const { data: participants, isFetching: isFetchingAttendees } = useQuery({
     queryKey: ["attendeesByEvent", eventId],
-    queryFn: () => eventService.getEventAttendees(eventId),
+    queryFn: () => eventService.getEventParticipants(eventId),
+    enabled: open,
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (attendeeId: string) =>
-      attendeeService.deleteAttendee(attendeeId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["attendeesByEvent", eventId],
-      });
-      queryClient.invalidateQueries({ queryKey: ["events"] });
-      queryClient.invalidateQueries({ queryKey: ["eventAttendees"] });
+  const invalidateParticipants = React.useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["attendeesByEvent", eventId] });
+    queryClient.invalidateQueries({ queryKey: ["events"] });
+    queryClient.invalidateQueries({ queryKey: ["upcomingEvents"] });
+    queryClient.invalidateQueries({ queryKey: ["eventAttendees", eventId] });
+    queryClient.invalidateQueries({ queryKey: ["eventAttendees"] });
+    queryClient.invalidateQueries({ queryKey: ["users"] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+  }, [eventId, queryClient]);
+
+  const pairMutation = useMutation({
+    mutationFn: ({
+      mentorId,
+      traineeId,
+    }: {
+      mentorId: string;
+      traineeId: string;
+    }) => eventService.createEventPairing(eventId, mentorId, traineeId),
+    onSuccess: (updatedParticipants) => {
+      queryClient.setQueryData(
+        ["attendeesByEvent", eventId],
+        updatedParticipants,
+      );
+      setSelectedMentorId(null);
+      setSelectedTraineeId(null);
+      invalidateParticipants();
     },
   });
 
-  const formattedAttendees: FormattedAttendee[] = React.useMemo(
-    () =>
-      attendeesByEvent?.map((attendee: any) => ({
-        attendeeId: attendee.id,
-        userId: attendee.user?.id ?? "",
-        name: attendee.user?.name ?? "ללא שם",
-        email: attendee.user?.email ?? "",
-      })) ?? [],
-    [attendeesByEvent],
+  const deletePairingMutation = useMutation({
+    mutationFn: (pairingId: string) =>
+      eventService.deleteEventPairing(eventId, pairingId),
+    onSuccess: (updatedParticipants) => {
+      queryClient.setQueryData(
+        ["attendeesByEvent", eventId],
+        updatedParticipants,
+      );
+      invalidateParticipants();
+    },
+  });
+
+  const deleteAttendeeMutation = useMutation({
+    mutationFn: (attendeeId: string) => attendeeService.deleteAttendee(attendeeId),
+    onSuccess: () => {
+      invalidateParticipants();
+    },
+  });
+
+  const paired = participants?.paired ?? [];
+  const unpairedMentors = participants?.unpairedMentors ?? [];
+  const unpairedTrainees = participants?.unpairedTrainees ?? [];
+  const totalCount =
+    paired.length * 2 + unpairedMentors.length + unpairedTrainees.length;
+  const isMutating =
+    pairMutation.isPending ||
+    deletePairingMutation.isPending ||
+    deleteAttendeeMutation.isPending;
+
+  const createPairIfReady = (
+    nextMentorId: string | null,
+    nextTraineeId: string | null,
+  ) => {
+    if (nextMentorId && nextTraineeId && !pairMutation.isPending) {
+      pairMutation.mutate({ mentorId: nextMentorId, traineeId: nextTraineeId });
+    }
+  };
+
+  const handleMentorClick = (mentorId: string) => {
+    const nextMentorId = selectedMentorId === mentorId ? null : mentorId;
+    setSelectedMentorId(nextMentorId);
+    createPairIfReady(nextMentorId, selectedTraineeId);
+  };
+
+  const handleTraineeClick = (traineeId: string) => {
+    const nextTraineeId = selectedTraineeId === traineeId ? null : traineeId;
+    setSelectedTraineeId(nextTraineeId);
+    createPairIfReady(selectedMentorId, nextTraineeId);
+  };
+
+  const handleDeleteAttendee = (attendee: IAttendees) => {
+    if (!attendee.id || deleteAttendeeMutation.isPending) return;
+
+    deleteAttendeeMutation.mutate(attendee.id);
+  };
+
+  const renderAttendee = (
+    attendee: IAttendees,
+    selected: boolean,
+    onClick: () => void,
+  ) => (
+    <Box key={attendee.id ?? attendee.userId} className={classes.attendeeRow}>
+      <Button
+        className={`${classes.selectableItem} ${
+          selected ? classes.selectedItem : ""
+        }`}
+        onClick={onClick}
+        disabled={isMutating}
+      >
+        <Avatar className={classes.avatar}>
+          {attendee.user?.name?.[0]?.toUpperCase() ?? "?"}
+        </Avatar>
+        <Box sx={{ minWidth: 0, textAlign: "right" }}>
+          <Typography className={classes.personName}>
+            {attendee.user?.name ?? "ללא שם"}
+          </Typography>
+          {attendee.user?.email && (
+            <Typography className={classes.personMeta}>
+              {attendee.user.email}
+            </Typography>
+          )}
+        </Box>
+      </Button>
+      <Tooltip title="הסר מהאירוע">
+        <Box component="span" className={classes.participantActions}>
+          <IconButton
+            size="small"
+            className={classes.deleteButton}
+            disabled={!attendee.id || deleteAttendeeMutation.isPending}
+            onClick={(event) => {
+              event.stopPropagation();
+              handleDeleteAttendee(attendee);
+            }}
+            aria-label="הסר מהאירוע"
+          >
+            <DeleteOutlineIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      </Tooltip>
+    </Box>
   );
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      PaperProps={{ className: classes.dialogPaper }}
-    >
-      <Box className={classes.header}>
-        רשומים לאירוע
-        {!isFetchingAttendees && (
-          <Typography className={classes.countBadge}>
-            ({formattedAttendees.length})
-          </Typography>
-        )}
-        <IconButton
-          aria-label="close"
-          onClick={onClose}
-          className={classes.closeButton}
-          size="small"
-        >
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      </Box>
-
-      <Box className={classes.dialogContent}>
-        {isFetchingAttendees ? (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              minHeight: 200,
-            }}
-          >
-            <CircularProgress sx={{ color: "#9a5188" }} size={36} />
-          </Box>
-        ) : formattedAttendees.length === 0 ? (
-          <Box className={classes.emptyState}>
-            <PeopleOutlineIcon sx={{ fontSize: 48, mb: 1, color: "#ddd" }} />
-            <Typography sx={{ fontFamily: "Rubik", color: "#bbb" }}>
-              אין משתתפים רשומים
-            </Typography>
-          </Box>
-        ) : (
-          formattedAttendees.map((attendee, index) => (
-            <Box
-              key={attendee.attendeeId}
-              className={classes.listItem}
-              sx={{ animationDelay: `${index * 0.05}s` }}
+    <>
+      <Dialog
+        open={open}
+        onClose={onClose}
+        PaperProps={{ className: classes.dialogPaper }}
+      >
+        <Box className={classes.header}>
+          רשומים לאירוע
+          {!isFetchingAttendees && (
+            <Typography className={classes.countBadge}>({totalCount})</Typography>
+          )}
+          <Tooltip title="הוסף משתתף">
+            <IconButton
+              aria-label="הוסף משתתף"
+              onClick={() => setIsAddAttendeeOpen(true)}
+              className={classes.addButton}
+              size="small"
             >
-              <Avatar className={classes.avatar}>
-                {attendee.name?.[0]?.toUpperCase() ?? "?"}
-              </Avatar>
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography
-                  sx={{
-                    fontFamily: "Rubik",
-                    fontWeight: 600,
-                    fontSize: 14,
-                    color: "#333",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {attendee.name}
-                </Typography>
-                {attendee.email && (
-                  <Typography
-                    sx={{
-                      fontFamily: "Rubik",
-                      fontSize: 12,
-                      color: "#999",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {attendee.email}
-                  </Typography>
-                )}
-              </Box>
-              <IconButton
-                size="small"
-                className={classes.deleteButton}
-                disabled={deleteMutation.isPending}
-                onClick={() => deleteMutation.mutate(attendee.attendeeId)}
-              >
-                <DeleteOutlineIcon fontSize="small" />
-              </IconButton>
+              <AddIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <IconButton
+            aria-label="close"
+            onClick={onClose}
+            className={classes.closeButton}
+            size="small"
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
+
+        <Box className={classes.dialogContent}>
+          {isFetchingAttendees ? (
+            <Box className={classes.loadingState}>
+              <CircularProgress sx={{ color: "#9a5188" }} size={36} />
             </Box>
-          ))
-        )}
-      </Box>
-    </Dialog>
+          ) : totalCount === 0 ? (
+            <Box className={classes.emptyState}>
+              <PeopleOutlineIcon sx={{ fontSize: 48, mb: 1, color: "#ddd" }} />
+              <Typography sx={{ fontFamily: "Rubik", color: "#bbb" }}>
+                אין משתתפים רשומים
+              </Typography>
+            </Box>
+          ) : (
+            <>
+              <Typography className={classes.sectionTitle}>משובצים</Typography>
+              {paired.length === 0 ? (
+                <Typography className={classes.sectionEmpty}>אין שיבוצים</Typography>
+              ) : (
+                paired.map((pair) => (
+                  <Box key={pair.id} className={classes.pairRow}>
+                    <Box className={classes.pairContent}>
+                      <Box className={classes.pairPerson}>
+                        <Avatar className={classes.avatar}>
+                          {pair.mentor?.name?.[0]?.toUpperCase() ?? "?"}
+                        </Avatar>
+                        <Typography className={classes.personName}>
+                          {pair.mentor?.name ?? "ללא שם"}
+                        </Typography>
+                      </Box>
+                      <Typography className={classes.pairDivider}>←</Typography>
+                      <Box className={classes.pairPerson}>
+                        <Typography className={classes.personName}>
+                          {pair.trainee?.name ?? "ללא שם"}
+                        </Typography>
+                        <Avatar className={classes.avatar}>
+                          {pair.trainee?.name?.[0]?.toUpperCase() ?? "?"}
+                        </Avatar>
+                      </Box>
+                    </Box>
+                    <Tooltip title="הסר שיבוץ">
+                      <Box component="span" className={classes.participantActions}>
+                        <IconButton
+                          size="small"
+                          className={classes.deleteButton}
+                          disabled={deletePairingMutation.isPending}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            deletePairingMutation.mutate(pair.id);
+                          }}
+                          aria-label="הסר שיבוץ"
+                        >
+                          <DeleteOutlineIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    </Tooltip>
+                  </Box>
+                ))
+              )}
+
+              <Typography className={classes.sectionTitle}>
+                חונכים ללא שיבוץ
+              </Typography>
+              {unpairedMentors.length === 0 ? (
+                <Typography className={classes.sectionEmpty}>
+                  אין חונכים ללא שיבוץ
+                </Typography>
+              ) : (
+                unpairedMentors.map((attendee) =>
+                  renderAttendee(
+                    attendee,
+                    selectedMentorId === (attendee.user?.id ?? attendee.userId),
+                    () => handleMentorClick(attendee.user?.id ?? attendee.userId),
+                  ),
+                )
+              )}
+
+              <Typography className={classes.sectionTitle}>
+                חניכים ללא שיבוץ
+              </Typography>
+              {unpairedTrainees.length === 0 ? (
+                <Typography className={classes.sectionEmpty}>
+                  אין חניכים ללא שיבוץ
+                </Typography>
+              ) : (
+                unpairedTrainees.map((attendee) =>
+                  renderAttendee(
+                    attendee,
+                    selectedTraineeId === (attendee.user?.id ?? attendee.userId),
+                    () =>
+                      handleTraineeClick(attendee.user?.id ?? attendee.userId),
+                  ),
+                )
+              )}
+            </>
+          )}
+        </Box>
+      </Dialog>
+
+      {isAddAttendeeOpen && (
+        <AddAttendeeDialog
+          eventId={eventId}
+          open={isAddAttendeeOpen}
+          onClose={() => setIsAddAttendeeOpen(false)}
+          users={users || []}
+        />
+      )}
+    </>
   );
 };

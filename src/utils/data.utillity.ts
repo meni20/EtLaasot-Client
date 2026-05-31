@@ -7,6 +7,23 @@ export const formatDate = (date: Date): string => {
   return `${day}/${month}/${year}`;
 };
 
+export const formatDateTimeShort = (
+  date: Date | string | null | undefined,
+): string => {
+  if (!date) return "-";
+
+  const dateObj = new Date(date);
+  if (Number.isNaN(dateObj.getTime())) return "-";
+
+  const day = String(dateObj.getDate()).padStart(2, "0");
+  const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const year = dateObj.getFullYear();
+  const hours = String(dateObj.getHours()).padStart(2, "0");
+  const minutes = String(dateObj.getMinutes()).padStart(2, "0");
+
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
+};
+
 export const formatDateTime = (
   date: Date | string | null | undefined,
   timeZone = "Asia/Jerusalem",
@@ -37,8 +54,8 @@ export const formatDurationMinutes = (
   const minutes = totalMinutes % 60;
 
   if (!hours) return `${minutes} דק'`;
-  if (!minutes) return `${hours} ש'`;
-  return `${hours} ש' ${minutes} דק'`;
+  if (!minutes) return `${hours} שע'`;
+  return `${hours} שע' ${minutes} דק'`;
 };
 
 export const getDurationMinutesBetween = (
