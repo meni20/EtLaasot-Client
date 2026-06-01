@@ -16,7 +16,7 @@ export interface IAttendees {
   id?: string;
   userId: string;
   eventId: string;
-  rsvpStatus?: string;
+  rsvpStatus?: AttendeeRsvpStatus;
   rsvpDate?: Date;
   checkedIn?: boolean;
   checkedInAt?: Date;
@@ -28,6 +28,29 @@ export interface IAttendees {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export interface IEventPairing {
+  id: string;
+  eventId: string;
+  mentorId: string;
+  traineeId: string;
+  mentor?: IUser;
+  trainee?: IUser;
+}
+
+export interface IEventParticipants {
+  paired: IEventPairing[];
+  unpairedMentors: IAttendees[];
+  unpairedTrainees: IAttendees[];
+}
+
+export type AttendanceIntent =
+  | "BOTH"
+  | "VOLUNTEER_ONLY"
+  | "TRAINEE_ONLY"
+  | "NONE";
+
+export type AttendeeRsvpStatus = "pending" | "confirmed" | "declined";
 
 export interface IBranch {
   id: string;

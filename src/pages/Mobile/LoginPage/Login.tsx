@@ -1,13 +1,14 @@
-import { Box, Button, TextField, Typography } from "@mui/material";
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useStyles } from "./Login.styles";
-import { isValidIsraeliId } from "../../../utils/data.utillity";
 import { useAuth } from "../../../contexts/useAuth";
+import { isValidIsraeliId } from "../../../utils/data.utillity";
+import { Box, Button, TextField, Typography } from "@mui/material";
 
 export const LoginPage: React.FC = () => {
   const styles = useStyles();
   const { login } = useAuth();
   const [identifyId, setIdentifyId] = useState<string>("");
+  const [loginCode, setLoginCode] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -22,10 +23,16 @@ export const LoginPage: React.FC = () => {
       return;
     }
 
+    if (!loginCode.trim()) {
+      setError("Login code is required");
+      return;
+    }
+
     setError("");
     setLoading(true);
+
     try {
-      await login(identifyId);
+      await login(identifyId, loginCode);
     } catch {
       setError("Login failed");
     } finally {
@@ -36,10 +43,14 @@ export const LoginPage: React.FC = () => {
   return (
     <Box className={styles.container}>
       <Box className={styles.card}>
-        <Typography className={styles.logo}>🤝</Typography>
-        <Typography className={styles.title}>עת לעשות</Typography>
+        <Box
+          component="img"
+          src="/etlaasot-favicon.png"
+          alt="עת לעשות"
+          className={styles.logo}
+        />
         <Typography className={styles.subtitle}>
-          הזן תעודת זהות כדי להתחבר
+          הזן תעודת זהות וקוד התחברות
         </Typography>
 
         <TextField
@@ -56,13 +67,25 @@ export const LoginPage: React.FC = () => {
           helperText={error}
           className={styles.input}
         />
-
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="קוד התחברות"
+          value={loginCode}
+          onChange={(e) => {
+            setLoginCode(e.target.value);
+            setError("");
+          }}
+          type="password"
+          error={!!error}
+          className={styles.input}
+        />
         <Button
           fullWidth
           variant="contained"
           className={styles.button}
           onClick={handleSubmit}
-          disabled={loading || !identifyId}
+          disabled={loading || !identifyId || !loginCode}
         >
           {loading ? "מתחבר..." : "התחבר"}
         </Button>

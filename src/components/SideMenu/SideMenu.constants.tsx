@@ -1,8 +1,7 @@
-import HomeIcon from "@mui/icons-material/Home";
 import PeopleIcon from "@mui/icons-material/People";
-import DashboardIcon from "@mui/icons-material/Dashboard";
+import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import GroupsIcon from "@mui/icons-material/Groups";
-import { CalendarIcon } from "../../icons/CalendarIcon";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { ReportIcon } from "../../icons/ReportsIcon";
 
 export interface MenuItem {
@@ -12,11 +11,10 @@ export interface MenuItem {
 }
 
 export const menuItems: MenuItem[] = [
-  { label: "דשבורד", icon: <DashboardIcon />, path: "/dashboard" },
-  { label: "בית", icon: <HomeIcon />, path: "/home" },
-  { label: "מתנדבים", icon: <PeopleIcon />, path: "/volunteers" },
-  { label: "לוח שנה", icon: <CalendarIcon />, path: "/calendar" },
+  { label: "בית", icon: <HomeRoundedIcon />, path: "/dashboard" },
   { label: "אירועים", icon: <ReportIcon />, path: "/events" },
+  { label: "מתנדבים", icon: <PeopleIcon />, path: "/volunteers" },
   { label: "חניכים", icon: <PeopleIcon />, path: "/trainee" },
   { label: "שיבוץ חונכים", icon: <GroupsIcon />, path: "/mentor-assignments" },
+  { label: "פעילויות", icon: <AccessTimeIcon />, path: "/activities" },
 ];

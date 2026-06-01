@@ -1,51 +1,81 @@
+import React, { useEffect, useState } from "react";
 import {
+  Alert,
   Box,
   Button,
   Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
-  TextField,
   MenuItem,
   Snackbar,
-  Alert,
+  TextField,
 } from "@mui/material";
-import React, { useState } from "react";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
 import CloseIcon from "@mui/icons-material/Close";
+import { DateTimePicker } from "@mui/x-date-pickers";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   validateFormEvent,
   type ValidationErrors,
 } from "../../utils/validators.util";
-import { useQueryClient } from "@tanstack/react-query";
 import type { ICreateEventProps } from "./CreateEvent.interface";
 import type { IEvent } from "../../interfaces/event.interface";
-import { DatePicker } from "@mui/x-date-pickers";
 import eventService from "../../services/event.service";
 import { useBranch } from "../../contexts/useBranch";
 import { EVENT_TYPES } from "../../constants/auth.const";
 
-export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
-  const [loading, setLoading] = useState<boolean>(false);
+const emptyEventForm = (): IEvent => ({
+  name: "",
+  address: "",
+  description: "",
+  startDate: new Date(),
+  endDate: new Date(),
+  eventType: "",
+});
+
+const toEventPayload = (form: IEvent, branchId: string | null): IEvent => ({
+  name: form.name,
+  address: form.address,
+  description: form.description,
+  startDate: form.startDate,
+  endDate: form.endDate,
+  eventType: form.eventType,
+  branchId: branchId ?? undefined,
+});
+
+export const CreateEvent: React.FC<ICreateEventProps> = ({
+  open,
+  onClose,
+  event,
+}) => {
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const [errorMsg, setErrorMsg] = useState<string>("");
+  const [errorMsg, setErrorMsg] = useState("");
   const queryClient = useQueryClient();
   const { activeBranch } = useBranch();
-  const [form, setForm] = useState<IEvent>({
-    name: "",
-    address: "",
-    description: "",
-    startDate: new Date(),
-    endDate: new Date(),
-  });
+  const [form, setForm] = useState<IEvent>(emptyEventForm);
+
+  useEffect(() => {
+    if (event) {
+      setForm({
+        ...event,
+        name: event.name ?? "",
+        address: event.address ?? "",
+        description: event.description ?? "",
+        startDate: new Date(event.startDate),
+        endDate: new Date(event.endDate),
+        eventType: event.eventType ?? "",
+      });
+      return;
+    }
+
+    setForm(emptyEventForm());
+  }, [event]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleCreateEvent = async () => {
@@ -58,26 +88,26 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
 
     try {
       setLoading(true);
+      const payload = toEventPayload(form, activeBranch);
 
-      await eventService.createEvent({
-        ...form,
-        branchId: activeBranch ?? undefined,
-      });
+      if (event?.id) {
+        await eventService.updateEvent(event.id, payload);
+      } else {
+        await eventService.createEvent(payload);
+      }
 
       await queryClient.invalidateQueries({ queryKey: ["events"] });
       await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
 
-      setForm({
-        name: "",
-        address: "",
-        description: "",
-        startDate: new Date(),
-        endDate: new Date(),
-      });
+      setForm(emptyEventForm());
       setErrors({});
       onClose();
     } catch {
-      setErrorMsg("שגיאה ביצירת אירוע, נסה שוב");
+      setErrorMsg(
+        event
+          ? "שגיאה בעריכת אירוע, נסה שוב"
+          : "שגיאה ביצירת אירוע, נסה שוב",
+      );
     } finally {
       setLoading(false);
     }
@@ -108,7 +138,7 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
             fontFamily: "Rubik, sans-serif",
           }}
         >
-          יצירת אירוע
+          {event ? "עריכת אירוע" : "יצירת אירוע"}
         </DialogTitle>
         <IconButton
           aria-label="close"
@@ -149,12 +179,14 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
               />
             </Box>
             <Box sx={{ display: "flex", gap: 2 }}>
-              <DatePicker
+              <DateTimePicker
                 label="תאריך התחלה"
                 value={form.startDate}
                 onChange={(newValue) => {
                   if (newValue) setForm({ ...form, startDate: newValue });
                 }}
+                ampm={false}
+                format="dd/MM/yyyy HH:mm"
                 slotProps={{
                   textField: {
                     fullWidth: true,
@@ -162,12 +194,14 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
                   },
                 }}
               />
-              <DatePicker
+              <DateTimePicker
                 label="תאריך סיום"
                 value={form.endDate}
                 onChange={(newValue) => {
                   if (newValue) setForm({ ...form, endDate: newValue });
                 }}
+                ampm={false}
+                format="dd/MM/yyyy HH:mm"
                 slotProps={{
                   textField: {
                     fullWidth: true,
@@ -225,7 +259,7 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({ open, onClose }) => {
               },
             }}
           >
-            {loading ? "יוצר..." : "צור אירוע"}
+            {loading ? "טוען..." : event ? "שמור שינויים" : "צור אירוע"}
           </Button>
         </DialogActions>
       </Dialog>

@@ -19,15 +19,16 @@ export const AUTH_ROLES = {
 
 export const BRANCHES = {
   BAT_YAM: { id: "branch-bat-yam", name: "סניף בת ים" },
-  TEL_AVIV: { id: "branch-tel-aviv", name: "סניף תל אביב" },
-  JERUSALEM: { id: "branch-jerusalem", name: "סניף ירושלים" },
-  HAIFA: { id: "branch-haifa", name: "סניף חיפה" },
-  BEER_SHEVA: { id: "branch-beer-sheva", name: "סניף באר שבע" },
+  TEL_AVIV: { id: "branch-tel-aviv", name: "סניף נתניה" },
+  JERUSALEM: { id: "branch-jerusalem", name: "סניף צור הדסה" },
+  HAIFA: { id: "branch-haifa", name: "סניף בית שמש" },
+  BEER_SHEVA: { id: "branch-beer-sheva", name: "סניף חריש" },
 };
 
 export const EVENT_TYPES: Record<string, { label: string; icon: string }> = {
   shabbat: { label: "שבת", icon: "🕯️" },
-  camp: { label: "מחנה", icon: "⛺" },
+  camp: { label: "מחנה", icon: "🏕️" },
+  playroom: { label: "משחקייה", icon: "🧸" },
   trip: { label: "טיול", icon: "🥾" },
   meeting: { label: "פגישה", icon: "🤝" },
   holiday: { label: "חג", icon: "🎉" },

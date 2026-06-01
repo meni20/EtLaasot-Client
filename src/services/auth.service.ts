@@ -1,23 +1,30 @@
-import axios from "axios";
 import type { AxiosInstance } from "axios";
+import { createServerAxiosInstance } from "../config/axiosInstance";
 
 export class AuthService {
   private api: AxiosInstance;
+
   constructor() {
-    this.api = axios.create({
-      baseURL: `${import.meta.env.VITE_SERVER_URL}/auth`,
-    });
+    this.api = createServerAxiosInstance("/auth");
   }
 
-  public async login(userId: string) {
-    const res = await this.api.post("/login", { userId });
+  public async login(userId: string, loginCode: string) {
+    const res = await this.api.post('/login', {
+      userId,
+      loginCode,
+    });
+
     return res.data;
   }
 
-  public async getMe(token: string) {
-    const res = await this.api.get("/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  public async getMe() {
+    const res = await this.api.get('/me');
+
+    return res.data;
+  }
+
+  public async logout() {
+    const res = await this.api.post('/logout');
     return res.data;
   }
 }

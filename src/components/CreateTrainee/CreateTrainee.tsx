@@ -76,6 +76,8 @@ export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
 
       await queryClient.invalidateQueries({ queryKey: ["trainees"] });
       await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      await queryClient.invalidateQueries({ queryKey: ["unassigned-trainees"] });
+      await queryClient.invalidateQueries({ queryKey: ["users"] });
 
       setForm({
         name: "",

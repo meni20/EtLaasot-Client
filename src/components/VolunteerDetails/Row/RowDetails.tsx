@@ -9,7 +9,7 @@ export const Row = ({
 }: {
   icon: React.ReactNode;
   label: string;
-  value?: string | number;
+  value?: string | number | null;
   onCopy?: () => void;
 }) => (
   <Stack direction="row" alignItems="center" spacing={1.25} sx={{ py: 1 }}>
@@ -31,7 +31,7 @@ export const Row = ({
     </Box>
 
     {onCopy && (
-      <IconButton size="small" onClick={onCopy} aria-label={`copy ${label}`}>
+      <IconButton size="small" onClick={onCopy} aria-label={`העתקת ${label}`}>
         <ContentCopyRoundedIcon fontSize="small" />
       </IconButton>
     )}

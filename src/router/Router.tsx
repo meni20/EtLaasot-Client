@@ -1,9 +1,8 @@
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
+import Navbar from "../components/Navbar/Navbar";
 import { Box, CircularProgress } from "@mui/material";
 import { Route, Routes, Navigate } from "react-router-dom";
-import Navbar from "../components/Navbar/Navbar";
 import { SideMenu } from "../components/SideMenu/SideMenu";
-import { NavbarMobile } from "../components/NavbarMobile/NavbarMobile";
 import {
   DESKTOP_ROUTES,
   MOBILE_ROUTES,
@@ -66,12 +65,14 @@ const AppRouter: React.FC = () => {
       <Box>
         <Navbar title="עת לעשות" onMenuClick={() => setMenuOpen(true)} />
         <SideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
-        <Routes>
-          {DESKTOP_ROUTES.map(({ path, element }) => (
-            <Route key={path} path={path} element={element} />
-          ))}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <Suspense fallback={<RouteLoading />}>
+          <Routes>
+            {DESKTOP_ROUTES.map(({ path, element }) => (
+              <Route key={path} path={path} element={element} />
+            ))}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
       </Box>
     );
   }
@@ -79,15 +80,22 @@ const AppRouter: React.FC = () => {
   // Volunteer / Trainee → always mobile layout
   return (
     <Box>
-      <NavbarMobile />
-      <Routes>
-        {filteredMobileRoutes.map(({ path, element }) => (
-          <Route key={path} path={path} element={element} />
-        ))}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Suspense fallback={<RouteLoading />}>
+        <Routes>
+          {filteredMobileRoutes.map(({ path, element }) => (
+            <Route key={path} path={path} element={element} />
+          ))}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </Box>
   );
 };
+
+const RouteLoading = () => (
+  <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+    <CircularProgress sx={{ color: "#9a5188" }} />
+  </Box>
+);
 
 export default AppRouter;

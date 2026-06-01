@@ -14,7 +14,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
   const { data, isLoading, isError } = useQuery({
     queryKey: ["events", activeBranch],
     queryFn: () => eventService.getAllEvents(activeBranch ?? undefined),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!activeBranch,
   });
 
   const events = data ?? [];

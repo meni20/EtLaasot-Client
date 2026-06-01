@@ -60,6 +60,8 @@ export const MentorAssignmentPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["mentor-assignments"] });
       queryClient.invalidateQueries({ queryKey: ["unassigned-trainees"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["myTrainees"] });
       setDialogOpen(false);
       setSelectedMentor("");
       setSelectedTrainee("");
@@ -71,6 +73,8 @@ export const MentorAssignmentPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["mentor-assignments"] });
       queryClient.invalidateQueries({ queryKey: ["unassigned-trainees"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["myTrainees"] });
     },
   });
 
