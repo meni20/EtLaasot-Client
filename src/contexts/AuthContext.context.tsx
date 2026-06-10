@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, type ReactNode } from "react";
 import authService from "../services/auth.service";
 import { AuthContext } from "./useAuth";
 import type { IAuthContext } from "./useAuth";
+import { clearToken, getToken, setToken as persistToken } from "../config/tokenStore";
 
 type AuthUser = NonNullable<IAuthContext["user"]>;
 
@@ -9,7 +10,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(() => getToken());
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -21,10 +22,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       .then((data) => {
         if (!mounted) return;
         setUser(data);
-        setToken("cookie");
       })
       .catch(() => {
         if (!mounted) return;
+        clearToken();
         setUser(null);
         setToken(null);
       })
@@ -39,6 +40,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     const handleUnauthorized = () => {
+      clearToken();
       setUser(null);
       setToken(null);
     };
@@ -51,11 +53,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const login = useCallback(async (userId: string, loginCode: string) => {
     try {
-      await authService.login(userId, loginCode);
+      const data = await authService.login(userId, loginCode);
+      if (data?.token) {
+        persistToken(data.token);
+        setToken(data.token);
+      }
       setLoading(true);
       const currentUser = await authService.getMe();
       setUser(currentUser);
-      setToken("cookie");
     } finally {
       setLoading(false);
     }
@@ -63,6 +68,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const logout = useCallback(async () => {
     await authService.logout().catch(() => undefined);
+    clearToken();
     setToken(null);
     setUser(null);
   }, []);
