@@ -21,7 +21,14 @@ export const validateFormVolunteer = (form: IUser): ValidationErrors => {
     newErrors.phoneNumber = "Invalid Israeli phone number";
   }
 
-  if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+  if (!form.gender) {
+    newErrors.gender = "Gender is required";
+  }
+
+  if (
+    form.email &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())
+  ) {
     newErrors.email = "Invalid email address";
   }
 

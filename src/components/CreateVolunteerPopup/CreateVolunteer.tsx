@@ -3,6 +3,7 @@ import {
   Button,
   Dialog,
   IconButton,
+  MenuItem,
   TextField,
   Snackbar,
   Alert,
@@ -36,6 +37,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
     id: "",
     age: 0,
     phoneNumber: "",
+    gender: "",
     address: "",
     email: "",
   });
@@ -64,6 +66,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
     const payload: IUser = {
       ...form,
       age: Number(form.age),
+      email: form.email?.trim() || null,
     };
 
     try {
@@ -83,6 +86,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
         id: "",
         age: 0,
         phoneNumber: "",
+        gender: "",
         address: "",
         email: "",
       });
@@ -178,6 +182,20 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
                 fullWidth
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
+              <TextField
+                select
+                label="Gender"
+                value={form.gender}
+                onChange={handleChange}
+                name="gender"
+                error={!!errors.gender}
+                helperText={errors.gender}
+                fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+              >
+                <MenuItem value="male">male</MenuItem>
+                <MenuItem value="female">female</MenuItem>
+              </TextField>
             </Box>
             <Box
               sx={{
@@ -225,7 +243,9 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
         >
           <Button
             onClick={handleCreateVolunteer}
-            disabled={loading || !form.name.trim() || !form.id.trim()}
+            disabled={
+              loading || !form.name.trim() || !form.id.trim() || !form.gender
+            }
             variant="contained"
             fullWidth
             sx={{

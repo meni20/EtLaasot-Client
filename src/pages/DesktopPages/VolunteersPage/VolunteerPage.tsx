@@ -26,7 +26,7 @@ const avatarLetter = (name?: string) => name?.trim()?.[0]?.toUpperCase() || "?";
 
 type VolunteerTableRow = Pick<
   IUser,
-  "id" | "name" | "age" | "phoneNumber" | "email" | "address"
+  "id" | "name" | "age" | "gender" | "phoneNumber" | "email" | "address"
 > & {
   originalVolunteer: IUser;
 };
@@ -71,6 +71,7 @@ export const VolunteerPage: React.FC = () => {
         id: volunteer.id,
         name: volunteer.name,
         age: volunteer.age,
+        gender: volunteer.gender ?? "",
         phoneNumber: volunteer.phoneNumber,
         email: volunteer.email,
         address: volunteer.address,
@@ -216,6 +217,7 @@ export const VolunteerPage: React.FC = () => {
             open={isDetailsPanelOpen}
             onClose={closeVolunteerDetails}
             volunteerData={selectedVolunteer}
+            onUserUpdated={setSelectedVolunteer}
           />
         )}
 

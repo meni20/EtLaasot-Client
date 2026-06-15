@@ -1,11 +1,14 @@
 import type { IEvent } from "./event.interface";
 
+export type UserGender = "male" | "female";
+
 export interface IUser {
   id: string;
   name: string;
   phoneNumber: string;
+  gender?: UserGender | "" | null;
   address: string;
-  email: string;
+  email: string | null;
   age: number;
   branchId?: string;
   userRoles?: IUserRole[];
@@ -29,6 +32,7 @@ export interface ICurrentUserProfile {
   id: string;
   name: string;
   phoneNumber?: string | null;
+  gender?: UserGender | null;
   address?: string | null;
   email?: string | null;
   age?: number | null;
@@ -40,5 +44,14 @@ export interface ICurrentUserProfile {
 export interface IUpdateCurrentUserProfilePayload {
   email?: string | null;
   phoneNumber?: string;
+  address?: string | null;
+}
+
+export interface IUpdateUserPayload {
+  name: string;
+  age?: number | null;
+  gender?: UserGender | null;
+  phoneNumber: string;
+  email?: string | null;
   address?: string | null;
 }

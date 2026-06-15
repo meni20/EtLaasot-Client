@@ -5,4 +5,5 @@ export interface IVolunteerDetailsProps {
     onClose: () => void;
     volunteerData: IUser;
     entityLabel?: string;
+    onUserUpdated?: (user: IUser) => void;
 }
