@@ -3,6 +3,7 @@ import {
   Button,
   Dialog,
   IconButton,
+  MenuItem,
   TextField,
   Snackbar,
   Alert,
@@ -21,6 +22,8 @@ import {
 import type { ICreateVolunteerProps } from "./CreateVolunteer.interface";
 import { useQueryClient } from "@tanstack/react-query";
 import { useBranch } from "../../contexts/useBranch";
+import { getTodayDateInputValue } from "../../utils/data.utillity";
+import { SHIRT_SIZE_OPTIONS } from "../../constants/user.constants";
 
 export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
   open,
@@ -34,23 +37,25 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
   const [form, setForm] = useState<IUser>({
     name: "",
     id: "",
-    age: 0,
+    dateOfBirth: "",
     phoneNumber: "",
+    gender: "",
+    shirtSize: "",
+    customShirtSize: "",
+    notes: "",
     address: "",
     email: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, valueAsNumber } = e.target;
+    const { name, value } = e.target;
 
     setForm((prev) => ({
       ...prev,
-      [name]:
-        name === "age"
-          ? Number.isNaN(valueAsNumber)
-            ? 0
-            : valueAsNumber
-          : value,
+      [name]: value,
+      ...(name === "shirtSize" && value !== "OTHER"
+        ? { customShirtSize: "" }
+        : {}),
     }));
   };
 
@@ -63,7 +68,13 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
     }
     const payload: IUser = {
       ...form,
-      age: Number(form.age),
+      email: form.email?.trim() || null,
+      shirtSize: form.shirtSize || null,
+      customShirtSize:
+        form.shirtSize === "OTHER"
+          ? form.customShirtSize?.trim() || null
+          : null,
+      notes: form.notes?.trim() || null,
     };
 
     try {
@@ -81,8 +92,12 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
       setForm({
         name: "",
         id: "",
-        age: 0,
+        dateOfBirth: "",
         phoneNumber: "",
+        gender: "",
+        shirtSize: "",
+        customShirtSize: "",
+        notes: "",
         address: "",
         email: "",
       });
@@ -168,16 +183,32 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
               <TextField
-                label="גיל"
-                type="number"
-                value={form.age}
+                label="תאריך לידה"
+                type="date"
+                value={form.dateOfBirth}
                 onChange={handleChange}
-                name="age"
-                error={!!errors.age}
-                helperText={errors.age}
+                name="dateOfBirth"
+                error={!!errors.dateOfBirth}
+                helperText={errors.dateOfBirth}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ max: getTodayDateInputValue() }}
                 fullWidth
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
+              <TextField
+                select
+                label="Gender"
+                value={form.gender}
+                onChange={handleChange}
+                name="gender"
+                error={!!errors.gender}
+                helperText={errors.gender}
+                fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+              >
+                <MenuItem value="male">male</MenuItem>
+                <MenuItem value="female">female</MenuItem>
+              </TextField>
             </Box>
             <Box
               sx={{
@@ -217,6 +248,50 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
                 fullWidth
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
+              <TextField
+                select
+                label="מידת חולצה"
+                value={form.shirtSize}
+                onChange={handleChange}
+                name="shirtSize"
+                error={!!errors.shirtSize}
+                helperText={errors.shirtSize}
+                fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+              >
+                <MenuItem value="">-</MenuItem>
+                {SHIRT_SIZE_OPTIONS.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              {form.shirtSize === "OTHER" && (
+                <TextField
+                  label="מידה אחרת"
+                  value={form.customShirtSize ?? ""}
+                  onChange={handleChange}
+                  name="customShirtSize"
+                  error={!!errors.customShirtSize}
+                  helperText={errors.customShirtSize}
+                  inputProps={{ maxLength: 50 }}
+                  fullWidth
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+                />
+              )}
+              <TextField
+                label="הערות"
+                value={form.notes ?? ""}
+                onChange={handleChange}
+                name="notes"
+                error={!!errors.notes}
+                helperText={errors.notes}
+                multiline
+                minRows={3}
+                inputProps={{ maxLength: 2000 }}
+                fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+              />
             </Box>
           </Box>
         </DialogContent>
@@ -225,7 +300,13 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
         >
           <Button
             onClick={handleCreateVolunteer}
-            disabled={loading || !form.name.trim() || !form.id.trim()}
+            disabled={
+              loading ||
+              !form.name.trim() ||
+              !form.id.trim() ||
+              !form.dateOfBirth ||
+              !form.gender
+            }
             variant="contained"
             fullWidth
             sx={{

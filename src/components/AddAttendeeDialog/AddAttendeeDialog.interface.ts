@@ -7,7 +7,7 @@ export interface IAddAttendeeDialogProps {
   users?: Array<{
     id: string;
     name: string;
-    email: string;
+    email: string | null;
     role?: number;
     events?: IEvent[];
   }>;
