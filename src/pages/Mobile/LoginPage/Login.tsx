@@ -2,13 +2,23 @@
 import { useStyles } from "./Login.styles";
 import { useAuth } from "../../../contexts/useAuth";
 import { isValidIsraeliId } from "../../../utils/data.utillity";
-import { Box, Button, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  IconButton,
+  InputAdornment,
+  TextField,
+  Typography,
+} from "@mui/material";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 export const LoginPage: React.FC = () => {
   const styles = useStyles();
   const { login } = useAuth();
   const [identifyId, setIdentifyId] = useState<string>("");
   const [loginCode, setLoginCode] = useState<string>("");
+  const [showLoginCode, setShowLoginCode] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -76,7 +86,23 @@ export const LoginPage: React.FC = () => {
             setLoginCode(e.target.value);
             setError("");
           }}
-          type="password"
+          type={showLoginCode ? "text" : "password"}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label={
+                    showLoginCode ? "Hide login code" : "Show login code"
+                  }
+                  onClick={() => setShowLoginCode((show) => !show)}
+                  edge="end"
+                  size="small"
+                >
+                  {showLoginCode ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
           error={!!error}
           className={styles.input}
         />

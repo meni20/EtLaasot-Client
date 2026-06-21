@@ -29,7 +29,7 @@ import { useAuth } from "../../../contexts/useAuth";
 import { useBranch } from "../../../contexts/useBranch";
 import mentorAssignmentService from "../../../services/mentorAssignment.service";
 import { AUTH_ROLES } from "../../../constants/auth.const";
-import { formatDate } from "../../../utils/data.utillity";
+import { calculateAge, formatDate } from "../../../utils/data.utillity";
 import { decodeUnicodeEscapes } from "../../../utils/text.util";
 import { BottomNav } from "../../../components/BottomNav/BottomNav";
 import {
@@ -114,7 +114,10 @@ export const ProfilePage: React.FC = () => {
   const profileEmail = decodeUnicodeEscapes(currentProfile?.email);
   const profilePhone = decodeUnicodeEscapes(currentProfile?.phoneNumber);
   const profileAddress = decodeUnicodeEscapes(currentProfile?.address);
-  const profileAge = currentProfile?.age;
+  const profileAge = calculateAge(
+    currentProfile?.dateOfBirth,
+    currentProfile?.age,
+  );
 
   useEffect(() => {
     if (!isEditDialogOpen) return;
