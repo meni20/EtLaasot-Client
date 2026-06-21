@@ -22,6 +22,8 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import type { ICreateTraineeProps } from "./CreateTrainee.interface";
 import { useBranch } from "../../contexts/useBranch";
+import { getTodayDateInputValue } from "../../utils/data.utillity";
+import { SHIRT_SIZE_OPTIONS } from "../../constants/user.constants";
 
 export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
   open,
@@ -35,24 +37,26 @@ export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
   const [form, setForm] = useState<IUser>({
     name: "",
     id: "",
-    age: 0,
+    dateOfBirth: "",
     phoneNumber: "",
     gender: "",
+    shirtSize: "",
+    customShirtSize: "",
+    notes: "",
+    parentName: "",
     address: "",
     email: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, valueAsNumber } = e.target;
+    const { name, value } = e.target;
 
     setForm((prev) => ({
       ...prev,
-      [name]:
-        name === "age"
-          ? Number.isNaN(valueAsNumber)
-            ? 0
-            : valueAsNumber
-          : value,
+      [name]: value,
+      ...(name === "shirtSize" && value !== "OTHER"
+        ? { customShirtSize: "" }
+        : {}),
     }));
   };
 
@@ -65,8 +69,14 @@ export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
     }
     const payload: IUser = {
       ...form,
-      age: Number(form.age),
       email: form.email?.trim() || null,
+      shirtSize: form.shirtSize || null,
+      customShirtSize:
+        form.shirtSize === "OTHER"
+          ? form.customShirtSize?.trim() || null
+          : null,
+      notes: form.notes?.trim() || null,
+      parentName: form.parentName?.trim() || null,
     };
 
     try {
@@ -85,9 +95,13 @@ export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
       setForm({
         name: "",
         id: "",
-        age: 0,
+        dateOfBirth: "",
         phoneNumber: "",
         gender: "",
+        shirtSize: "",
+        customShirtSize: "",
+        notes: "",
+        parentName: "",
         address: "",
         email: "",
       });
@@ -172,13 +186,15 @@ export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
               <TextField
-                label="גיל"
-                type="number"
-                value={form.age}
+                label="תאריך לידה"
+                type="date"
+                value={form.dateOfBirth}
                 onChange={handleChange}
-                name="age"
-                error={!!errors.age}
-                helperText={errors.age}
+                name="dateOfBirth"
+                error={!!errors.dateOfBirth}
+                helperText={errors.dateOfBirth}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ max: getTodayDateInputValue() }}
                 fullWidth
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
@@ -226,12 +242,67 @@ export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
               <TextField
+                label="שם הורה"
+                value={form.parentName ?? ""}
+                onChange={handleChange}
+                name="parentName"
+                error={!!errors.parentName}
+                helperText={errors.parentName}
+                inputProps={{ maxLength: 100 }}
+                fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+              />
+              <TextField
                 label="אימייל"
                 value={form.email}
                 onChange={handleChange}
                 name="email"
                 error={!!errors.email}
                 helperText={errors.email}
+                fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+              />
+              <TextField
+                select
+                label="מידת חולצה"
+                value={form.shirtSize}
+                onChange={handleChange}
+                name="shirtSize"
+                error={!!errors.shirtSize}
+                helperText={errors.shirtSize}
+                fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+              >
+                <MenuItem value="">-</MenuItem>
+                {SHIRT_SIZE_OPTIONS.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              {form.shirtSize === "OTHER" && (
+                <TextField
+                  label="מידה אחרת"
+                  value={form.customShirtSize ?? ""}
+                  onChange={handleChange}
+                  name="customShirtSize"
+                  error={!!errors.customShirtSize}
+                  helperText={errors.customShirtSize}
+                  inputProps={{ maxLength: 50 }}
+                  fullWidth
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+                />
+              )}
+              <TextField
+                label="הערות"
+                value={form.notes ?? ""}
+                onChange={handleChange}
+                name="notes"
+                error={!!errors.notes}
+                helperText={errors.notes}
+                multiline
+                minRows={3}
+                inputProps={{ maxLength: 2000 }}
                 fullWidth
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
@@ -244,7 +315,11 @@ export const CreateTrainee: React.FC<ICreateTraineeProps> = ({
           <Button
             onClick={handleCreateTrainee}
             disabled={
-              loading || !form.name.trim() || !form.id.trim() || !form.gender
+              loading ||
+              !form.name.trim() ||
+              !form.id.trim() ||
+              !form.dateOfBirth ||
+              !form.gender
             }
             variant="contained"
             fullWidth

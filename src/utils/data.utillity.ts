@@ -97,3 +97,56 @@ export const isValidIsraeliId = (id: string): boolean => {
 
   return sum % 10 === 0;
 };
+
+const parseDateOnly = (value: string): Date | null => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return date;
+};
+
+export const calculateAge = (
+  dateOfBirth?: string | null,
+  fallbackAge?: number | null,
+): number | null => {
+  if (!dateOfBirth) return fallbackAge ?? null;
+
+  const birthDate = parseDateOnly(dateOfBirth);
+  if (!birthDate) return fallbackAge ?? null;
+
+  const today = new Date();
+  if (birthDate > today) return fallbackAge ?? null;
+
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const birthdayHasPassed =
+    today.getMonth() > birthDate.getMonth() ||
+    (today.getMonth() === birthDate.getMonth() &&
+      today.getDate() >= birthDate.getDate());
+
+  if (!birthdayHasPassed) age -= 1;
+  return age >= 0 && age <= 120 ? age : fallbackAge ?? null;
+};
+
+export const isValidDateOfBirth = (value: string): boolean =>
+  !!value && calculateAge(value) !== null;
+
+export const getTodayDateInputValue = (): string => {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
+    2,
+    "0",
+  )}-${String(today.getDate()).padStart(2, "0")}`;
+};

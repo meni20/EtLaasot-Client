@@ -21,6 +21,8 @@ import { CreateTrainee } from "../../../components/CreateTrainee/CreateTrainee";
 import { VolunteerDetails } from "../../../components/VolunteerDetails/VolunteerDetails";
 import { useBranch } from "../../../contexts/useBranch";
 import { useTraineePageStyles } from "./TraineePage.styles";
+import { calculateAge } from "../../../utils/data.utillity";
+import { formatShirtSize } from "../../../constants/user.constants";
 
 const avatarLetter = (name?: string) => name?.trim()?.[0]?.toUpperCase() || "?";
 
@@ -28,6 +30,7 @@ type TraineeTableRow = Pick<
   IUser,
   "id" | "name" | "age" | "gender" | "phoneNumber" | "email" | "address"
 > & {
+  shirtSizeDisplay: string;
   originalTrainee: IUser;
 };
 
@@ -70,8 +73,12 @@ export const TraineePage: React.FC = () => {
       allTrainees?.map((trainee: IUser) => ({
         id: trainee.id,
         name: trainee.name,
-        age: trainee.age,
+        age: calculateAge(trainee.dateOfBirth, trainee.age),
         gender: trainee.gender ?? "",
+        shirtSizeDisplay: formatShirtSize(
+          trainee.shirtSize,
+          trainee.customShirtSize,
+        ),
         phoneNumber: trainee.phoneNumber,
         email: trainee.email,
         address: trainee.address,
@@ -220,6 +227,7 @@ export const TraineePage: React.FC = () => {
             volunteerData={selectedTrainee}
             entityLabel="חניך"
             onUserUpdated={setSelectedTrainee}
+            showParentName
           />
         )}
 

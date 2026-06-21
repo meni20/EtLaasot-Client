@@ -6,4 +6,5 @@ export interface IVolunteerDetailsProps {
     volunteerData: IUser;
     entityLabel?: string;
     onUserUpdated?: (user: IUser) => void;
+    showParentName?: boolean;
 }

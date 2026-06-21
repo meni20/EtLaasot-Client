@@ -21,6 +21,8 @@ import { useVolunteerPageStyles } from "./VolunteerPage.styles";
 import { VolunteerDetails } from "../../../components/VolunteerDetails/VolunteerDetails";
 import { CreateVolunteer } from "../../../components/CreateVolunteerPopup/CreateVolunteer";
 import { useBranch } from "../../../contexts/useBranch";
+import { calculateAge } from "../../../utils/data.utillity";
+import { formatShirtSize } from "../../../constants/user.constants";
 
 const avatarLetter = (name?: string) => name?.trim()?.[0]?.toUpperCase() || "?";
 
@@ -28,6 +30,7 @@ type VolunteerTableRow = Pick<
   IUser,
   "id" | "name" | "age" | "gender" | "phoneNumber" | "email" | "address"
 > & {
+  shirtSizeDisplay: string;
   originalVolunteer: IUser;
 };
 
@@ -70,8 +73,12 @@ export const VolunteerPage: React.FC = () => {
       allVolunteers?.map((volunteer: IUser) => ({
         id: volunteer.id,
         name: volunteer.name,
-        age: volunteer.age,
+        age: calculateAge(volunteer.dateOfBirth, volunteer.age),
         gender: volunteer.gender ?? "",
+        shirtSizeDisplay: formatShirtSize(
+          volunteer.shirtSize,
+          volunteer.customShirtSize,
+        ),
         phoneNumber: volunteer.phoneNumber,
         email: volunteer.email,
         address: volunteer.address,

@@ -25,18 +25,39 @@ import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import BadgeRoundedIcon from "@mui/icons-material/BadgeRounded";
 import WcRoundedIcon from "@mui/icons-material/WcRounded";
+import CheckroomRoundedIcon from "@mui/icons-material/CheckroomRounded";
+import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
+import FamilyRestroomRoundedIcon from "@mui/icons-material/FamilyRestroomRounded";
 import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import userService from "../../services/user.service";
 import type { IVolunteerDetailsProps } from "./Volunteer.interface";
 import { useVolunteerDetailsStyles } from "./VolunteerDetails.styles";
-import type { IUpdateUserPayload, IUser, UserGender } from "../../interfaces/user.interface";
-import { isValidIsraeliPhone } from "../../utils/data.utillity";
+import type {
+  IUpdateUserPayload,
+  IUser,
+  ShirtSize,
+  UserGender,
+} from "../../interfaces/user.interface";
+import {
+  calculateAge,
+  getTodayDateInputValue,
+  isValidDateOfBirth,
+  isValidIsraeliPhone,
+} from "../../utils/data.utillity";
+import {
+  formatShirtSize,
+  SHIRT_SIZE_OPTIONS,
+} from "../../constants/user.constants";
 
 type UserDetailsFormState = {
   name: string;
-  age: string;
+  dateOfBirth: string;
   gender: UserGender | "";
+  shirtSize: ShirtSize | "";
+  customShirtSize: string;
+  notes: string;
+  parentName: string;
   phoneNumber: string;
   email: string;
   address: string;
@@ -50,6 +71,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
   volunteerData,
   entityLabel = "מתנדב",
   onUserUpdated,
+  showParentName = false,
 }) => {
   const classes = useVolunteerDetailsStyles();
   const queryClient = useQueryClient();
@@ -57,8 +79,12 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
   const [isEditOpen, setIsEditOpen] = React.useState(false);
   const [form, setForm] = React.useState<UserDetailsFormState>({
     name: "",
-    age: "",
+    dateOfBirth: "",
     gender: "",
+    shirtSize: "",
+    customShirtSize: "",
+    notes: "",
+    parentName: "",
     phoneNumber: "",
     email: "",
     address: "",
@@ -98,11 +124,12 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
   const openEditDialog = () => {
     setForm({
       name: selectedUser.name ?? "",
-      age:
-        selectedUser.age === null || selectedUser.age === undefined
-          ? ""
-          : String(selectedUser.age),
+      dateOfBirth: selectedUser.dateOfBirth ?? "",
       gender: selectedUser.gender ?? "",
+      shirtSize: selectedUser.shirtSize ?? "",
+      customShirtSize: selectedUser.customShirtSize ?? "",
+      notes: selectedUser.notes ?? "",
+      parentName: selectedUser.parentName ?? "",
       phoneNumber: selectedUser.phoneNumber ?? "",
       email: selectedUser.email ?? "",
       address: selectedUser.address ?? "",
@@ -120,9 +147,13 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
   const handleFormChange =
     (field: keyof UserDetailsFormState) =>
     (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const value = event.target.value;
       setForm((current) => ({
         ...current,
-        [field]: event.target.value,
+        [field]: value,
+        ...(field === "shirtSize" && value !== "OTHER"
+          ? { customShirtSize: "" }
+          : {}),
       }));
     };
 
@@ -131,7 +162,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
     const phoneNumber = form.phoneNumber.trim();
     const email = form.email.trim();
     const address = form.address.trim();
-    const ageText = form.age.trim();
+    const dateOfBirth = form.dateOfBirth.trim();
 
     if (!name) {
       setFormError("שם הוא שדה חובה");
@@ -148,24 +179,24 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
       return;
     }
 
-    let age: number | null = null;
-    if (ageText) {
-      if (!/^\d+$/.test(ageText)) {
-        setFormError("גיל חייב להיות מספר שלם");
-        return;
-      }
-
-      age = Number(ageText);
-      if (age < 0 || age > 120) {
-        setFormError("גיל חייב להיות בין 0 ל-120");
-        return;
-      }
+    if (dateOfBirth && !isValidDateOfBirth(dateOfBirth)) {
+      setFormError("תאריך הלידה אינו תקין");
+      return;
     }
 
     updateUserMutation.mutate({
       name,
-      age,
+      dateOfBirth: dateOfBirth || null,
       gender: form.gender || null,
+      shirtSize: form.shirtSize || null,
+      customShirtSize:
+        form.shirtSize === "OTHER"
+          ? form.customShirtSize.trim() || null
+          : null,
+      notes: form.notes.trim() || null,
+      ...(showParentName
+        ? { parentName: form.parentName.trim() || null }
+        : {}),
       phoneNumber,
       email: email || null,
       address: address || null,
@@ -227,7 +258,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               <CakeRoundedIcon className={classes.rowIcon} fontSize="small" />
             }
             label="גיל"
-            value={selectedUser?.age}
+            value={calculateAge(selectedUser?.dateOfBirth, selectedUser?.age) ?? "-"}
           />
           <Divider />
           <Row
@@ -237,6 +268,43 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
             label="Gender"
             value={selectedUser?.gender || "-"}
           />
+          <Divider />
+          <Row
+            icon={
+              <CheckroomRoundedIcon
+                className={classes.rowIcon}
+                fontSize="small"
+              />
+            }
+            label="מידת חולצה"
+            value={formatShirtSize(
+              selectedUser?.shirtSize,
+              selectedUser?.customShirtSize,
+            )}
+          />
+          <Divider />
+          <Row
+            icon={
+              <NotesRoundedIcon className={classes.rowIcon} fontSize="small" />
+            }
+            label="הערות"
+            value={selectedUser?.notes?.trim() || "-"}
+          />
+          {showParentName && (
+            <>
+              <Divider />
+              <Row
+                icon={
+                  <FamilyRestroomRoundedIcon
+                    className={classes.rowIcon}
+                    fontSize="small"
+                  />
+                }
+                label="שם הורה"
+                value={selectedUser?.parentName?.trim() || "-"}
+              />
+            </>
+          )}
           <Divider />
           <Row
             icon={
@@ -358,13 +426,23 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               value={form.name}
               onChange={handleFormChange("name")}
             />
+            {showParentName && (
+              <TextField
+                fullWidth
+                label="שם הורה"
+                value={form.parentName}
+                onChange={handleFormChange("parentName")}
+                inputProps={{ maxLength: 100 }}
+              />
+            )}
             <TextField
               fullWidth
-              label="גיל"
-              type="number"
-              value={form.age}
-              onChange={handleFormChange("age")}
-              inputProps={{ min: 0, max: 120 }}
+              label="תאריך לידה"
+              type="date"
+              value={form.dateOfBirth}
+              onChange={handleFormChange("dateOfBirth")}
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ max: getTodayDateInputValue() }}
             />
             <TextField
               select
@@ -377,6 +455,38 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               <MenuItem value="male">male</MenuItem>
               <MenuItem value="female">female</MenuItem>
             </TextField>
+            <TextField
+              select
+              fullWidth
+              label="מידת חולצה"
+              value={form.shirtSize}
+              onChange={handleFormChange("shirtSize")}
+            >
+              <MenuItem value="">-</MenuItem>
+              {SHIRT_SIZE_OPTIONS.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+            {form.shirtSize === "OTHER" && (
+              <TextField
+                fullWidth
+                label="מידה אחרת"
+                value={form.customShirtSize}
+                onChange={handleFormChange("customShirtSize")}
+                inputProps={{ maxLength: 50 }}
+              />
+            )}
+            <TextField
+              fullWidth
+              label="הערות"
+              value={form.notes}
+              onChange={handleFormChange("notes")}
+              multiline
+              minRows={4}
+              inputProps={{ maxLength: 2000 }}
+            />
             <TextField
               fullWidth
               label="טלפון"

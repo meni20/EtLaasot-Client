@@ -1,6 +1,7 @@
 import type { IEvent } from "./event.interface";
 
 export type UserGender = "male" | "female";
+export type ShirtSize = "XS" | "S" | "M" | "L" | "XL" | "XXL" | "OTHER";
 
 export interface IUser {
   id: string;
@@ -9,7 +10,12 @@ export interface IUser {
   gender?: UserGender | "" | null;
   address: string;
   email: string | null;
-  age: number;
+  age?: number | null;
+  dateOfBirth?: string | null;
+  shirtSize?: ShirtSize | "" | null;
+  customShirtSize?: string | null;
+  notes?: string | null;
+  parentName?: string | null;
   branchId?: string;
   userRoles?: IUserRole[];
   events?: IEvent[];
@@ -36,6 +42,9 @@ export interface ICurrentUserProfile {
   address?: string | null;
   email?: string | null;
   age?: number | null;
+  dateOfBirth?: string | null;
+  shirtSize?: ShirtSize | null;
+  customShirtSize?: string | null;
   branchId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -49,8 +58,12 @@ export interface IUpdateCurrentUserProfilePayload {
 
 export interface IUpdateUserPayload {
   name: string;
-  age?: number | null;
+  dateOfBirth?: string | null;
   gender?: UserGender | null;
+  shirtSize?: ShirtSize | null;
+  customShirtSize?: string | null;
+  notes?: string | null;
+  parentName?: string | null;
   phoneNumber: string;
   email?: string | null;
   address?: string | null;
