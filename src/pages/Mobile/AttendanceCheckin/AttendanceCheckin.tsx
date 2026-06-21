@@ -14,6 +14,7 @@ import eventService from "../../../services/event.service";
 import attendeeService from "../../../services/attendee.service";
 import { BottomNav } from "../../../components/BottomNav/BottomNav";
 import { useStyles } from "./AttendanceCheckin.styles";
+import { decodeUnicodeEscapes } from "../../../utils/text.util";
 import type { IAttendees } from "../../../interfaces/event.interface";
 
 export const AttendanceCheckinPage: React.FC = () => {
@@ -86,7 +87,7 @@ export const AttendanceCheckinPage: React.FC = () => {
 
       {isLoading ? (
         <Box className={styles.loading}>
-          <CircularProgress size={28} sx={{ color: "#9a5188" }} />
+          <CircularProgress size={28} sx={{ color: "#7B3F98" }} />
         </Box>
       ) : (
         <Stack spacing={1}>
@@ -104,13 +105,13 @@ export const AttendanceCheckinPage: React.FC = () => {
                   <Checkbox
                     checked={isChecked}
                     sx={{
-                      color: "#9a5188",
-                      "&.Mui-checked": { color: "#9a5188" },
+                      color: "#7B3F98",
+                      "&.Mui-checked": { color: "#2F7D32" },
                       p: 0,
                     }}
                   />
                   <Typography className={styles.attendeeName}>
-                    {user?.name ?? attendee.userId}
+                    {decodeUnicodeEscapes(user?.name) || attendee.userId}
                   </Typography>
                 </Stack>
               </Box>
@@ -127,8 +128,8 @@ export const AttendanceCheckinPage: React.FC = () => {
           onClick={handleSave}
           disabled={saving || checkedIds.size === 0}
           sx={{
-            bgcolor: "#9a5188",
-            "&:hover": { bgcolor: "#7a3e6b" },
+            bgcolor: "#7B3F98",
+            "&:hover": { bgcolor: "#6D3588" },
           }}
         >
           {saving ? (

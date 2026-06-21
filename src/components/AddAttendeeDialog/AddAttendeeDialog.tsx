@@ -32,7 +32,10 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["users"] }),
         queryClient.invalidateQueries({ queryKey: ["events"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendeesByEvent", eventId] }),
+        queryClient.invalidateQueries({ queryKey: ["eventAttendees", eventId] }),
         queryClient.invalidateQueries({ queryKey: ["eventAttendees"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
         queryClient.invalidateQueries({ queryKey: ["upcomingEvents"] }),
       ]);
     } catch (error) {
@@ -100,6 +103,7 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
           {users?.map((user, index) => {
             const prevRole = users[index - 1]?.role;
             const isFirstOfRole = index === 0 || user.role !== prevRole;
+            const isAssigned = isUserAssignedToEvent(user.id);
 
             return (
               <React.Fragment key={user.id}>
@@ -123,35 +127,41 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
                   sx={{
                     px: 1.5,
                     py: 1,
-                    gap: 2,
+                    gap: 1.5,
                     borderRadius: 3,
-                    marginBottom: 0.5,
-                    backgroundColor: isUserAssignedToEvent(user.id)
-                      ? "#f0fdf4"
-                      : "#fff",
+                    marginBottom: 0.75,
+                    backgroundColor: isAssigned ? "#f0fdf4" : "#fff",
                     border: "1px solid",
-                    borderColor: isUserAssignedToEvent(user.id)
-                      ? "#bbf7d0"
-                      : "#f0ecef",
+                    borderColor: isAssigned ? "#bbf7d0" : "#f0ecef",
                     transition: "all 0.15s ease",
                     "&:hover": {
-                      backgroundColor: isUserAssignedToEvent(user.id)
-                        ? "#f0fdf4"
-                        : "#f8f4f9",
+                      backgroundColor: isAssigned ? "#f0fdf4" : "#f8f4f9",
                     },
                   }}
                 >
                   <IconButton
                     edge="end"
-                    onClick={() => handleAddAttendee(user.id)}
-                    disabled={isUserAssignedToEvent(user.id)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleAddAttendee(user.id);
+                    }}
+                    disabled={isAssigned}
+                    aria-label={`הוסף ${user.name} לאירוע`}
                     sx={{
-                      color: isUserAssignedToEvent(user.id)
-                        ? "#22c55e"
-                        : "#9a5188",
+                      width: 34,
+                      height: 34,
+                      flexShrink: 0,
+                      color: isAssigned ? "#22c55e" : "#9a5188",
+                      backgroundColor: isAssigned ? "#f0fdf4" : "#fbf7fa",
+                      border: "1px solid",
+                      borderColor: isAssigned ? "#bbf7d0" : "#ead8e5",
+                      "&:hover": {
+                        backgroundColor: isAssigned ? "#f0fdf4" : "#f3e8f0",
+                        borderColor: isAssigned ? "#bbf7d0" : "#d8b8cf",
+                      },
                     }}
                   >
-                    <AddIcon />
+                    <AddIcon fontSize="small" />
                   </IconButton>
 
                   <ListItemText

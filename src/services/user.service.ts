@@ -1,26 +1,34 @@
-import axios from "axios";
 import type { AxiosInstance } from "axios";
-import type { IUser } from "../interfaces/user.interface";
+import type {
+  ICurrentUserProfile,
+  IUpdateCurrentUserProfilePayload,
+  IUpdateUserPayload,
+  IUser,
+} from "../interfaces/user.interface";
+import { createServerAxiosInstance } from "../config/axiosInstance";
 
 export class UserService {
   private api: AxiosInstance;
   constructor() {
-    this.api = axios.create({
-      baseURL: `${import.meta.env.VITE_SERVER_URL}/user`,
-    });
-    this.api.interceptors.request.use((config) => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    });
+    this.api = createServerAxiosInstance("/user");
   }
 
   public getAllVolunteers = async (branchId?: string) => {
     const res = await this.api.get("/get-all-volunteers", {
       params: branchId ? { branchId } : {},
     });
+    return res.data;
+  };
+
+  public getMe = async (): Promise<ICurrentUserProfile> => {
+    const res = await this.api.get("/me");
+    return res.data;
+  };
+
+  public updateMe = async (
+    payload: IUpdateCurrentUserProfilePayload,
+  ): Promise<ICurrentUserProfile> => {
+    const res = await this.api.patch("/me", payload);
     return res.data;
   };
 
@@ -50,6 +58,14 @@ export class UserService {
 
   public getUserById = async (userId: string) => {
     const res = await this.api.get(`/${userId}`);
+    return res.data;
+  };
+
+  public updateUser = async (
+    userId: string,
+    payload: IUpdateUserPayload,
+  ): Promise<IUser> => {
+    const res = await this.api.patch(`/${userId}`, payload);
     return res.data;
   };
 }

@@ -24,6 +24,11 @@ export interface IVolunteerActivity {
   updatedAt?: string;
 }
 
+export interface IEventActivityAttendance {
+  volunteerId: string;
+  name: string;
+}
+
 export interface IYearlyVolunteerSummary {
   totalMinutes: number;
   totalHoursDecimal: number;

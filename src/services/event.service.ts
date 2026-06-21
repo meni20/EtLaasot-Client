@@ -1,20 +1,15 @@
-import axios from "axios";
 import type { AxiosInstance } from "axios";
-import type { IEvent } from "../interfaces/event.interface";
+import { createServerAxiosInstance } from "../config/axiosInstance";
+import type {
+  IAttendees,
+  IEvent,
+  IEventParticipants,
+} from "../interfaces/event.interface";
 
 export class EventService {
   private api: AxiosInstance;
   constructor() {
-    this.api = axios.create({
-      baseURL: `${import.meta.env.VITE_SERVER_URL}/event`,
-    });
-    this.api.interceptors.request.use((config) => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    });
+    this.api = createServerAxiosInstance("/event");
   }
 
   public async createEvent(eventData: IEvent) {
@@ -41,8 +36,35 @@ export class EventService {
     return res.data;
   }
 
-  public async getEventAttendees(eventId: string) {
+  public async getEventAttendees(eventId: string): Promise<IAttendees[]> {
     const res = await this.api.get(`/get-attendees-by-event/${eventId}`);
+    return res.data;
+  }
+
+  public async getEventParticipants(
+    eventId: string,
+  ): Promise<IEventParticipants> {
+    const res = await this.api.get(`/${eventId}/participants`);
+    return res.data;
+  }
+
+  public async createEventPairing(
+    eventId: string,
+    mentorId: string,
+    traineeId: string,
+  ): Promise<IEventParticipants> {
+    const res = await this.api.post(`/${eventId}/pairings`, {
+      mentorId,
+      traineeId,
+    });
+    return res.data;
+  }
+
+  public async deleteEventPairing(
+    eventId: string,
+    pairingId: string,
+  ): Promise<IEventParticipants> {
+    const res = await this.api.delete(`/${eventId}/pairings/${pairingId}`);
     return res.data;
   }
 

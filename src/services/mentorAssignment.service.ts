@@ -1,21 +1,12 @@
-import axios from "axios";
 import type { AxiosInstance } from "axios";
 import type { IMentorAssignment } from "../interfaces/event.interface";
 import type { IUser } from "../interfaces/user.interface";
+import { createServerAxiosInstance } from "../config/axiosInstance";
 
 export class MentorAssignmentService {
     private api: AxiosInstance;
     constructor() {
-        this.api = axios.create({
-            baseURL: `${import.meta.env.VITE_SERVER_URL}/mentor-assignment`,
-        });
-        this.api.interceptors.request.use((config) => {
-            const token = localStorage.getItem("token");
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
-            return config;
-        });
+        this.api = createServerAxiosInstance("/mentor-assignment");
     }
 
     public async getAssignmentsByBranch(

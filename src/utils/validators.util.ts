@@ -1,7 +1,11 @@
 // utils/validators.ts
 import type { IEvent } from "../interfaces/event.interface";
 import type { IUser } from "../interfaces/user.interface";
-import { isValidIsraeliId, isValidIsraeliPhone } from "./data.utillity";
+import {
+  isValidDateOfBirth,
+  isValidIsraeliId,
+  isValidIsraeliPhone,
+} from "./data.utillity";
 
 export type ValidationErrors = Partial<Record<keyof IUser, string>>;
 export type EventValidationErrors = Partial<Record<keyof IEvent, string>>;
@@ -21,7 +25,30 @@ export const validateFormVolunteer = (form: IUser): ValidationErrors => {
     newErrors.phoneNumber = "Invalid Israeli phone number";
   }
 
-  if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+  if (!form.gender) {
+    newErrors.gender = "Gender is required";
+  }
+
+  if (!form.dateOfBirth || !isValidDateOfBirth(form.dateOfBirth)) {
+    newErrors.dateOfBirth = "Valid date of birth is required";
+  }
+
+  if (form.customShirtSize && form.customShirtSize.trim().length > 50) {
+    newErrors.customShirtSize = "Custom shirt size is too long";
+  }
+
+  if (form.notes && form.notes.trim().length > 2000) {
+    newErrors.notes = "Notes cannot exceed 2000 characters";
+  }
+
+  if (form.parentName && form.parentName.trim().length > 100) {
+    newErrors.parentName = "Parent name cannot exceed 100 characters";
+  }
+
+  if (
+    form.email &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())
+  ) {
     newErrors.email = "Invalid email address";
   }
 
