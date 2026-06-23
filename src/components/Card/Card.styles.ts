@@ -6,6 +6,7 @@ export const useCardStyles = makeStyles({
   },
   card: {
     direction: "rtl" as const,
+    position: "relative" as const,
     height: "100%",
     display: "flex",
     flexDirection: "column" as const,
@@ -20,6 +21,60 @@ export const useCardStyles = makeStyles({
       transform: "translateY(-2px)",
       boxShadow: "0 14px 30px rgba(45, 35, 43, 0.11)",
       borderColor: "#dcc7d6",
+    },
+  },
+  cardWithImage: {
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundColor: "#2f2930",
+    borderColor: "rgba(255, 255, 255, 0.22)",
+    "&::before": {
+      content: '""',
+      position: "absolute" as const,
+      inset: 0,
+      background:
+        "linear-gradient(180deg, rgba(0, 0, 0, 0.38) 0%, rgba(0, 0, 0, 0.32) 45%, rgba(0, 0, 0, 0.40) 100%)",
+      pointerEvents: "none" as const,
+      zIndex: 0,
+    },
+    "& $cardContent, & $cardActions, & $divider": {
+      position: "relative" as const,
+      zIndex: 1,
+    },
+    "& $eventName, & $detailValue, & $description": {
+      color: "#fff",
+      textShadow: "0 1px 3px rgba(0, 0, 0, 0.45)",
+    },
+    "& $detailIcon": {
+      color: "#fff",
+      filter: "drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4))",
+    },
+    "& $typeChip": {
+      backgroundColor: "rgba(255, 255, 255, 0.86)",
+      color: "#6d3860",
+      borderColor: "rgba(255, 255, 255, 0.55)",
+    },
+    "& $editButton": {
+      color: "#fff",
+      backgroundColor: "rgba(0, 0, 0, 0.28)",
+      borderColor: "rgba(255, 255, 255, 0.35)",
+      "&:hover": {
+        color: "#fff",
+        backgroundColor: "rgba(154, 81, 136, 0.92)",
+        borderColor: "rgba(255, 255, 255, 0.72)",
+      },
+    },
+    "& $divider": {
+      borderColor: "rgba(255, 255, 255, 0.22)",
+    },
+    "& $secondaryButton": {
+      backgroundColor: "rgba(255, 255, 255, 0.9)",
+      color: "#5f2f55",
+      borderColor: "rgba(255, 255, 255, 0.72)",
+      "&:hover": {
+        backgroundColor: "#fff",
+        borderColor: "#fff",
+      },
     },
   },
   cardContent: {

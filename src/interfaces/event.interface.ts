@@ -9,6 +9,8 @@ export interface IEvent {
   description?: string;
   eventType?: string;
   branchId?: string;
+  imagePath?: string | null;
+  imageUrl?: string | null;
   attendees?: IAttendees[];
 }
 
