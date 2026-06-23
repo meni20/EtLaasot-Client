@@ -11,6 +11,7 @@ import {
   MenuItem,
   Snackbar,
   TextField,
+  Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { DateTimePicker } from "@mui/x-date-pickers";
@@ -24,6 +25,9 @@ import type { IEvent } from "../../interfaces/event.interface";
 import eventService from "../../services/event.service";
 import { useBranch } from "../../contexts/useBranch";
 import { EVENT_TYPES } from "../../constants/auth.const";
+
+const MAX_EVENT_IMAGE_SIZE = 5 * 1024 * 1024;
+const EVENT_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const emptyEventForm = (): IEvent => ({
   name: "",
@@ -55,6 +59,9 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
   const queryClient = useQueryClient();
   const { activeBranch } = useBranch();
   const [form, setForm] = useState<IEvent>(emptyEventForm);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [removeExistingImage, setRemoveExistingImage] = useState(false);
 
   useEffect(() => {
     if (event) {
@@ -67,15 +74,61 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
         endDate: new Date(event.endDate),
         eventType: event.eventType ?? "",
       });
+      setSelectedImageFile(null);
+      setImagePreviewUrl(null);
+      setRemoveExistingImage(false);
       return;
     }
 
     setForm(emptyEventForm());
-  }, [event]);
+    setSelectedImageFile(null);
+    setImagePreviewUrl(null);
+    setRemoveExistingImage(false);
+  }, [event, open]);
+
+  useEffect(() => {
+    if (!selectedImageFile) {
+      setImagePreviewUrl(null);
+      return;
+    }
+
+    const nextPreviewUrl = URL.createObjectURL(selectedImageFile);
+    setImagePreviewUrl(nextPreviewUrl);
+
+    return () => URL.revokeObjectURL(nextPreviewUrl);
+  }, [selectedImageFile]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    if (!EVENT_IMAGE_TYPES.includes(file.type)) {
+      setErrorMsg("ניתן להעלות תמונת JPEG, PNG או WebP בלבד");
+      return;
+    }
+
+    if (file.size > MAX_EVENT_IMAGE_SIZE) {
+      setErrorMsg("גודל התמונה חייב להיות עד 5MB");
+      return;
+    }
+
+    setSelectedImageFile(file);
+    setRemoveExistingImage(false);
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImageFile(null);
+    setImagePreviewUrl(null);
+    setRemoveExistingImage(true);
   };
 
   const handleCreateEvent = async () => {
@@ -89,17 +142,31 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
     try {
       setLoading(true);
       const payload = toEventPayload(form, activeBranch);
+      let savedEvent: IEvent;
 
       if (event?.id) {
-        await eventService.updateEvent(event.id, payload);
+        savedEvent = await eventService.updateEvent(event.id, payload);
       } else {
-        await eventService.createEvent(payload);
+        savedEvent = await eventService.createEvent(payload);
+      }
+
+      const eventId = event?.id ?? savedEvent.id;
+
+      if (event?.id && eventId && removeExistingImage && !selectedImageFile) {
+        await eventService.removeEventImage(eventId);
+      }
+
+      if (eventId && selectedImageFile) {
+        await eventService.uploadEventImage(eventId, selectedImageFile);
       }
 
       await queryClient.invalidateQueries({ queryKey: ["events"] });
       await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
 
       setForm(emptyEventForm());
+      setSelectedImageFile(null);
+      setImagePreviewUrl(null);
+      setRemoveExistingImage(false);
       setErrors({});
       onClose();
     } catch {
@@ -235,6 +302,72 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
                 </MenuItem>
               ))}
             </TextField>
+            <Box
+              sx={{
+                border: "1px dashed #d7bfd1",
+                borderRadius: 3,
+                p: 2,
+                backgroundColor: "#fff",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  fontSize: 14,
+                  mb: 1,
+                  fontFamily: "Rubik, sans-serif",
+                }}
+              >
+                תמונת אירוע
+              </Typography>
+              {(imagePreviewUrl || (event?.imageUrl && !removeExistingImage)) && (
+                <Box
+                  component="img"
+                  src={imagePreviewUrl ?? event?.imageUrl ?? ""}
+                  alt={form.name || "תמונת אירוע"}
+                  sx={{
+                    width: "100%",
+                    height: 160,
+                    objectFit: "cover",
+                    borderRadius: 2,
+                    mb: 1.5,
+                    backgroundColor: "#F3F4F6",
+                  }}
+                />
+              )}
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                <Button component="label" variant="outlined" size="small">
+                  בחר תמונה
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    hidden
+                    onChange={handleImageChange}
+                  />
+                </Button>
+                {(selectedImageFile ||
+                  (event?.imagePath && !removeExistingImage)) && (
+                  <Button
+                    variant="text"
+                    color="error"
+                    size="small"
+                    onClick={handleRemoveImage}
+                  >
+                    הסר תמונה
+                  </Button>
+                )}
+              </Box>
+              <Typography
+                sx={{
+                  color: "#6B7280",
+                  fontSize: 12,
+                  mt: 1,
+                  fontFamily: "Rubik, sans-serif",
+                }}
+              >
+                JPEG, PNG או WebP עד 5MB
+              </Typography>
+            </Box>
           </Box>
         </DialogContent>
         <DialogActions

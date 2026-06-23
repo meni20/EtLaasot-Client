@@ -17,6 +17,19 @@ export class EventService {
     return res.data;
   }
 
+  public async uploadEventImage(eventId: string, image: File): Promise<IEvent> {
+    const formData = new FormData();
+    formData.append("image", image);
+
+    const res = await this.api.put(`/${eventId}/image`, formData);
+    return res.data;
+  }
+
+  public async removeEventImage(eventId: string): Promise<IEvent> {
+    const res = await this.api.delete(`/${eventId}/image`);
+    return res.data;
+  }
+
   public async getAllEvents(branchId?: string) {
     const res = await this.api.get("/get-all-events", {
       params: branchId ? { branchId } : {},
@@ -69,9 +82,9 @@ export class EventService {
   }
 
   public async updateEvent(eventId: string, eventData: IEvent) {
-  const res = await this.api.put(`/update-event/${eventId}`, eventData);
-  return res.data;
-}
+    const res = await this.api.put(`/update-event/${eventId}`, eventData);
+    return res.data;
+  }
 }
 
 const eventService = new EventService();
