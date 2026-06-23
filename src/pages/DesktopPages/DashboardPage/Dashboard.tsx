@@ -275,6 +275,7 @@ export const DashboardPage: React.FC = () => {
                     address={event.address}
                     description={event.description}
                     eventType={event.eventType}
+                    imageUrl={event.imageUrl}
                     participantsCount={event.attendees?.length}
                     onEdit={() => {
                       setSelectedEvent(event);

@@ -62,26 +62,6 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
           : undefined,
       }}
     >
-      {event.imageUrl && (
-        <Box
-          component="img"
-          src={event.imageUrl}
-          alt={eventName}
-          loading="lazy"
-          onError={(e) => {
-            e.currentTarget.style.display = "none";
-          }}
-          sx={{
-            width: "100%",
-            height: 140,
-            objectFit: "cover",
-            borderRadius: "16px",
-            mb: 1.5,
-            display: "block",
-            backgroundColor: "#F3F4F6",
-          }}
-        />
-      )}
       <Stack direction="row" alignItems="flex-start" spacing={1}>
         <Box sx={{ minWidth: 0, flex: 1 }}>
           {eventType && (

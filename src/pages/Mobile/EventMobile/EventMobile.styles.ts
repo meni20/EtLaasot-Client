@@ -126,10 +126,55 @@ export const useStyles = makeStyles({
         fontFamily: "Rubik, sans-serif",
     },
     detailsCard: {
+        position: "relative" as const,
         borderRadius: 20,
         padding: 24,
         backgroundColor: "#fff",
         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
+        overflow: "hidden",
+    },
+    detailsCardWithImage: {
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundColor: "#241f25",
+        boxShadow: "0 18px 36px rgba(28, 20, 30, 0.24)",
+        "&::before": {
+            content: '""',
+            position: "absolute" as const,
+            inset: 0,
+            background:
+                "linear-gradient(180deg, rgba(0, 0, 0, 0.30) 0%, rgba(0, 0, 0, 0.36) 42%, rgba(0, 0, 0, 0.46) 100%)",
+            pointerEvents: "none" as const,
+            zIndex: 0,
+        },
+        "& > *": {
+            position: "relative" as const,
+            zIndex: 1,
+        },
+        "& $typeChip": {
+            backgroundColor: "rgba(255, 255, 255, 0.88)",
+            color: "#6d3860",
+        },
+        "& $detailsTitle, & $description, & $rsvpTitle, & $rsvpStatus": {
+            color: "#fff",
+            textShadow: "0 1px 4px rgba(0, 0, 0, 0.48)",
+        },
+        "& $detailsMeta": {
+            color: "rgba(255, 255, 255, 0.92)",
+            textShadow: "0 1px 3px rgba(0, 0, 0, 0.42)",
+        },
+        "& $detailsMetaIcon": {
+            color: "#fff",
+            backgroundColor: "rgba(255, 255, 255, 0.22)",
+            backdropFilter: "blur(8px)",
+        },
+        "& $description": {
+            backgroundColor: "rgba(0, 0, 0, 0.24)",
+            backdropFilter: "blur(8px)",
+        },
+        "& $rsvpRow": {
+            borderTopColor: "rgba(255, 255, 255, 0.24)",
+        },
     },
     detailsTitle: {
         fontWeight: 800,

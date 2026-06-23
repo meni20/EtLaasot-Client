@@ -63,6 +63,7 @@ export const BasicCard: React.FC<ICardProps> = ({
   address,
   description,
   eventType,
+  imageUrl,
   participantsCount,
   onEdit,
 }) => {
@@ -101,10 +102,20 @@ export const BasicCard: React.FC<ICardProps> = ({
   const dateRange = isSameCalendarDay(start, end)
     ? formatDate(start)
     : `${formatDate(start)} - ${formatDate(end)}`;
+  const hasImageBackground = Boolean(imageUrl);
 
   return (
     <Box className={classes.cardContainer}>
-      <Card className={classes.card}>
+      <Card
+        className={`${classes.card} ${
+          hasImageBackground ? classes.cardWithImage : ""
+        }`}
+        style={
+          hasImageBackground
+            ? { backgroundImage: `url("${imageUrl}")` }
+            : undefined
+        }
+      >
         <CardContent className={classes.cardContent}>
           <Box className={classes.headerRow}>
             <Box className={classes.titleBlock}>

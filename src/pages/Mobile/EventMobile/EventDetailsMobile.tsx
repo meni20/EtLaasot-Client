@@ -116,6 +116,7 @@ export const EventDetailsMobile: React.FC = () => {
   };
 
   const selectedIntent = event ? getAttendanceIntent(event) : "NONE";
+  const hasImageBackground = Boolean(event?.imageUrl);
 
   return (
     <Box className={styles.root}>
@@ -134,7 +135,16 @@ export const EventDetailsMobile: React.FC = () => {
       {!event ? (
         <Typography className={styles.empty}>האירוע לא נמצא</Typography>
       ) : (
-        <Box className={styles.detailsCard}>
+        <Box
+          className={`${styles.detailsCard} ${
+            hasImageBackground ? styles.detailsCardWithImage : ""
+          }`}
+          style={
+            hasImageBackground
+              ? { backgroundImage: `url("${event.imageUrl}")` }
+              : undefined
+          }
+        >
           {event.eventType && EVENT_TYPES[event.eventType] && (
             <Chip
               size="small"

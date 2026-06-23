@@ -7,6 +7,7 @@ export interface ICardProps {
     address: string;
     description?: string;
     eventType?: string;
+    imageUrl?: string | null;
     participantsCount?: number;
     onEdit: () => void;
 }
