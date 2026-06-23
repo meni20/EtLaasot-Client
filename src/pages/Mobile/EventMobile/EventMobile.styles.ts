@@ -63,6 +63,22 @@ export const useStyles = makeStyles({
         gridTemplateColumns: "1fr 1fr",
         gap: 10,
     },
+    saveCalendarIconButton: {
+        position: "absolute" as const,
+        top: 16,
+        left: 16,
+        zIndex: 2,
+        width: "38px !important",
+        height: "38px !important",
+        color: "#7B3F98 !important",
+        backgroundColor: "rgba(255, 255, 255, 0.94) !important",
+        boxShadow: "0 6px 16px rgba(45, 35, 43, 0.16) !important",
+        border: "1px solid rgba(228, 215, 235, 0.9) !important",
+        "&:hover": {
+            color: "#fff !important",
+            backgroundColor: "#7B3F98 !important",
+        },
+    },
     rsvpOptionCard: {
         minHeight: 94,
         borderRadius: "18px !important",
@@ -154,6 +170,17 @@ export const useStyles = makeStyles({
         "& $typeChip": {
             backgroundColor: "rgba(255, 255, 255, 0.88)",
             color: "#6d3860",
+        },
+        "& $saveCalendarIconButton": {
+            color: "#fff !important",
+            backgroundColor: "rgba(0, 0, 0, 0.30) !important",
+            borderColor: "rgba(255, 255, 255, 0.34) !important",
+            backdropFilter: "blur(8px)",
+            boxShadow: "0 8px 18px rgba(0, 0, 0, 0.22) !important",
+            "&:hover": {
+                backgroundColor: "rgba(123, 63, 152, 0.92) !important",
+                borderColor: "rgba(255, 255, 255, 0.68) !important",
+            },
         },
         "& $detailsTitle, & $description, & $rsvpTitle, & $rsvpStatus": {
             color: "#fff",
