@@ -28,8 +28,8 @@ const ATTENDANCE_OPTIONS: {
   icon: string;
 }[] = [
   { intent: "BOTH", label: "שנינו מגיעים", icon: "👥" },
-  { intent: "VOLUNTEER_ONLY", label: "רק אני מגיע", icon: "🙋" },
-  { intent: "TRAINEE_ONLY", label: "רק החניך מגיע", icon: "🧒" },
+  { intent: "VOLUNTEER_ONLY", label: "מגיע ויכול להחליף", icon: "🙋" },
+  { intent: "TRAINEE_ONLY", label: "צריך מחליף לחניך", icon: "🧒" },
   { intent: "NONE", label: "לא מגיעים", icon: "✕" },
 ];
 
@@ -164,19 +164,6 @@ export const EventDetailsMobile: React.FC = () => {
               : undefined
           }
         >
-          {isVolunteer && (
-            <Tooltip title="שמור ביומן">
-              <IconButton
-                className={styles.saveCalendarIconButton}
-                onClick={() => handleSaveToCalendar(event)}
-                aria-label="שמור ביומן"
-                size="small"
-              >
-                <CalendarMonthIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
-
           {event.eventType && EVENT_TYPES[event.eventType] && (
             <Chip
               size="small"
@@ -221,13 +208,25 @@ export const EventDetailsMobile: React.FC = () => {
 
           {isVolunteer && (
             <Box className={styles.rsvpRow}>
-              <Box>
-                <Typography className={styles.rsvpTitle}>
-                  מי מגיע לאירוע?
-                </Typography>
-                <Typography className={styles.rsvpStatus}>
-                  {ATTENDANCE_STATUS_LABELS[selectedIntent]}
-                </Typography>
+              <Box className={styles.rsvpHeader}>
+                <Box>
+                  <Typography className={styles.rsvpTitle}>
+                    מי מגיע לאירוע?
+                  </Typography>
+                  <Typography className={styles.rsvpStatus}>
+                    {ATTENDANCE_STATUS_LABELS[selectedIntent]}
+                  </Typography>
+                </Box>
+                <Tooltip title="שמור ביומן">
+                  <IconButton
+                    className={styles.saveCalendarIconButton}
+                    onClick={() => handleSaveToCalendar(event)}
+                    aria-label="שמור ביומן"
+                    size="small"
+                  >
+                    <CalendarMonthIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               </Box>
               <Box className={styles.rsvpGrid}>
                 {ATTENDANCE_OPTIONS.map((option) => {

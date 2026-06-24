@@ -1,12 +1,4 @@
-import {
-  Badge,
-  Box,
-  Chip,
-  Divider,
-  IconButton,
-  Stack,
-  Tooltip,
-} from "@mui/material";
+import { Box, Chip, Divider, IconButton, Stack, Tooltip } from "@mui/material";
 import Card from "@mui/material/Card";
 import Button from "@mui/material/Button";
 import { useMemo, useState } from "react";
@@ -28,7 +20,6 @@ import { useBranch } from "../../contexts/useBranch";
 import { AUTH_ROLES, EVENT_TYPES } from "../../constants/auth.const";
 import { useAuth } from "../../contexts/useAuth";
 import userService from "../../services/user.service";
-import eventService from "../../services/event.service";
 import type { IUser } from "../../interfaces/user.interface";
 import { EventAtendeeDialog } from "../EventAtendeeDialog/EventAtendeeDialog";
 import { EventActivityAttendanceDialog } from "../EventActivityAttendanceDialog/EventActivityAttendanceDialog";
@@ -114,13 +105,6 @@ export const BasicCard: React.FC<ICardProps> = ({
     }));
   }, [allUsers]);
 
-  const { data: aiInsights } = useQuery({
-    queryKey: ["event-ai-insights", eventId],
-    queryFn: () => eventService.getEventAiInsights(eventId),
-    enabled: isAdmin && Boolean(eventId),
-    staleTime: 60_000,
-  });
-
   const eventTypeLabel = eventType
     ? (EVENT_TYPES[eventType]?.label ?? eventType)
     : undefined;
@@ -162,21 +146,14 @@ export const BasicCard: React.FC<ICardProps> = ({
             <Box className={classes.headerActions}>
               {isAdmin && (
                 <Tooltip title="סיכום AI">
-                  <Badge
-                    color="warning"
-                    variant="dot"
-                    invisible={!aiInsights?.isAiSummaryOutdated}
-                    overlap="circular"
+                  <IconButton
+                    className={classes.aiButton}
+                    onClick={() => setIsAiDialogOpen(true)}
+                    aria-label="סיכום AI"
+                    size="small"
                   >
-                    <IconButton
-                      className={classes.aiButton}
-                      onClick={() => setIsAiDialogOpen(true)}
-                      aria-label="סיכום AI"
-                      size="small"
-                    >
-                      <AutoAwesomeOutlinedIcon fontSize="small" />
-                    </IconButton>
-                  </Badge>
+                    <AutoAwesomeOutlinedIcon fontSize="small" />
+                  </IconButton>
                 </Tooltip>
               )}
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Alert,
+  Badge,
   Box,
   Button,
   CircularProgress,
@@ -9,11 +10,15 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
+  IconButton,
   Stack,
   Tab,
   Tabs,
+  Tooltip,
   Typography,
 } from "@mui/material";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import eventService from "../../services/event.service";
 import type { IEventAiInsights } from "../../interfaces/event.interface";
@@ -80,6 +85,9 @@ export const EventAiSummaryDialog: React.FC<EventAiSummaryDialogProps> = ({
 
   const isGenerating = generateMutation.isPending;
   const hasSummary = Boolean(data?.aiSummary);
+  const aiActionLabel = hasSummary
+    ? "Regenerate AI Summary"
+    : "Generate AI Summary";
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" dir="rtl">
@@ -176,21 +184,45 @@ export const EventAiSummaryDialog: React.FC<EventAiSummaryDialogProps> = ({
         <Button onClick={onClose}>סגור</Button>
         <Stack direction="row" spacing={1}>
           {hasSummary && (
-            <Button onClick={handleCopySummary} disabled={isGenerating}>
-              העתק סיכום
-            </Button>
+            <Tooltip title="Copy Summary">
+              <span>
+                <IconButton
+                  onClick={handleCopySummary}
+                  disabled={isGenerating}
+                  aria-label="Copy Summary"
+                  size="small"
+                >
+                  <ContentCopyIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
           )}
-          <Button
-            variant="contained"
-            onClick={() => generateMutation.mutate()}
-            disabled={isGenerating || isFetching}
-          >
-            {isGenerating
-              ? "יוצר סיכום..."
-              : hasSummary
-                ? "צור מחדש"
-                : "צור סיכום"}
-          </Button>
+          <Tooltip title={aiActionLabel}>
+            <span>
+              <IconButton
+                color="primary"
+                onClick={() => generateMutation.mutate()}
+                disabled={isGenerating || isFetching}
+                aria-label={aiActionLabel}
+                size="small"
+              >
+                <Badge
+                  color="warning"
+                  variant="dot"
+                  invisible={
+                    activeTab !== 0 || !data?.isAiSummaryOutdated || isGenerating
+                  }
+                  overlap="circular"
+                >
+                  {isGenerating ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <AutoAwesomeIcon fontSize="small" />
+                  )}
+                </Badge>
+              </IconButton>
+            </span>
+          </Tooltip>
         </Stack>
       </DialogActions>
     </Dialog>
