@@ -15,7 +15,8 @@ export const useCardStyles = makeStyles({
     backgroundColor: "#fff",
     boxShadow: "0 8px 24px rgba(45, 35, 43, 0.08)",
     overflow: "hidden",
-    transition: "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
+    transition:
+      "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
     animation: "fadeInUp 0.5s ease-out both",
     "&:hover": {
       transform: "translateY(-2px)",
@@ -54,7 +55,7 @@ export const useCardStyles = makeStyles({
       color: "#6d3860",
       borderColor: "rgba(255, 255, 255, 0.55)",
     },
-    "& $editButton": {
+    "& $editButton, & $aiButton": {
       color: "#fff",
       backgroundColor: "rgba(0, 0, 0, 0.28)",
       borderColor: "rgba(255, 255, 255, 0.35)",
@@ -97,6 +98,12 @@ export const useCardStyles = makeStyles({
     minWidth: 0,
     flex: 1,
   },
+  headerActions: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    flexShrink: 0,
+  },
   eventName: {
     minWidth: 0,
     fontWeight: 800,
@@ -107,6 +114,20 @@ export const useCardStyles = makeStyles({
     overflowWrap: "anywhere" as const,
   },
   editButton: {
+    flexShrink: 0,
+    width: 34,
+    height: 34,
+    color: "#7a3e6b",
+    backgroundColor: "#fbf7fa",
+    border: "1px solid #ead8e5",
+    transition: "all 0.2s ease",
+    "&:hover": {
+      color: "#fff",
+      backgroundColor: "#9a5188",
+      borderColor: "#9a5188",
+    },
+  },
+  aiButton: {
     flexShrink: 0,
     width: 34,
     height: 34,

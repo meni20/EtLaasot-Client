@@ -3,6 +3,7 @@ import { createServerAxiosInstance } from "../config/axiosInstance";
 import type {
   IAttendees,
   IEvent,
+  IEventAiInsights,
   IEventParticipants,
 } from "../interfaces/event.interface";
 
@@ -27,6 +28,18 @@ export class EventService {
 
   public async removeEventImage(eventId: string): Promise<IEvent> {
     const res = await this.api.delete(`/${eventId}/image`);
+    return res.data;
+  }
+
+  public async getEventAiInsights(eventId: string): Promise<IEventAiInsights> {
+    const res = await this.api.get(`/${eventId}/ai-insights`);
+    return res.data;
+  }
+
+  public async generateEventAiSummary(
+    eventId: string,
+  ): Promise<IEventAiInsights> {
+    const res = await this.api.post(`/${eventId}/generate-ai-summary`);
     return res.data;
   }
 
