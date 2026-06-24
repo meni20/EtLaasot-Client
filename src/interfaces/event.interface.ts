@@ -11,7 +11,27 @@ export interface IEvent {
   branchId?: string;
   imagePath?: string | null;
   imageUrl?: string | null;
+  aiSummary?: string | null;
+  aiSummaryGeneratedAt?: Date | string | null;
   attendees?: IAttendees[];
+}
+
+export interface IEventAiNote {
+  id: string;
+  volunteerName: string | null;
+  traineeName: string | null;
+  status: string;
+  notes: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface IEventAiInsights {
+  eventId: string;
+  aiSummary: string | null;
+  aiSummaryGeneratedAt: Date | string | null;
+  isAiSummaryOutdated: boolean;
+  notes: IEventAiNote[];
 }
 
 export interface IAttendees {
