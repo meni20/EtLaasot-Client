@@ -25,6 +25,7 @@ import { calculateAge } from "../../../utils/data.utillity";
 import { formatShirtSize } from "../../../constants/user.constants";
 
 const avatarLetter = (name?: string) => name?.trim()?.[0]?.toUpperCase() || "?";
+const DEFAULT_PEOPLE_PAGE_SIZE = 100;
 
 type VolunteerTableRow = Pick<
   IUser,
@@ -249,9 +250,14 @@ export const VolunteerPage: React.FC = () => {
                   getOriginalVolunteer(params.row as VolunteerTableRow),
                 )
               }
-              pageSizeOptions={[10, 25, 50]}
+              pageSizeOptions={[25, 50, DEFAULT_PEOPLE_PAGE_SIZE]}
               initialState={{
-                pagination: { paginationModel: { pageSize: 10, page: 0 } },
+                pagination: {
+                  paginationModel: {
+                    pageSize: DEFAULT_PEOPLE_PAGE_SIZE,
+                    page: 0,
+                  },
+                },
               }}
               localeText={{
                 noRowsLabel: emptyMessage,

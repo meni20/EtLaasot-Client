@@ -166,7 +166,7 @@ export const LineChart = ({
             gap: 1.5,
             px: 0.5,
             pt: 1,
-            direction: "rtl",
+            direction: "ltr",
           }}
         >
           {visibleEvents.map((event) => (

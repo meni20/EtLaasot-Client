@@ -45,6 +45,12 @@ export const useStyles = makeStyles({
         paddingTop: 18,
         borderTop: "1px solid #F1F2F4",
     },
+    rsvpHeader: {
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        gap: 12,
+    },
     rsvpTitle: {
         color: "#1F1F1F",
         fontWeight: 800,
@@ -64,10 +70,7 @@ export const useStyles = makeStyles({
         gap: 10,
     },
     saveCalendarIconButton: {
-        position: "absolute" as const,
-        top: 16,
-        left: 16,
-        zIndex: 2,
+        flexShrink: 0,
         width: "38px !important",
         height: "38px !important",
         color: "#7B3F98 !important",
