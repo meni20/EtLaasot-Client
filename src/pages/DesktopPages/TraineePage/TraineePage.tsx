@@ -25,6 +25,7 @@ import { calculateAge } from "../../../utils/data.utillity";
 import { formatShirtSize } from "../../../constants/user.constants";
 
 const avatarLetter = (name?: string) => name?.trim()?.[0]?.toUpperCase() || "?";
+const DEFAULT_PEOPLE_PAGE_SIZE = 100;
 
 type TraineeTableRow = Pick<
   IUser,
@@ -44,9 +45,7 @@ export const TraineePage: React.FC = () => {
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] =
     useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTrainee, setSelectedTrainee] = useState<IUser | null>(
-    null
-  );
+  const [selectedTrainee, setSelectedTrainee] = useState<IUser | null>(null);
 
   const {
     data: allTrainees,
@@ -252,9 +251,14 @@ export const TraineePage: React.FC = () => {
                   getOriginalTrainee(params.row as TraineeTableRow),
                 )
               }
-              pageSizeOptions={[10, 25, 50]}
+              pageSizeOptions={[25, 50, DEFAULT_PEOPLE_PAGE_SIZE]}
               initialState={{
-                pagination: { paginationModel: { pageSize: 10, page: 0 } },
+                pagination: {
+                  paginationModel: {
+                    pageSize: DEFAULT_PEOPLE_PAGE_SIZE,
+                    page: 0,
+                  },
+                },
               }}
               localeText={{
                 noRowsLabel: emptyMessage,

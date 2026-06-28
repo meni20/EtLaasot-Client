@@ -2,6 +2,7 @@ import { Box, Chip, Divider, IconButton, Stack, Tooltip } from "@mui/material";
 import Card from "@mui/material/Card";
 import Button from "@mui/material/Button";
 import { useMemo, useState } from "react";
+import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
@@ -16,11 +17,13 @@ import type { ICardProps } from "./Card.interface";
 import CardContent from "@mui/material/CardContent";
 import CardActions from "@mui/material/CardActions";
 import { useBranch } from "../../contexts/useBranch";
-import { EVENT_TYPES } from "../../constants/auth.const";
+import { AUTH_ROLES, EVENT_TYPES } from "../../constants/auth.const";
+import { useAuth } from "../../contexts/useAuth";
 import userService from "../../services/user.service";
 import type { IUser } from "../../interfaces/user.interface";
 import { EventAtendeeDialog } from "../EventAtendeeDialog/EventAtendeeDialog";
 import { EventActivityAttendanceDialog } from "../EventActivityAttendanceDialog/EventActivityAttendanceDialog";
+import { EventAiSummaryDialog } from "../EventAiSummaryDialog/EventAiSummaryDialog";
 
 const toDate = (value: Date | string | null | undefined) => {
   if (!value) return null;
@@ -63,13 +66,23 @@ export const BasicCard: React.FC<ICardProps> = ({
   address,
   description,
   eventType,
+  imageUrl,
   participantsCount,
   onEdit,
 }) => {
   const classes = useCardStyles();
   const { activeBranch } = useBranch();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
+  const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
+  const isAdmin = Boolean(
+    user?.roles?.some(
+      (role) =>
+        role.roleId === AUTH_ROLES.SUPER_ADMIN.id ||
+        role.roleId === AUTH_ROLES.BRANCH_ADMIN.id,
+    ),
+  );
 
   const { data: allUsers } = useQuery({
     queryKey: ["users", activeBranch],
@@ -93,7 +106,7 @@ export const BasicCard: React.FC<ICardProps> = ({
   }, [allUsers]);
 
   const eventTypeLabel = eventType
-    ? EVENT_TYPES[eventType]?.label ?? eventType
+    ? (EVENT_TYPES[eventType]?.label ?? eventType)
     : undefined;
   const start = toDate(startDate);
   const end = toDate(endDate);
@@ -101,10 +114,20 @@ export const BasicCard: React.FC<ICardProps> = ({
   const dateRange = isSameCalendarDay(start, end)
     ? formatDate(start)
     : `${formatDate(start)} - ${formatDate(end)}`;
+  const hasImageBackground = Boolean(imageUrl);
 
   return (
     <Box className={classes.cardContainer}>
-      <Card className={classes.card}>
+      <Card
+        className={`${classes.card} ${
+          hasImageBackground ? classes.cardWithImage : ""
+        }`}
+        style={
+          hasImageBackground
+            ? { backgroundImage: `url("${imageUrl}")` }
+            : undefined
+        }
+      >
         <CardContent className={classes.cardContent}>
           <Box className={classes.headerRow}>
             <Box className={classes.titleBlock}>
@@ -120,16 +143,31 @@ export const BasicCard: React.FC<ICardProps> = ({
               )}
             </Box>
 
-            <Tooltip title="עריכת אירוע">
-              <IconButton
-                className={classes.editButton}
-                onClick={onEdit}
-                aria-label="עריכת אירוע"
-                size="small"
-              >
-                <EditOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
+            <Box className={classes.headerActions}>
+              {isAdmin && (
+                <Tooltip title="סיכום AI">
+                  <IconButton
+                    className={classes.aiButton}
+                    onClick={() => setIsAiDialogOpen(true)}
+                    aria-label="סיכום AI"
+                    size="small"
+                  >
+                    <AutoAwesomeOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+
+              <Tooltip title="עריכת אירוע">
+                <IconButton
+                  className={classes.editButton}
+                  onClick={onEdit}
+                  aria-label="עריכת אירוע"
+                  size="small"
+                >
+                  <EditOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </Box>
 
           <Stack className={classes.detailsList} spacing={1}>
@@ -201,6 +239,15 @@ export const BasicCard: React.FC<ICardProps> = ({
           open={isAttendanceOpen}
           onClose={() => setIsAttendanceOpen(false)}
           eventId={eventId}
+        />
+      )}
+
+      {isAiDialogOpen && (
+        <EventAiSummaryDialog
+          open={isAiDialogOpen}
+          onClose={() => setIsAiDialogOpen(false)}
+          eventId={eventId}
+          eventName={eventName}
         />
       )}
     </Box>

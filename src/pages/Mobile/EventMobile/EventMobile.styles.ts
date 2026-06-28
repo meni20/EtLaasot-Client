@@ -45,6 +45,12 @@ export const useStyles = makeStyles({
         paddingTop: 18,
         borderTop: "1px solid #F1F2F4",
     },
+    rsvpHeader: {
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        gap: 12,
+    },
     rsvpTitle: {
         color: "#1F1F1F",
         fontWeight: 800,
@@ -62,6 +68,19 @@ export const useStyles = makeStyles({
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
         gap: 10,
+    },
+    saveCalendarIconButton: {
+        flexShrink: 0,
+        width: "38px !important",
+        height: "38px !important",
+        color: "#7B3F98 !important",
+        backgroundColor: "rgba(255, 255, 255, 0.94) !important",
+        boxShadow: "0 6px 16px rgba(45, 35, 43, 0.16) !important",
+        border: "1px solid rgba(228, 215, 235, 0.9) !important",
+        "&:hover": {
+            color: "#fff !important",
+            backgroundColor: "#7B3F98 !important",
+        },
     },
     rsvpOptionCard: {
         minHeight: 94,
@@ -126,10 +145,66 @@ export const useStyles = makeStyles({
         fontFamily: "Rubik, sans-serif",
     },
     detailsCard: {
+        position: "relative" as const,
         borderRadius: 20,
         padding: 24,
         backgroundColor: "#fff",
         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
+        overflow: "hidden",
+    },
+    detailsCardWithImage: {
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundColor: "#241f25",
+        boxShadow: "0 18px 36px rgba(28, 20, 30, 0.24)",
+        "&::before": {
+            content: '""',
+            position: "absolute" as const,
+            inset: 0,
+            background:
+                "linear-gradient(180deg, rgba(0, 0, 0, 0.30) 0%, rgba(0, 0, 0, 0.36) 42%, rgba(0, 0, 0, 0.46) 100%)",
+            pointerEvents: "none" as const,
+            zIndex: 0,
+        },
+        "& > *": {
+            position: "relative" as const,
+            zIndex: 1,
+        },
+        "& $typeChip": {
+            backgroundColor: "rgba(255, 255, 255, 0.88)",
+            color: "#6d3860",
+        },
+        "& $saveCalendarIconButton": {
+            color: "#fff !important",
+            backgroundColor: "rgba(0, 0, 0, 0.30) !important",
+            borderColor: "rgba(255, 255, 255, 0.34) !important",
+            backdropFilter: "blur(8px)",
+            boxShadow: "0 8px 18px rgba(0, 0, 0, 0.22) !important",
+            "&:hover": {
+                backgroundColor: "rgba(123, 63, 152, 0.92) !important",
+                borderColor: "rgba(255, 255, 255, 0.68) !important",
+            },
+        },
+        "& $detailsTitle, & $description, & $rsvpTitle, & $rsvpStatus": {
+            color: "#fff",
+            textShadow: "0 1px 4px rgba(0, 0, 0, 0.48)",
+        },
+        "& $detailsMeta": {
+            color: "rgba(255, 255, 255, 0.92)",
+            textShadow: "0 1px 3px rgba(0, 0, 0, 0.42)",
+        },
+        "& $detailsMetaIcon": {
+            color: "#fff",
+            backgroundColor: "rgba(255, 255, 255, 0.22)",
+            backdropFilter: "blur(8px)",
+        },
+        "& $description": {
+            backgroundColor: "rgba(0, 0, 0, 0.24)",
+            backdropFilter: "blur(8px)",
+        },
+        "& $rsvpRow": {
+            borderTopColor: "rgba(255, 255, 255, 0.24)",
+        },
     },
     detailsTitle: {
         fontWeight: 800,

@@ -136,32 +136,6 @@ export const DashboardPage: React.FC = () => {
       menuItems.find((item) => item.path === "/mentor-assignments")?.path ??
       "/mentor-assignments",
   };
-  const alerts: { type: string; message: string }[] = [];
-
-  if (summary.unassignedTrainees > 0) {
-    alerts.push({
-      type: "warning",
-      message: `${summary.unassignedTrainees} חניכים ללא חונך מוקצה`,
-    });
-  }
-
-  if (summary.activeEvents === 0) {
-    alerts.push({
-      type: "error",
-      message: "אין אירועים קרובים",
-    });
-  }
-
-  const alertClass = (type: string) => {
-    switch (type) {
-      case "warning":
-        return `${classes.alertItem} ${classes.alertWarning}`;
-      case "error":
-        return `${classes.alertItem} ${classes.alertError}`;
-      default:
-        return `${classes.alertItem} ${classes.alertInfo}`;
-    }
-  };
 
   return (
     <Box className={classes.root}>
@@ -216,19 +190,6 @@ export const DashboardPage: React.FC = () => {
         </Box>
       </Box>
 
-      {alerts.length > 0 && (
-        <Box className={classes.tableCard}>
-          <Typography className={classes.chartTitle}>התראות חשובות</Typography>
-          <Box className={classes.alertsContainer}>
-            {alerts.map((alert, index) => (
-              <Box key={`${alert.type}-${index}`} className={alertClass(alert.type)}>
-                {alert.message}
-              </Box>
-            ))}
-          </Box>
-        </Box>
-      )}
-
       {dashboardUpcomingEvents.length > 0 && (
         <Box className={classes.upcomingSection}>
           <Box className={classes.carouselHeader}>
@@ -275,6 +236,7 @@ export const DashboardPage: React.FC = () => {
                     address={event.address}
                     description={event.description}
                     eventType={event.eventType}
+                    imageUrl={event.imageUrl}
                     participantsCount={event.attendees?.length}
                     onEdit={() => {
                       setSelectedEvent(event);

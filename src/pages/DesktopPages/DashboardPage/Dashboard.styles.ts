@@ -139,60 +139,6 @@ export const useDashboardStyles = makeStyles({
         marginBottom: 8,
         fontSize: "0.95rem",
     },
-    tableCard: {
-        background: "#fff",
-        borderRadius: 14,
-        padding: "16px 18px",
-        boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-        border: "1px solid #f0ecef",
-        marginBottom: 16,
-        animation: "fadeInUp 0.7s ease-out both",
-        transition: "box-shadow 0.3s ease",
-        "&:hover": {
-            boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-        },
-    },
-    alertsContainer: {
-        display: "flex",
-        flexDirection: "column" as const,
-        gap: 8,
-        marginBottom: 0,
-    },
-    alertItem: {
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        padding: "12px 18px",
-        borderRadius: 14,
-        fontFamily: "Rubik, sans-serif",
-        fontSize: "0.9rem",
-        animation: "slideInRight 0.4s ease-out both",
-        transition: "transform 0.2s ease, box-shadow 0.2s ease",
-        "&:hover": {
-            transform: "translateX(-2px)",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
-        },
-    },
-    alertWarning: {
-        backgroundColor: "#fff3e0",
-        color: "#e65100",
-        borderRight: "4px solid #e65100",
-    },
-    alertSuccess: {
-        backgroundColor: "#e8f5e9",
-        color: "#2e7d32",
-        borderRight: "4px solid #2e7d32",
-    },
-    alertError: {
-        backgroundColor: "#fce4ec",
-        color: "#c62828",
-        borderRight: "4px solid #c62828",
-    },
-    alertInfo: {
-        backgroundColor: "#e3f2fd",
-        color: "#1565c0",
-        borderRight: "4px solid #1565c0",
-    },
     "@media (max-width: 900px)": {
         chartsGrid: {
             gridTemplateColumns: "1fr",

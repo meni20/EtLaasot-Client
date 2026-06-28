@@ -1,13 +1,15 @@
-import { Box, Button, Chip, IconButton, Typography } from "@mui/material";
+import { Box, Button, Chip, IconButton, Tooltip, Typography } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import EventIcon from "@mui/icons-material/Event";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../../contexts/useAuth";
 import { useMobileEvents } from "../../../hooks/mobile/useMobileEvents";
 import { formatDate } from "../../../utils/data.utillity";
+import { downloadICS } from "../../../utils/calendar.util";
 import { decodeUnicodeEscapes } from "../../../utils/text.util";
 import { AUTH_ROLES, EVENT_TYPES } from "../../../constants/auth.const";
 import attendeeService from "../../../services/attendee.service";
@@ -26,8 +28,8 @@ const ATTENDANCE_OPTIONS: {
   icon: string;
 }[] = [
   { intent: "BOTH", label: "שנינו מגיעים", icon: "👥" },
-  { intent: "VOLUNTEER_ONLY", label: "רק אני מגיע", icon: "🙋" },
-  { intent: "TRAINEE_ONLY", label: "רק החניך מגיע", icon: "🧒" },
+  { intent: "VOLUNTEER_ONLY", label: "מגיע ויכול להחליף", icon: "🙋" },
+  { intent: "TRAINEE_ONLY", label: "צריך מחליף לחניך", icon: "🧒" },
   { intent: "NONE", label: "לא מגיעים", icon: "✕" },
 ];
 
@@ -115,7 +117,25 @@ export const EventDetailsMobile: React.FC = () => {
     });
   };
 
+  const handleSaveToCalendar = (currentEvent: IEvent) => {
+    try {
+      downloadICS({
+        ...currentEvent,
+        name: decodeUnicodeEscapes(currentEvent.name),
+        description: currentEvent.description
+          ? decodeUnicodeEscapes(currentEvent.description)
+          : "",
+        address: currentEvent.address
+          ? decodeUnicodeEscapes(currentEvent.address)
+          : "",
+      });
+    } catch {
+      window.alert("לא ניתן לשמור ביומן כי חסרים פרטי תאריך לאירוע");
+    }
+  };
+
   const selectedIntent = event ? getAttendanceIntent(event) : "NONE";
+  const hasImageBackground = Boolean(event?.imageUrl);
 
   return (
     <Box className={styles.root}>
@@ -134,7 +154,16 @@ export const EventDetailsMobile: React.FC = () => {
       {!event ? (
         <Typography className={styles.empty}>האירוע לא נמצא</Typography>
       ) : (
-        <Box className={styles.detailsCard}>
+        <Box
+          className={`${styles.detailsCard} ${
+            hasImageBackground ? styles.detailsCardWithImage : ""
+          }`}
+          style={
+            hasImageBackground
+              ? { backgroundImage: `url("${event.imageUrl}")` }
+              : undefined
+          }
+        >
           {event.eventType && EVENT_TYPES[event.eventType] && (
             <Chip
               size="small"
@@ -179,13 +208,25 @@ export const EventDetailsMobile: React.FC = () => {
 
           {isVolunteer && (
             <Box className={styles.rsvpRow}>
-              <Box>
-                <Typography className={styles.rsvpTitle}>
-                  מי מגיע לאירוע?
-                </Typography>
-                <Typography className={styles.rsvpStatus}>
-                  {ATTENDANCE_STATUS_LABELS[selectedIntent]}
-                </Typography>
+              <Box className={styles.rsvpHeader}>
+                <Box>
+                  <Typography className={styles.rsvpTitle}>
+                    מי מגיע לאירוע?
+                  </Typography>
+                  <Typography className={styles.rsvpStatus}>
+                    {ATTENDANCE_STATUS_LABELS[selectedIntent]}
+                  </Typography>
+                </Box>
+                <Tooltip title="שמור ביומן">
+                  <IconButton
+                    className={styles.saveCalendarIconButton}
+                    onClick={() => handleSaveToCalendar(event)}
+                    aria-label="שמור ביומן"
+                    size="small"
+                  >
+                    <CalendarMonthIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               </Box>
               <Box className={styles.rsvpGrid}>
                 {ATTENDANCE_OPTIONS.map((option) => {

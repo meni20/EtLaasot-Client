@@ -3,6 +3,7 @@ import { createServerAxiosInstance } from "../config/axiosInstance";
 import type {
   IAttendees,
   IEvent,
+  IEventAiInsights,
   IEventParticipants,
 } from "../interfaces/event.interface";
 
@@ -14,6 +15,31 @@ export class EventService {
 
   public async createEvent(eventData: IEvent) {
     const res = await this.api.post("/create-event", eventData);
+    return res.data;
+  }
+
+  public async uploadEventImage(eventId: string, image: File): Promise<IEvent> {
+    const formData = new FormData();
+    formData.append("image", image);
+
+    const res = await this.api.put(`/${eventId}/image`, formData);
+    return res.data;
+  }
+
+  public async removeEventImage(eventId: string): Promise<IEvent> {
+    const res = await this.api.delete(`/${eventId}/image`);
+    return res.data;
+  }
+
+  public async getEventAiInsights(eventId: string): Promise<IEventAiInsights> {
+    const res = await this.api.get(`/${eventId}/ai-insights`);
+    return res.data;
+  }
+
+  public async generateEventAiSummary(
+    eventId: string,
+  ): Promise<IEventAiInsights> {
+    const res = await this.api.post(`/${eventId}/generate-ai-summary`);
     return res.data;
   }
 
@@ -69,9 +95,9 @@ export class EventService {
   }
 
   public async updateEvent(eventId: string, eventData: IEvent) {
-  const res = await this.api.put(`/update-event/${eventId}`, eventData);
-  return res.data;
-}
+    const res = await this.api.put(`/update-event/${eventId}`, eventData);
+    return res.data;
+  }
 }
 
 const eventService = new EventService();
