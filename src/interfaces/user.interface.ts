@@ -5,6 +5,8 @@ export type ShirtSize = "XS" | "S" | "M" | "L" | "XL" | "XXL" | "OTHER";
 
 export interface IUser {
   id: string;
+  nationalIdLast4?: string | null;
+  nationalIdMasked?: string | null;
   name: string;
   phoneNumber: string;
   gender?: UserGender | "" | null;
@@ -36,6 +38,8 @@ export interface IUserRole {
 
 export interface ICurrentUserProfile {
   id: string;
+  nationalIdLast4?: string | null;
+  nationalIdMasked?: string | null;
   name: string;
   phoneNumber?: string | null;
   gender?: UserGender | null;

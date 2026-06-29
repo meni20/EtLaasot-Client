@@ -41,6 +41,7 @@ import type {
 } from "../../interfaces/user.interface";
 import {
   calculateAge,
+  formatMaskedNationalId,
   getTodayDateInputValue,
   isValidDateOfBirth,
   isValidIsraeliPhone,
@@ -101,6 +102,10 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
   const phoneHref = selectedUser?.phoneNumber
     ? `tel:${selectedUser.phoneNumber}`
     : undefined;
+  const selectedNationalIdDisplay = formatMaskedNationalId(
+    selectedUser?.nationalIdMasked,
+    selectedUser?.nationalIdLast4,
+  );
   const updateUserMutation = useMutation({
     mutationFn: (payload: IUpdateUserPayload) =>
       userService.updateUser(selectedUser.id, payload),
@@ -228,7 +233,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               className={classes.headerMeta}
             >
               <Typography variant="body2" className={classes.subText} noWrap>
-                ת.ז: {selectedUser?.id ?? "—"}
+                ת.ז: {selectedNationalIdDisplay}
               </Typography>
               <Chip label="פעיל" size="small" className={classes.statusChip} />
             </Stack>
@@ -311,10 +316,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               <BadgeRoundedIcon className={classes.rowIcon} fontSize="small" />
             }
             label="תעודת זהות"
-            value={selectedUser?.id}
-            onCopy={
-              selectedUser?.id ? () => copy(selectedUser.id) : undefined
-            }
+            value={selectedNationalIdDisplay}
           />
         </Box>
 

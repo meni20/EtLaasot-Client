@@ -21,7 +21,10 @@ import { CreateTrainee } from "../../../components/CreateTrainee/CreateTrainee";
 import { VolunteerDetails } from "../../../components/VolunteerDetails/VolunteerDetails";
 import { useBranch } from "../../../contexts/useBranch";
 import { useTraineePageStyles } from "./TraineePage.styles";
-import { calculateAge } from "../../../utils/data.utillity";
+import {
+  calculateAge,
+  formatMaskedNationalId,
+} from "../../../utils/data.utillity";
 import { formatShirtSize } from "../../../constants/user.constants";
 
 const avatarLetter = (name?: string) => name?.trim()?.[0]?.toUpperCase() || "?";
@@ -31,6 +34,7 @@ type TraineeTableRow = Pick<
   IUser,
   "id" | "name" | "age" | "gender" | "phoneNumber" | "email" | "address"
 > & {
+  nationalIdMasked: string;
   shirtSizeDisplay: string;
   originalTrainee: IUser;
 };
@@ -71,6 +75,10 @@ export const TraineePage: React.FC = () => {
     return (
       allTrainees?.map((trainee: IUser) => ({
         id: trainee.id,
+        nationalIdMasked: formatMaskedNationalId(
+          trainee.nationalIdMasked,
+          trainee.nationalIdLast4,
+        ),
         name: trainee.name,
         age: calculateAge(trainee.dateOfBirth, trainee.age),
         gender: trainee.gender ?? "",
@@ -94,7 +102,7 @@ export const TraineePage: React.FC = () => {
     return rowsData.filter((trainee) =>
       [
         trainee.name,
-        trainee.id,
+        trainee.nationalIdMasked,
         trainee.phoneNumber,
         trainee.email,
         trainee.address,
@@ -202,7 +210,7 @@ export const TraineePage: React.FC = () => {
           className={styles.searchField}
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="חיפוש לפי שם, ת.ז, טלפון, אימייל או כתובת"
+          placeholder="חיפוש לפי שם, 4 ספרות ת.ז, טלפון, אימייל או כתובת"
           aria-label="חיפוש חניכים"
           size="small"
           InputProps={{
