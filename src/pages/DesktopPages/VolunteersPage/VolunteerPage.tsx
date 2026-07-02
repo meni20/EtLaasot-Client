@@ -21,7 +21,10 @@ import { useVolunteerPageStyles } from "./VolunteerPage.styles";
 import { VolunteerDetails } from "../../../components/VolunteerDetails/VolunteerDetails";
 import { CreateVolunteer } from "../../../components/CreateVolunteerPopup/CreateVolunteer";
 import { useBranch } from "../../../contexts/useBranch";
-import { calculateAge } from "../../../utils/data.utillity";
+import {
+  calculateAge,
+  formatMaskedNationalId,
+} from "../../../utils/data.utillity";
 import { formatShirtSize } from "../../../constants/user.constants";
 
 const avatarLetter = (name?: string) => name?.trim()?.[0]?.toUpperCase() || "?";
@@ -31,6 +34,7 @@ type VolunteerTableRow = Pick<
   IUser,
   "id" | "name" | "age" | "gender" | "phoneNumber" | "email" | "address"
 > & {
+  nationalIdMasked: string;
   shirtSizeDisplay: string;
   originalVolunteer: IUser;
 };
@@ -73,6 +77,10 @@ export const VolunteerPage: React.FC = () => {
     return (
       allVolunteers?.map((volunteer: IUser) => ({
         id: volunteer.id,
+        nationalIdMasked: formatMaskedNationalId(
+          volunteer.nationalIdMasked,
+          volunteer.nationalIdLast4,
+        ),
         name: volunteer.name,
         age: calculateAge(volunteer.dateOfBirth, volunteer.age),
         gender: volunteer.gender ?? "",
@@ -96,7 +104,7 @@ export const VolunteerPage: React.FC = () => {
     return rowsData.filter((volunteer) =>
       [
         volunteer.name,
-        volunteer.id,
+        volunteer.nationalIdMasked,
         volunteer.phoneNumber,
         volunteer.email,
         volunteer.address,
@@ -203,7 +211,7 @@ export const VolunteerPage: React.FC = () => {
           className={styles.searchField}
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="חיפוש לפי שם, ת.ז, טלפון, אימייל או כתובת"
+          placeholder="חיפוש לפי שם, 4 ספרות ת.ז, טלפון, אימייל או כתובת"
           aria-label="חיפוש מתנדבים"
           size="small"
           InputProps={{

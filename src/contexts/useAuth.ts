@@ -1,7 +1,14 @@
 import { createContext, useContext } from "react";
 
 export interface IAuthContext {
-    user: { userId: string; name: string; roles: { role: string; roleId: number; branchId: string; branchName: string }[]; activeBranch: string } | null;
+    user: {
+        userId: string;
+        name: string;
+        nationalIdLast4?: string | null;
+        nationalIdMasked?: string | null;
+        roles: { role: string; roleId: number; branchId: string; branchName: string }[];
+        activeBranch: string;
+    } | null;
     token: string | null;
     isAuthenticated: boolean;
     loading: boolean;
