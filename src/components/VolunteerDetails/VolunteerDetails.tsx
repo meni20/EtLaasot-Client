@@ -33,6 +33,8 @@ import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import userService from "../../services/user.service";
 import type { IVolunteerDetailsProps } from "./Volunteer.interface";
 import { useVolunteerDetailsStyles } from "./VolunteerDetails.styles";
+import { useAuth } from "../../contexts/useAuth";
+import { AUTH_ROLES } from "../../constants/auth.const";
 import type {
   IUpdateUserPayload,
   IUser,
@@ -65,6 +67,7 @@ type UserDetailsFormState = {
 };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const NATIONAL_ID_REVEAL_TIMEOUT_MS = 60_000;
 
 export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
   open,
@@ -76,6 +79,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
 }) => {
   const classes = useVolunteerDetailsStyles();
   const queryClient = useQueryClient();
+  const { user: authUser } = useAuth();
   const [selectedUser, setSelectedUser] = React.useState<IUser>(volunteerData);
   const [isEditOpen, setIsEditOpen] = React.useState(false);
   const [form, setForm] = React.useState<UserDetailsFormState>({
@@ -91,10 +95,48 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
     address: "",
   });
   const [formError, setFormError] = React.useState("");
+  const [revealedNationalId, setRevealedNationalId] = React.useState<
+    string | null
+  >(null);
+  const [nationalIdStatus, setNationalIdStatus] = React.useState("");
+  const [isNationalIdPending, setIsNationalIdPending] = React.useState(false);
+  const nationalIdClearTimerRef = React.useRef<ReturnType<
+    typeof window.setTimeout
+  > | null>(null);
+
+  const clearNationalIdTimer = React.useCallback(() => {
+    if (!nationalIdClearTimerRef.current) return;
+    window.clearTimeout(nationalIdClearTimerRef.current);
+    nationalIdClearTimerRef.current = null;
+  }, []);
+
+  const clearRevealedNationalId = React.useCallback(() => {
+    clearNationalIdTimer();
+    setRevealedNationalId(null);
+    setNationalIdStatus("");
+  }, [clearNationalIdTimer]);
+
+  const scheduleNationalIdClear = React.useCallback(() => {
+    clearNationalIdTimer();
+    nationalIdClearTimerRef.current = window.setTimeout(() => {
+      setRevealedNationalId(null);
+      setNationalIdStatus("");
+      nationalIdClearTimerRef.current = null;
+    }, NATIONAL_ID_REVEAL_TIMEOUT_MS);
+  }, [clearNationalIdTimer]);
 
   React.useEffect(() => {
     setSelectedUser(volunteerData);
-  }, [volunteerData]);
+    clearRevealedNationalId();
+  }, [clearRevealedNationalId, volunteerData]);
+
+  React.useEffect(() => {
+    if (!open) {
+      clearRevealedNationalId();
+    }
+  }, [clearRevealedNationalId, open]);
+
+  React.useEffect(() => () => clearNationalIdTimer(), [clearNationalIdTimer]);
 
   const emailHref = selectedUser?.email
     ? `mailto:${selectedUser.email}`
@@ -106,12 +148,75 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
     selectedUser?.nationalIdMasked,
     selectedUser?.nationalIdLast4,
   );
+  const displayedNationalId = revealedNationalId ?? selectedNationalIdDisplay;
+  const canRevealNationalId = React.useMemo(() => {
+    if (!authUser || !selectedUser?.nationalIdRevealId) {
+      return false;
+    }
+
+    return authUser.roles.some(
+      (role) =>
+        role.roleId === AUTH_ROLES.SUPER_ADMIN.id ||
+        (role.roleId === AUTH_ROLES.BRANCH_ADMIN.id &&
+          !!selectedUser.branchId &&
+          role.branchId === selectedUser.branchId),
+    );
+  }, [authUser, selectedUser?.branchId, selectedUser?.nationalIdRevealId]);
+
+  const requestNationalId = React.useCallback(async () => {
+    if (!selectedUser?.nationalIdRevealId) {
+      setNationalIdStatus("לא ניתן להציג תעודת זהות עבור משתמש זה");
+      throw new Error("Missing national ID reveal identifier");
+    }
+
+    setIsNationalIdPending(true);
+    setNationalIdStatus("");
+
+    try {
+      const { nationalId } = await userService.getNationalId(
+        selectedUser.nationalIdRevealId,
+      );
+      return nationalId;
+    } catch (error) {
+      setNationalIdStatus("אין הרשאה להציג את תעודת הזהות");
+      throw error;
+    } finally {
+      setIsNationalIdPending(false);
+    }
+  }, [selectedUser?.nationalIdRevealId]);
+
+  const handleRevealNationalId = async () => {
+    try {
+      const nationalId = await requestNationalId();
+      setRevealedNationalId(nationalId);
+      scheduleNationalIdClear();
+    } catch {}
+  };
+
+  const handleCopyNationalId = async () => {
+    try {
+      const nationalId = revealedNationalId ?? (await requestNationalId());
+      await copy(nationalId);
+      setNationalIdStatus("תעודת הזהות הועתקה");
+
+      if (revealedNationalId) {
+        scheduleNationalIdClear();
+      }
+    } catch {}
+  };
+
   const updateUserMutation = useMutation({
     mutationFn: (payload: IUpdateUserPayload) =>
       userService.updateUser(selectedUser.id, payload),
     onSuccess: async (updatedUser) => {
-      setSelectedUser(updatedUser);
-      onUserUpdated?.(updatedUser);
+      const nextUser = {
+        ...updatedUser,
+        nationalIdRevealId:
+          updatedUser.nationalIdRevealId ?? selectedUser.nationalIdRevealId,
+      };
+      setSelectedUser(nextUser);
+      onUserUpdated?.(nextUser);
+      clearRevealedNationalId();
       setIsEditOpen(false);
       setFormError("");
       await Promise.all([
@@ -195,17 +300,18 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
       gender: form.gender || null,
       shirtSize: form.shirtSize || null,
       customShirtSize:
-        form.shirtSize === "OTHER"
-          ? form.customShirtSize.trim() || null
-          : null,
+        form.shirtSize === "OTHER" ? form.customShirtSize.trim() || null : null,
       notes: form.notes.trim() || null,
-      ...(showParentName
-        ? { parentName: form.parentName.trim() || null }
-        : {}),
+      ...(showParentName ? { parentName: form.parentName.trim() || null } : {}),
       phoneNumber,
       email: email || null,
       address: address || null,
     });
+  };
+
+  const handleCloseDetails = () => {
+    clearRevealedNationalId();
+    onClose();
   };
 
   if (!open) return null;
@@ -217,191 +323,243 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
         role="complementary"
         aria-label={`פרטי ${entityLabel}`}
       >
-      <Box className={classes.header}>
-        <Stack direction="row" alignItems="center" spacing={1.5}>
-          <Avatar className={classes.avatar}>
-            {initials(selectedUser?.name)}
-          </Avatar>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="h6" className={classes.nameText} noWrap>
-              {selectedUser?.name ?? entityLabel}
-            </Typography>
-            <Stack
-              direction="row"
-              alignItems="center"
-              spacing={1}
-              className={classes.headerMeta}
-            >
-              <Typography variant="body2" className={classes.subText} noWrap>
-                ת.ז: {selectedNationalIdDisplay}
+        <Box className={classes.header}>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Avatar className={classes.avatar}>
+              {initials(selectedUser?.name)}
+            </Avatar>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="h6" className={classes.nameText} noWrap>
+                {selectedUser?.name ?? entityLabel}
               </Typography>
-              <Chip label="פעיל" size="small" className={classes.statusChip} />
-            </Stack>
-          </Box>
-          <IconButton
-            onClick={openEditDialog}
-            aria-label={`עריכת פרטי ${entityLabel}`}
-            className={classes.closeIconButton}
-          >
-            <EditRoundedIcon />
-          </IconButton>
-          <IconButton
-            onClick={onClose}
-            aria-label={`סגור פרטי ${entityLabel}`}
-            className={classes.closeIconButton}
-          >
-            <CloseRoundedIcon />
-          </IconButton>
-        </Stack>
-      </Box>
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1}
+                className={classes.headerMeta}
+              >
+                <Typography variant="body2" className={classes.subText} noWrap>
+                  ת.ז: {displayedNationalId}
+                </Typography>
+                {canRevealNationalId && (
+                  <Stack
+                    direction="row"
+                    spacing={0.5}
+                    className={classes.nationalIdActions}
+                  >
+                    <Button
+                      size="small"
+                      variant="text"
+                      className={classes.nationalIdActionButton}
+                      onClick={handleRevealNationalId}
+                      disabled={isNationalIdPending}
+                    >
+                      הצג
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="text"
+                      className={classes.nationalIdActionButton}
+                      onClick={handleCopyNationalId}
+                      disabled={isNationalIdPending}
+                    >
+                      העתק
+                    </Button>
+                  </Stack>
+                )}
+                <Chip
+                  label="פעיל"
+                  size="small"
+                  className={classes.statusChip}
+                />
+              </Stack>
+              {nationalIdStatus && (
+                <Typography
+                  variant="caption"
+                  className={classes.nationalIdStatus}
+                >
+                  {nationalIdStatus}
+                </Typography>
+              )}
+            </Box>
+            <IconButton
+              onClick={openEditDialog}
+              aria-label={`עריכת פרטי ${entityLabel}`}
+              className={classes.closeIconButton}
+            >
+              <EditRoundedIcon />
+            </IconButton>
+            <IconButton
+              onClick={handleCloseDetails}
+              aria-label={`סגור פרטי ${entityLabel}`}
+              className={classes.closeIconButton}
+            >
+              <CloseRoundedIcon />
+            </IconButton>
+          </Stack>
+        </Box>
 
-      <Box className={classes.content}>
-        <Box className={classes.section}>
-          <Typography className={classes.sectionTitle}>פרטים אישיים</Typography>
-          <Row
-            icon={
-              <CakeRoundedIcon className={classes.rowIcon} fontSize="small" />
-            }
-            label="גיל"
-            value={calculateAge(selectedUser?.dateOfBirth, selectedUser?.age) ?? "-"}
-          />
-          <Divider />
-          <Row
-            icon={
-              <WcRoundedIcon className={classes.rowIcon} fontSize="small" />
-            }
-            label="Gender"
-            value={selectedUser?.gender || "-"}
-          />
-          <Divider />
-          <Row
-            icon={
-              <CheckroomRoundedIcon
-                className={classes.rowIcon}
-                fontSize="small"
-              />
-            }
-            label="מידת חולצה"
-            value={formatShirtSize(
-              selectedUser?.shirtSize,
-              selectedUser?.customShirtSize,
+        <Box className={classes.content}>
+          <Box className={classes.section}>
+            <Typography className={classes.sectionTitle}>
+              פרטים אישיים
+            </Typography>
+            <Row
+              icon={
+                <CakeRoundedIcon className={classes.rowIcon} fontSize="small" />
+              }
+              label="גיל"
+              value={
+                calculateAge(selectedUser?.dateOfBirth, selectedUser?.age) ??
+                "-"
+              }
+            />
+            <Divider />
+            <Row
+              icon={
+                <WcRoundedIcon className={classes.rowIcon} fontSize="small" />
+              }
+              label="Gender"
+              value={selectedUser?.gender || "-"}
+            />
+            <Divider />
+            <Row
+              icon={
+                <CheckroomRoundedIcon
+                  className={classes.rowIcon}
+                  fontSize="small"
+                />
+              }
+              label="מידת חולצה"
+              value={formatShirtSize(
+                selectedUser?.shirtSize,
+                selectedUser?.customShirtSize,
+              )}
+            />
+            <Divider />
+            <Row
+              icon={
+                <NotesRoundedIcon
+                  className={classes.rowIcon}
+                  fontSize="small"
+                />
+              }
+              label="הערות"
+              value={selectedUser?.notes?.trim() || "-"}
+            />
+            {showParentName && (
+              <>
+                <Divider />
+                <Row
+                  icon={
+                    <FamilyRestroomRoundedIcon
+                      className={classes.rowIcon}
+                      fontSize="small"
+                    />
+                  }
+                  label="שם הורה"
+                  value={selectedUser?.parentName?.trim() || "-"}
+                />
+              </>
             )}
-          />
-          <Divider />
-          <Row
-            icon={
-              <NotesRoundedIcon className={classes.rowIcon} fontSize="small" />
-            }
-            label="הערות"
-            value={selectedUser?.notes?.trim() || "-"}
-          />
-          {showParentName && (
-            <>
-              <Divider />
-              <Row
-                icon={
-                  <FamilyRestroomRoundedIcon
-                    className={classes.rowIcon}
-                    fontSize="small"
-                  />
-                }
-                label="שם הורה"
-                value={selectedUser?.parentName?.trim() || "-"}
-              />
-            </>
-          )}
-          <Divider />
-          <Row
-            icon={
-              <BadgeRoundedIcon className={classes.rowIcon} fontSize="small" />
-            }
-            label="תעודת זהות"
-            value={selectedNationalIdDisplay}
-          />
-        </Box>
+            <Divider />
+            <Row
+              icon={
+                <BadgeRoundedIcon
+                  className={classes.rowIcon}
+                  fontSize="small"
+                />
+              }
+              label="תעודת זהות"
+              value={displayedNationalId}
+            />
+          </Box>
 
-        <Box className={classes.section}>
-          <Typography className={classes.sectionTitle}>פרטי קשר</Typography>
-          <Row
-            icon={
-              <PhoneIphoneRoundedIcon
-                className={classes.rowIcon}
-                fontSize="small"
-              />
-            }
-            label="טלפון"
-            value={selectedUser?.phoneNumber}
-            onCopy={
-              selectedUser?.phoneNumber
-                ? () => copy(selectedUser.phoneNumber)
-                : undefined
-            }
-          />
-          <Divider />
-          <Row
-            icon={
-              <EmailRoundedIcon className={classes.rowIcon} fontSize="small" />
-            }
-            label="אימייל"
-            value={selectedUser?.email}
-            onCopy={
-              selectedUser?.email
-                ? () => copy(selectedUser.email!)
-                : undefined
-            }
-          />
-          <Divider />
-          <Row
-            icon={
-              <LocationOnRoundedIcon
-                className={classes.rowIcon}
-                fontSize="small"
-              />
-            }
-            label="כתובת"
-            value={selectedUser?.address}
-            onCopy={
-              selectedUser?.address
-                ? () => copy(selectedUser.address)
-                : undefined
-            }
-          />
-        </Box>
+          <Box className={classes.section}>
+            <Typography className={classes.sectionTitle}>פרטי קשר</Typography>
+            <Row
+              icon={
+                <PhoneIphoneRoundedIcon
+                  className={classes.rowIcon}
+                  fontSize="small"
+                />
+              }
+              label="טלפון"
+              value={selectedUser?.phoneNumber}
+              onCopy={
+                selectedUser?.phoneNumber
+                  ? () => copy(selectedUser.phoneNumber)
+                  : undefined
+              }
+            />
+            <Divider />
+            <Row
+              icon={
+                <EmailRoundedIcon
+                  className={classes.rowIcon}
+                  fontSize="small"
+                />
+              }
+              label="אימייל"
+              value={selectedUser?.email}
+              onCopy={
+                selectedUser?.email
+                  ? () => copy(selectedUser.email!)
+                  : undefined
+              }
+            />
+            <Divider />
+            <Row
+              icon={
+                <LocationOnRoundedIcon
+                  className={classes.rowIcon}
+                  fontSize="small"
+                />
+              }
+              label="כתובת"
+              value={selectedUser?.address}
+              onCopy={
+                selectedUser?.address
+                  ? () => copy(selectedUser.address)
+                  : undefined
+              }
+            />
+          </Box>
 
-        <Stack direction="row" spacing={1} className={classes.actionsRow}>
+          <Stack direction="row" spacing={1} className={classes.actionsRow}>
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={<EmailRoundedIcon />}
+              disabled={!selectedUser?.email}
+              className={classes.buttonContained}
+              href={emailHref}
+              aria-label={`שליחת אימייל ל${entityLabel}`}
+            >
+              שליחת אימייל
+            </Button>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<PhoneIphoneRoundedIcon />}
+              disabled={!selectedUser?.phoneNumber}
+              className={classes.buttonOutlined}
+              href={phoneHref}
+              aria-label={`התקשרות ל${entityLabel}`}
+            >
+              התקשרות
+            </Button>
+          </Stack>
+
           <Button
+            onClick={handleCloseDetails}
             fullWidth
-            variant="contained"
-            startIcon={<EmailRoundedIcon />}
-            disabled={!selectedUser?.email}
-            className={classes.buttonContained}
-            href={emailHref}
-            aria-label={`שליחת אימייל ל${entityLabel}`}
+            className={classes.closeButton}
+            sx={{ mt: 1.2 }}
           >
-            שליחת אימייל
+            סגור
           </Button>
-          <Button
-            fullWidth
-            variant="outlined"
-            startIcon={<PhoneIphoneRoundedIcon />}
-            disabled={!selectedUser?.phoneNumber}
-            className={classes.buttonOutlined}
-            href={phoneHref}
-            aria-label={`התקשרות ל${entityLabel}`}
-          >
-            התקשרות
-          </Button>
-        </Stack>
-
-        <Button
-          onClick={onClose}
-          fullWidth
-          className={classes.closeButton}
-          sx={{ mt: 1.2 }}
-        >
-          סגור
-        </Button>
-      </Box>
+        </Box>
       </Box>
 
       <Dialog
@@ -511,7 +669,10 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={closeEditDialog} disabled={updateUserMutation.isPending}>
+          <Button
+            onClick={closeEditDialog}
+            disabled={updateUserMutation.isPending}
+          >
             ביטול
           </Button>
           <Button

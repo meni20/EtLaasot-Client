@@ -61,6 +61,13 @@ export class UserService {
     return res.data;
   };
 
+  public getNationalId = async (
+    nationalIdRevealId: string,
+  ): Promise<{ nationalId: string }> => {
+    const res = await this.api.get(`/${nationalIdRevealId}/national-id`);
+    return res.data;
+  };
+
   public updateUser = async (
     userId: string,
     payload: IUpdateUserPayload,

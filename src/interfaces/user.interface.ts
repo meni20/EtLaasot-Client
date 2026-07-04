@@ -5,6 +5,7 @@ export type ShirtSize = "XS" | "S" | "M" | "L" | "XL" | "XXL" | "OTHER";
 
 export interface IUser {
   id: string;
+  nationalIdRevealId?: string | null;
   nationalIdLast4?: string | null;
   nationalIdMasked?: string | null;
   name: string;
