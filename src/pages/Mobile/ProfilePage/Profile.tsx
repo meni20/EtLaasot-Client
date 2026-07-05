@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  InputAdornment,
   TextField,
   Typography,
 } from "@mui/material";
@@ -23,6 +24,9 @@ import HomeIcon from "@mui/icons-material/Home";
 import EditIcon from "@mui/icons-material/Edit";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import CloseIcon from "@mui/icons-material/Close";
+import LockResetIcon from "@mui/icons-material/LockReset";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/useAuth";
@@ -55,10 +59,24 @@ type ProfileFormState = {
   address: string;
 };
 
+type PasswordFormState = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
+type PasswordFieldName = keyof PasswordFormState;
+
+const INITIAL_PASSWORD_FORM: PasswordFormState = {
+  currentPassword: "",
+  newPassword: "",
+  confirmPassword: "",
+};
+
 export const ProfilePage: React.FC = () => {
   const styles = useStyles();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, changePassword } = useAuth();
   const { activeBranch, availableBranches } = useBranch();
   const [selectedAssignment, setSelectedAssignment] =
     useState<IMentorAssignment | null>(null);
@@ -69,6 +87,19 @@ export const ProfilePage: React.FC = () => {
     address: "",
   });
   const [formError, setFormError] = useState("");
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [passwordForm, setPasswordForm] = useState<PasswordFormState>(
+    INITIAL_PASSWORD_FORM,
+  );
+  const [passwordError, setPasswordError] = useState("");
+  const [isPasswordSaving, setIsPasswordSaving] = useState(false);
+  const [visiblePasswordFields, setVisiblePasswordFields] = useState<
+    Record<PasswordFieldName, boolean>
+  >({
+    currentPassword: false,
+    newPassword: false,
+    confirmPassword: false,
+  });
 
   const isVolunteer = user?.roles?.some(
     (role) => role.roleId === AUTH_ROLES.VOLUNTEER.id,
@@ -186,6 +217,64 @@ export const ProfilePage: React.FC = () => {
     );
   };
 
+  const handleOpenPasswordDialog = () => {
+    setPasswordForm(INITIAL_PASSWORD_FORM);
+    setPasswordError("");
+    setIsPasswordDialogOpen(true);
+  };
+
+  const handleClosePasswordDialog = () => {
+    if (isPasswordSaving) return;
+    setIsPasswordDialogOpen(false);
+    setPasswordError("");
+  };
+
+  const handlePasswordFormChange =
+    (field: PasswordFieldName) =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setPasswordForm((current) => ({
+        ...current,
+        [field]: event.target.value,
+      }));
+      setPasswordError("");
+    };
+
+  const togglePasswordField = (field: PasswordFieldName) => {
+    setVisiblePasswordFields((current) => ({
+      ...current,
+      [field]: !current[field],
+    }));
+  };
+
+  const handleSavePassword = async () => {
+    if (
+      !passwordForm.currentPassword ||
+      !passwordForm.newPassword ||
+      !passwordForm.confirmPassword
+    ) {
+      setPasswordError("יש למלא את כל שדות הסיסמה");
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError("אימות הסיסמה אינו תואם");
+      return;
+    }
+
+    setIsPasswordSaving(true);
+    setPasswordError("");
+
+    try {
+      await changePassword(passwordForm);
+      setPasswordForm(INITIAL_PASSWORD_FORM);
+      setIsPasswordDialogOpen(false);
+    } catch {
+      setPasswordError("לא הצלחנו לעדכן את הסיסמה");
+    } finally {
+      setIsPasswordSaving(false);
+    }
+  };
+
   return (
     <Box className={styles.root}>
       <Box className={styles.topBar}>
@@ -279,6 +368,29 @@ export const ProfilePage: React.FC = () => {
       <Button
         fullWidth
         variant="outlined"
+        startIcon={<LockResetIcon />}
+        onClick={handleOpenPasswordDialog}
+        sx={{
+          borderRadius: 2,
+          height: 48,
+          mb: 1,
+          fontWeight: 800,
+          color: "#7B3F98",
+          borderColor: "#E8D7EF",
+          bgcolor: "#FFFFFF",
+          fontFamily: "Rubik, sans-serif",
+          "&:hover": {
+            borderColor: "#D6B9E1",
+            bgcolor: "#F8F1FA",
+          },
+        }}
+      >
+        שינוי סיסמה
+      </Button>
+
+      <Button
+        fullWidth
+        variant="outlined"
         className={styles.logoutButton}
         startIcon={<LogoutIcon />}
         onClick={logout}
@@ -295,6 +407,19 @@ export const ProfilePage: React.FC = () => {
         onChange={handleProfileFormChange}
         onClose={handleCloseEditDialog}
         onSave={handleSaveProfile}
+      />
+
+      <PasswordChangeDialog
+        open={isPasswordDialogOpen}
+        form={passwordForm}
+        error={passwordError}
+        isSaving={isPasswordSaving}
+        visibleFields={visiblePasswordFields}
+        styles={styles}
+        onChange={handlePasswordFormChange}
+        onToggleVisible={togglePasswordField}
+        onClose={handleClosePasswordDialog}
+        onSave={handleSavePassword}
       />
 
       <TraineeDetailsDialog
@@ -392,6 +517,134 @@ const ProfileEditDialog: React.FC<{
     </Dialog>
   );
 };
+
+const PasswordChangeDialog: React.FC<{
+  open: boolean;
+  form: PasswordFormState;
+  error: string;
+  isSaving: boolean;
+  visibleFields: Record<PasswordFieldName, boolean>;
+  styles: ReturnType<typeof useStyles>;
+  onChange: (
+    field: PasswordFieldName,
+  ) => (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onToggleVisible: (field: PasswordFieldName) => void;
+  onClose: () => void;
+  onSave: () => void;
+}> = ({
+  open,
+  form,
+  error,
+  isSaving,
+  visibleFields,
+  styles,
+  onChange,
+  onToggleVisible,
+  onClose,
+  onSave,
+}) => (
+  <Dialog
+    open={open}
+    onClose={onClose}
+    fullWidth
+    maxWidth="xs"
+    PaperProps={{
+      sx: {
+        direction: "rtl",
+        borderRadius: "22px",
+        p: 0.5,
+        m: 2,
+      },
+    }}
+  >
+    <DialogTitle className={styles.dialogTitle}>
+      שינוי סיסמה
+      <IconButton onClick={onClose} className={styles.dialogCloseButton}>
+        <CloseIcon fontSize="small" />
+      </IconButton>
+    </DialogTitle>
+    <DialogContent>
+      <Box className={styles.editFields}>
+        {error && <Alert severity="error">{error}</Alert>}
+        <ProfilePasswordField
+          label="סיסמה נוכחית"
+          value={form.currentPassword}
+          visible={visibleFields.currentPassword}
+          autoComplete="current-password"
+          onChange={onChange("currentPassword")}
+          onToggleVisible={() => onToggleVisible("currentPassword")}
+        />
+        <ProfilePasswordField
+          label="סיסמה חדשה"
+          value={form.newPassword}
+          visible={visibleFields.newPassword}
+          autoComplete="new-password"
+          helperText="לפחות 10 תווים, אותיות גדולות וקטנות, מספר וסימן."
+          onChange={onChange("newPassword")}
+          onToggleVisible={() => onToggleVisible("newPassword")}
+        />
+        <ProfilePasswordField
+          label="אימות סיסמה חדשה"
+          value={form.confirmPassword}
+          visible={visibleFields.confirmPassword}
+          autoComplete="new-password"
+          onChange={onChange("confirmPassword")}
+          onToggleVisible={() => onToggleVisible("confirmPassword")}
+        />
+      </Box>
+    </DialogContent>
+    <DialogActions className={styles.dialogActions}>
+      <Button onClick={onClose} disabled={isSaving}>
+        ביטול
+      </Button>
+      <Button variant="contained" onClick={onSave} disabled={isSaving}>
+        {isSaving ? "שומר..." : "שמירה"}
+      </Button>
+    </DialogActions>
+  </Dialog>
+);
+
+const ProfilePasswordField: React.FC<{
+  label: string;
+  value: string;
+  visible: boolean;
+  autoComplete: string;
+  helperText?: string;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onToggleVisible: () => void;
+}> = ({
+  label,
+  value,
+  visible,
+  autoComplete,
+  helperText,
+  onChange,
+  onToggleVisible,
+}) => (
+  <TextField
+    fullWidth
+    label={label}
+    value={value}
+    type={visible ? "text" : "password"}
+    autoComplete={autoComplete}
+    helperText={helperText}
+    onChange={onChange}
+    InputProps={{
+      endAdornment: (
+        <InputAdornment position="end">
+          <IconButton
+            aria-label={visible ? "Hide password" : "Show password"}
+            edge="end"
+            size="small"
+            onClick={onToggleVisible}
+          >
+            {visible ? <VisibilityOff /> : <Visibility />}
+          </IconButton>
+        </InputAdornment>
+      ),
+    }}
+  />
+);
 
 const TraineeRow: React.FC<{
   assignment: IMentorAssignment;

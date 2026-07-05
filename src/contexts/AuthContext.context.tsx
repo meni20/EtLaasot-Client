@@ -49,9 +49,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     };
   }, []);
 
-  const login = useCallback(async (userId: string, loginCode: string) => {
+  const login = useCallback(async (identifier: string, password: string) => {
     try {
-      await authService.login(userId, loginCode);
+      await authService.login(identifier, password);
       setLoading(true);
       const currentUser = await authService.getMe();
       setUser(currentUser);
@@ -60,6 +60,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setLoading(false);
     }
   }, []);
+
+  const changePassword = useCallback(
+    async (payload: {
+      currentPassword: string;
+      newPassword: string;
+      confirmPassword: string;
+    }) => {
+      await authService.changePassword(payload);
+      const currentUser = await authService.getMe();
+      setUser(currentUser);
+      setToken("cookie");
+    },
+    [],
+  );
 
   const logout = useCallback(async () => {
     await authService.logout().catch(() => undefined);
@@ -73,11 +87,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   return (
     <AuthContext.Provider
       value={{
-        user,
+                user,
         token,
         isAuthenticated: !!token && !!user,
+        mustChangePassword: Boolean(user?.mustChangePassword),
         loading,
         login,
+        changePassword,
         logout,
         isSuperAdmin,
       }}

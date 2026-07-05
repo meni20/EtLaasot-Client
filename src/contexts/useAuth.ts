@@ -8,11 +8,18 @@ export interface IAuthContext {
         nationalIdMasked?: string | null;
         roles: { role: string; roleId: number; branchId: string; branchName: string }[];
         activeBranch: string;
+        mustChangePassword?: boolean;
     } | null;
     token: string | null;
     isAuthenticated: boolean;
+    mustChangePassword: boolean;
     loading: boolean;
-    login: (userId: string, loginCode: string) => Promise<void>;
+    login: (identifier: string, password: string) => Promise<void>;
+    changePassword: (payload: {
+        currentPassword: string;
+        newPassword: string;
+        confirmPassword: string;
+    }) => Promise<void>;
     logout: () => void;
     isSuperAdmin: boolean;
 }
