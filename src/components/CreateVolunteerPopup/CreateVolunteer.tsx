@@ -13,6 +13,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import CloseIcon from "@mui/icons-material/Close";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import userService from "../../services/user.service";
 import type { IUser } from "../../interfaces/user.interface";
 import {
@@ -32,6 +33,10 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [errorMsg, setErrorMsg] = useState<string>("");
+  const [temporaryPasswordInfo, setTemporaryPasswordInfo] = useState<{
+    temporaryPassword: string;
+    temporaryPasswordExpiresAt: string;
+  } | null>(null);
   const queryClient = useQueryClient();
   const { activeBranch } = useBranch();
   const [form, setForm] = useState<IUser>({
@@ -80,7 +85,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
     try {
       setLoading(true);
 
-      await userService.createVolunteer({
+      const createdUser = await userService.createVolunteer({
         ...payload,
         branchId: activeBranch ?? undefined,
       });
@@ -102,7 +107,10 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
         email: "",
       });
       setErrors({});
-      onClose();
+      setTemporaryPasswordInfo({
+        temporaryPassword: createdUser.temporaryPassword,
+        temporaryPasswordExpiresAt: createdUser.temporaryPasswordExpiresAt,
+      });
     } catch (error) {
       setErrorMsg("שגיאה ביצירת מתנדב, נסה שוב");
     } finally {
@@ -110,11 +118,21 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
     }
   };
 
+  const handleClose = () => {
+    setTemporaryPasswordInfo(null);
+    onClose();
+  };
+
+  const copyTemporaryPassword = async () => {
+    if (!temporaryPasswordInfo) return;
+    await navigator.clipboard.writeText(temporaryPasswordInfo.temporaryPassword);
+  };
+
   return (
     <React.Fragment>
       <Dialog
         open={open}
-        onClose={onClose}
+        onClose={handleClose}
         PaperProps={{
           sx: {
             borderRadius: 4,
@@ -140,7 +158,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
         </DialogTitle>
         <IconButton
           aria-label="close"
-          onClick={onClose}
+          onClick={handleClose}
           sx={{
             position: "absolute",
             left: 8,
@@ -153,6 +171,31 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
           <CloseIcon fontSize="small" />
         </IconButton>
         <DialogContent sx={{ padding: "24px", backgroundColor: "#faf8f9" }}>
+          {temporaryPasswordInfo ? (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <Alert severity="success">
+                המשתמש נוצר. הסיסמה הזמנית מוצגת פעם אחת בלבד.
+              </Alert>
+              <TextField
+                label="סיסמה זמנית"
+                value={temporaryPasswordInfo.temporaryPassword}
+                InputProps={{ readOnly: true }}
+                fullWidth
+              />
+              <Button
+                variant="outlined"
+                startIcon={<ContentCopyIcon />}
+                onClick={copyTemporaryPassword}
+                sx={{
+                  borderRadius: 3,
+                  fontWeight: 800,
+                  fontFamily: "Rubik, sans-serif",
+                }}
+              >
+                העתקת סיסמה זמנית
+              </Button>
+            </Box>
+          ) : (
           <Box sx={{ display: "flex", gap: 2 }}>
             <Box
               sx={{
@@ -294,10 +337,30 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
               />
             </Box>
           </Box>
+          )}
         </DialogContent>
         <DialogActions
           sx={{ padding: "12px 24px 16px", backgroundColor: "#faf8f9" }}
         >
+          {temporaryPasswordInfo ? (
+            <Button
+              onClick={handleClose}
+              variant="contained"
+              fullWidth
+              sx={{
+                borderRadius: 3,
+                height: 44,
+                fontWeight: 700,
+                fontSize: 15,
+                textTransform: "none",
+                fontFamily: "Rubik, sans-serif",
+                background:
+                  "linear-gradient(135deg, #9a5188 0%, #7a3e6b 100%)",
+              }}
+            >
+              סגירה
+            </Button>
+          ) : (
           <Button
             onClick={handleCreateVolunteer}
             disabled={
@@ -325,6 +388,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
           >
             {loading ? "יוצר..." : "צור מתנדב"}
           </Button>
+          )}
         </DialogActions>
       </Dialog>
       <Snackbar

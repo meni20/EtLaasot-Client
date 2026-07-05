@@ -7,6 +7,15 @@ import type {
 } from "../interfaces/user.interface";
 import { createServerAxiosInstance } from "../config/axiosInstance";
 
+export interface ITemporaryPasswordResponse {
+  temporaryPassword: string;
+  temporaryPasswordExpiresAt: string;
+}
+
+export interface ICreateUserResponse extends ITemporaryPasswordResponse {
+  user: IUser;
+}
+
 export class UserService {
   private api: AxiosInstance;
   constructor() {
@@ -39,13 +48,18 @@ export class UserService {
     return res.data;
   };
 
-  async createVolunteer(userData: IUser) {
+  async createVolunteer(userData: IUser): Promise<ICreateUserResponse> {
     const res = await this.api.post("/create-volunteer", userData);
     return res.data;
   }
 
-  async createTrainee(userData: IUser) {
+  async createTrainee(userData: IUser): Promise<ICreateUserResponse> {
     const res = await this.api.post("/create-trainee", userData);
+    return res.data;
+  }
+
+  async resetPassword(userId: string): Promise<ITemporaryPasswordResponse> {
+    const res = await this.api.patch(`/${userId}/password-reset`);
     return res.data;
   }
 

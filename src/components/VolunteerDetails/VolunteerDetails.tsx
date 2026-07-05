@@ -21,6 +21,7 @@ import { Row } from "./Row/RowDetails";
 import { copy, initials } from "./utilities/data.util";
 import CakeRoundedIcon from "@mui/icons-material/CakeRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import BadgeRoundedIcon from "@mui/icons-material/BadgeRounded";
@@ -29,6 +30,7 @@ import CheckroomRoundedIcon from "@mui/icons-material/CheckroomRounded";
 import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
 import FamilyRestroomRoundedIcon from "@mui/icons-material/FamilyRestroomRounded";
 import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
+import LockResetRoundedIcon from "@mui/icons-material/LockResetRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import userService from "../../services/user.service";
 import type { IVolunteerDetailsProps } from "./Volunteer.interface";
@@ -100,6 +102,11 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
   >(null);
   const [nationalIdStatus, setNationalIdStatus] = React.useState("");
   const [isNationalIdPending, setIsNationalIdPending] = React.useState(false);
+  const [passwordResetInfo, setPasswordResetInfo] = React.useState<{
+    temporaryPassword: string;
+    temporaryPasswordExpiresAt: string;
+  } | null>(null);
+  const [passwordResetError, setPasswordResetError] = React.useState("");
   const nationalIdClearTimerRef = React.useRef<ReturnType<
     typeof window.setTimeout
   > | null>(null);
@@ -128,11 +135,15 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
   React.useEffect(() => {
     setSelectedUser(volunteerData);
     clearRevealedNationalId();
+    setPasswordResetInfo(null);
+    setPasswordResetError("");
   }, [clearRevealedNationalId, volunteerData]);
 
   React.useEffect(() => {
     if (!open) {
       clearRevealedNationalId();
+      setPasswordResetInfo(null);
+      setPasswordResetError("");
     }
   }, [clearRevealedNationalId, open]);
 
@@ -162,6 +173,31 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
           role.branchId === selectedUser.branchId),
     );
   }, [authUser, selectedUser?.branchId, selectedUser?.nationalIdRevealId]);
+
+  const canResetPassword = React.useMemo(() => {
+    if (!authUser || !selectedUser?.id) {
+      return false;
+    }
+
+    return authUser.roles.some(
+      (role) =>
+        role.roleId === AUTH_ROLES.SUPER_ADMIN.id ||
+        (role.roleId === AUTH_ROLES.BRANCH_ADMIN.id &&
+          !!selectedUser.branchId &&
+          role.branchId === selectedUser.branchId),
+    );
+  }, [authUser, selectedUser?.branchId, selectedUser?.id]);
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: () => userService.resetPassword(selectedUser.id),
+    onSuccess: (data) => {
+      setPasswordResetInfo(data);
+      setPasswordResetError("");
+    },
+    onError: () => {
+      setPasswordResetError("לא ניתן לאפס סיסמה למשתמש זה");
+    },
+  });
 
   const requestNationalId = React.useCallback(async () => {
     if (!selectedUser?.nationalIdRevealId) {
@@ -203,6 +239,21 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
         scheduleNationalIdClear();
       }
     } catch {}
+  };
+
+  const handleResetPassword = () => {
+    setPasswordResetError("");
+    resetPasswordMutation.mutate();
+  };
+
+  const handleClosePasswordReset = () => {
+    setPasswordResetInfo(null);
+    setPasswordResetError("");
+  };
+
+  const handleCopyTemporaryPassword = async () => {
+    if (!passwordResetInfo) return;
+    await copy(passwordResetInfo.temporaryPassword);
   };
 
   const updateUserMutation = useMutation({
@@ -551,6 +602,27 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
             </Button>
           </Stack>
 
+          {canResetPassword && (
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<LockResetRoundedIcon />}
+              onClick={handleResetPassword}
+              disabled={resetPasswordMutation.isPending}
+              className={classes.buttonOutlined}
+              sx={{ mt: 1.2 }}
+            >
+              {resetPasswordMutation.isPending
+                ? "מאפס סיסמה..."
+                : "איפוס סיסמה זמנית"}
+            </Button>
+          )}
+          {passwordResetError && (
+            <Alert severity="error" sx={{ mt: 1.2, borderRadius: 2 }}>
+              {passwordResetError}
+            </Alert>
+          )}
+
           <Button
             onClick={handleCloseDetails}
             fullWidth
@@ -561,6 +633,53 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
           </Button>
         </Box>
       </Box>
+
+      <Dialog
+        open={!!passwordResetInfo}
+        onClose={handleClosePasswordReset}
+        PaperProps={{
+          sx: {
+            direction: "rtl",
+            minWidth: 380,
+            borderRadius: 3,
+            fontFamily: "Rubik, sans-serif",
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontFamily: "Rubik, sans-serif", fontWeight: 800 }}>
+          סיסמה זמנית חדשה
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            <Alert severity="success">
+              הסיסמה הזמנית מוצגת פעם אחת בלבד. המשתמש יחויב להחליף אותה בכניסה.
+            </Alert>
+            <TextField
+              fullWidth
+              label="סיסמה זמנית"
+              value={passwordResetInfo?.temporaryPassword ?? ""}
+              InputProps={{ readOnly: true }}
+            />
+            <Button
+              variant="outlined"
+              startIcon={<ContentCopyRoundedIcon />}
+              onClick={handleCopyTemporaryPassword}
+              className={classes.buttonOutlined}
+            >
+              העתקת סיסמה
+            </Button>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            variant="contained"
+            onClick={handleClosePasswordReset}
+            className={classes.buttonContained}
+          >
+            סגירה
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         open={isEditOpen}
