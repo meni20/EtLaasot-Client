@@ -98,6 +98,12 @@ export const isValidIsraeliId = (id: string): boolean => {
   return sum % 10 === 0;
 };
 
+export const formatMaskedNationalId = (
+  nationalIdMasked?: string | null,
+  nationalIdLast4?: string | null,
+): string =>
+  nationalIdMasked || (nationalIdLast4 ? `*****${nationalIdLast4}` : "—");
+
 const parseDateOnly = (value: string): Date | null => {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!match) return null;

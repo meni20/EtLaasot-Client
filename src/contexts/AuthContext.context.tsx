@@ -2,7 +2,6 @@ import React, { useState, useCallback, useEffect, type ReactNode } from "react";
 import authService from "../services/auth.service";
 import { AuthContext } from "./useAuth";
 import type { IAuthContext } from "./useAuth";
-import { clearToken, getToken, setToken as persistToken } from "../config/tokenStore";
 
 type AuthUser = NonNullable<IAuthContext["user"]>;
 
@@ -10,7 +9,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [token, setToken] = useState<string | null>(() => getToken());
+  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -22,10 +21,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       .then((data) => {
         if (!mounted) return;
         setUser(data);
+        setToken("cookie");
       })
       .catch(() => {
         if (!mounted) return;
-        clearToken();
         setUser(null);
         setToken(null);
       })
@@ -40,7 +39,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     const handleUnauthorized = () => {
-      clearToken();
       setUser(null);
       setToken(null);
     };
@@ -51,24 +49,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     };
   }, []);
 
-  const login = useCallback(async (userId: string, loginCode: string) => {
+  const login = useCallback(async (identifier: string, password: string) => {
     try {
-      const data = await authService.login(userId, loginCode);
-      if (data?.token) {
-        persistToken(data.token);
-        setToken(data.token);
-      }
+      await authService.login(identifier, password);
       setLoading(true);
       const currentUser = await authService.getMe();
       setUser(currentUser);
+      setToken("cookie");
     } finally {
       setLoading(false);
     }
   }, []);
 
+  const changePassword = useCallback(
+    async (payload: {
+      currentPassword: string;
+      newPassword: string;
+      confirmPassword: string;
+    }) => {
+      await authService.changePassword(payload);
+      const currentUser = await authService.getMe();
+      setUser(currentUser);
+      setToken("cookie");
+    },
+    [],
+  );
+
   const logout = useCallback(async () => {
     await authService.logout().catch(() => undefined);
-    clearToken();
     setToken(null);
     setUser(null);
   }, []);
@@ -82,8 +90,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         user,
         token,
         isAuthenticated: !!token && !!user,
+        mustChangePassword: Boolean(user?.mustChangePassword),
         loading,
         login,
+        changePassword,
         logout,
         isSuperAdmin,
       }}

@@ -17,8 +17,8 @@ export const LoginPage: React.FC = () => {
   const styles = useStyles();
   const { login } = useAuth();
   const [identifyId, setIdentifyId] = useState<string>("");
-  const [loginCode, setLoginCode] = useState<string>("");
-  const [showLoginCode, setShowLoginCode] = useState<boolean>(false);
+  const [password, setPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -33,8 +33,8 @@ export const LoginPage: React.FC = () => {
       return;
     }
 
-    if (!loginCode.trim()) {
-      setError("Login code is required");
+    if (!password.trim()) {
+      setError("Password is required");
       return;
     }
 
@@ -42,7 +42,7 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      await login(identifyId, loginCode);
+      await login(identifyId, password);
     } catch {
       setError("Login failed");
     } finally {
@@ -60,14 +60,16 @@ export const LoginPage: React.FC = () => {
           className={styles.logo}
         />
         <Typography className={styles.subtitle}>
-          הזן תעודת זהות וקוד התחברות
+          הזן תעודת זהות וסיסמה
         </Typography>
 
         <TextField
           autoFocus
           fullWidth
           variant="outlined"
+          label="תעודת זהות"
           placeholder="תעודת זהות"
+          autoComplete="username"
           value={identifyId}
           onChange={(e) => {
             setIdentifyId(e.target.value.replace(/\D/g, "")); // numbers only
@@ -80,25 +82,25 @@ export const LoginPage: React.FC = () => {
         <TextField
           fullWidth
           variant="outlined"
-          placeholder="קוד התחברות"
-          value={loginCode}
+          label="סיסמה"
+          placeholder="סיסמה"
+          value={password}
           onChange={(e) => {
-            setLoginCode(e.target.value);
+            setPassword(e.target.value);
             setError("");
           }}
-          type={showLoginCode ? "text" : "password"}
+          type={showPassword ? "text" : "password"}
+          autoComplete="current-password"
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton
-                  aria-label={
-                    showLoginCode ? "Hide login code" : "Show login code"
-                  }
-                  onClick={() => setShowLoginCode((show) => !show)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  onClick={() => setShowPassword((show) => !show)}
                   edge="end"
                   size="small"
                 >
-                  {showLoginCode ? <VisibilityOff /> : <Visibility />}
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
               </InputAdornment>
             ),
@@ -111,7 +113,7 @@ export const LoginPage: React.FC = () => {
           variant="contained"
           className={styles.button}
           onClick={handleSubmit}
-          disabled={loading || !identifyId || !loginCode}
+          disabled={loading || !identifyId || !password}
         >
           {loading ? "מתחבר..." : "התחבר"}
         </Button>

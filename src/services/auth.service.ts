@@ -8,11 +8,21 @@ export class AuthService {
     this.api = createServerAxiosInstance("/auth");
   }
 
-  public async login(userId: string, loginCode: string) {
+  public async login(identifier: string, password: string) {
     const res = await this.api.post('/login', {
-      userId,
-      loginCode,
+      identifier,
+      password,
     });
+
+    return res.data;
+  }
+
+  public async changePassword(payload: {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) {
+    const res = await this.api.patch('/change-password', payload);
 
     return res.data;
   }

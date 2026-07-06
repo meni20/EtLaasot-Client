@@ -46,6 +46,24 @@ export const useVolunteerDetailsStyles = makeStyles({
   headerMeta: {
     marginTop: 4,
   },
+  nationalIdActions: {
+    flexShrink: 0,
+  },
+  nationalIdActionButton: {
+    minWidth: "auto",
+    padding: "2px 6px",
+    fontSize: 12,
+    fontWeight: 800,
+    fontFamily: "Rubik, sans-serif",
+    color: "#7a3e6b",
+  },
+  nationalIdStatus: {
+    display: "block",
+    marginTop: 4,
+    color: "#7a3e6b",
+    fontFamily: "Rubik, sans-serif",
+    fontWeight: 700,
+  },
   subText: {
     fontSize: 13,
     color: "#6c626b",

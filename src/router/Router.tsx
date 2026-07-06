@@ -10,9 +10,10 @@ import {
 } from "../constants/route.constants";
 import { useAuth } from "../contexts/useAuth";
 import { LoginPage } from "../pages/Mobile/LoginPage/Login";
+import { PasswordChangePage } from "../pages/Mobile/PasswordChangePage/PasswordChange";
 
 const AppRouter: React.FC = () => {
-  const { isAuthenticated, loading, user } = useAuth();
+  const { isAuthenticated, loading, user, mustChangePassword } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Determine if user is a desktop role (admin) based on their highest-privilege role
@@ -60,6 +61,15 @@ const AppRouter: React.FC = () => {
   }
 
   // Admin roles → always desktop layout
+  if (mustChangePassword) {
+    return (
+      <Routes>
+        <Route path="/change-password" element={<PasswordChangePage />} />
+        <Route path="*" element={<Navigate to="/change-password" replace />} />
+      </Routes>
+    );
+  }
+
   if (isDesktopUser) {
     return (
       <Box>
