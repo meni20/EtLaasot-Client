@@ -1,8 +1,12 @@
 import { Suspense, useMemo, useState } from "react";
 import Navbar from "../components/Navbar/Navbar";
-import { Box, CircularProgress } from "@mui/material";
+import { Box, CircularProgress, useMediaQuery } from "@mui/material";
 import { Route, Routes, Navigate } from "react-router-dom";
 import { SideMenu } from "../components/SideMenu/SideMenu";
+import {
+  COLLAPSED_DRAWER_WIDTH,
+  DRAWER_WIDTH,
+} from "../components/SideMenu/SideMenu.interface";
 import {
   DESKTOP_ROUTES,
   MOBILE_ROUTES,
@@ -15,6 +19,10 @@ import { PasswordChangePage } from "../pages/Mobile/PasswordChangePage/PasswordC
 const AppRouter: React.FC = () => {
   const { isAuthenticated, loading, user, mustChangePassword } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const isPersistentSideMenu = useMediaQuery("(min-width:900px)");
+  const desktopSideMenuWidth = menuOpen
+    ? DRAWER_WIDTH
+    : COLLAPSED_DRAWER_WIDTH;
 
   // Determine if user is a desktop role (admin) based on their highest-privilege role
   const isDesktopUser = useMemo(() => {
@@ -73,16 +81,38 @@ const AppRouter: React.FC = () => {
   if (isDesktopUser) {
     return (
       <Box>
-        <Navbar title="עת לעשות" onMenuClick={() => setMenuOpen(true)} />
-        <SideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
-        <Suspense fallback={<RouteLoading />}>
-          <Routes>
-            {DESKTOP_ROUTES.map(({ path, element }) => (
-              <Route key={path} path={path} element={element} />
-            ))}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
+        <Navbar
+          title="עת לעשות"
+          onMenuClick={() =>
+            setMenuOpen((current) =>
+              isPersistentSideMenu ? !current : true,
+            )
+          }
+        />
+        <SideMenu
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          persistent={isPersistentSideMenu}
+        />
+        <Box
+          component="main"
+          sx={{
+            minWidth: 0,
+            marginRight: isPersistentSideMenu
+              ? `${desktopSideMenuWidth}px`
+              : 0,
+            transition: "margin-right 240ms cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        >
+          <Suspense fallback={<RouteLoading />}>
+            <Routes>
+              {DESKTOP_ROUTES.map(({ path, element }) => (
+                <Route key={path} path={path} element={element} />
+              ))}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </Box>
       </Box>
     );
   }

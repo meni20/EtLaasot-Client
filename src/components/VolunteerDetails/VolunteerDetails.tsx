@@ -383,6 +383,11 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               <Typography variant="h6" className={classes.nameText} noWrap>
                 {selectedUser?.name ?? entityLabel}
               </Typography>
+              <Chip
+                label={entityLabel}
+                size="small"
+                className={classes.entityChip}
+              />
               <Stack
                 direction="row"
                 alignItems="center"

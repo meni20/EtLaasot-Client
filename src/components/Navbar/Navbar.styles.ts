@@ -34,9 +34,15 @@ export const useNavbarStyles = makeStyles({
     padding: "4px 12px",
     marginRight: 12,
     lineHeight: 1.3,
+    cursor: "pointer",
     transition: "all 0.3s ease",
     "&:hover": {
       backgroundColor: "rgba(255,255,255,0.2)",
+    },
+    "&:focus-visible": {
+      outline: "2px solid rgba(255,255,255,0.85)",
+      outlineOffset: 3,
+      backgroundColor: "rgba(255,255,255,0.22)",
     },
   },
   userName: {
@@ -87,6 +93,98 @@ export const useNavbarStyles = makeStyles({
     },
     "&:active": {
       transform: "scale(0.95)",
+    },
+  },
+  profileDialogTitle: {
+    position: "relative" as const,
+    padding: "18px 24px 10px !important",
+    fontFamily: "Rubik, sans-serif !important",
+    fontWeight: "800 !important" as const,
+    color: "#2f2930",
+  },
+  profileDialogClose: {
+    position: "absolute" as const,
+    left: "12px !important",
+    top: "12px !important",
+    color: "#6b6068 !important",
+  },
+  profileLoading: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 180,
+  },
+  profileHero: {
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+    padding: "8px 0 4px",
+  },
+  profileAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f2e6ee",
+    color: "#7a3e6b",
+    fontFamily: "Rubik, sans-serif",
+    fontWeight: 800,
+    fontSize: "1.1rem",
+    flexShrink: 0,
+  },
+  profileName: {
+    fontFamily: "Rubik, sans-serif",
+    fontWeight: "800 !important" as const,
+    color: "#2f2930",
+    fontSize: "1.08rem",
+  },
+  profileMeta: {
+    marginTop: "2px !important",
+    fontFamily: "Rubik, sans-serif",
+    color: "#7a6d75",
+    fontSize: "0.86rem !important",
+  },
+  profileActions: {
+    justifyContent: "space-between !important",
+    alignItems: "center !important",
+    gap: "12px !important",
+    padding: "12px 24px 20px !important",
+  },
+  profileBranchAction: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    minWidth: 0,
+  },
+  profileBranchLabel: {
+    fontFamily: "Rubik, sans-serif",
+    fontWeight: "700 !important" as const,
+    color: "#6b6068",
+    fontSize: "0.84rem !important",
+    whiteSpace: "nowrap" as const,
+  },
+  profileAccountActions: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+  },
+  profileActionButton: {
+    borderRadius: "10px !important",
+    fontFamily: "Rubik, sans-serif !important",
+    fontWeight: "700 !important" as const,
+  },
+  "@media (max-width: 640px)": {
+    profileActions: {
+      flexDirection: "column-reverse" as const,
+      alignItems: "stretch !important",
+    },
+    profileBranchAction: {
+      justifyContent: "space-between",
+    },
+    profileAccountActions: {
+      justifyContent: "space-between",
     },
   },
 });

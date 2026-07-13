@@ -113,8 +113,7 @@ export const TraineePage: React.FC = () => {
   }, [rowsData, searchTerm]);
 
   const columns = useMemo<GridColDef[]>(
-    () => [
-      COLUMNS[0],
+    () => ([
       {
         ...COLUMNS[1],
         renderCell: (params) => (
@@ -179,7 +178,7 @@ export const TraineePage: React.FC = () => {
           </Tooltip>
         ),
       },
-    ],
+    ] as GridColDef[]).filter((column) => column.field !== "actions"),
     [],
   );
   const emptyMessage = searchTerm.trim()
