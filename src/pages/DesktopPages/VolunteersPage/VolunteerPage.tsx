@@ -10,12 +10,16 @@ import {
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
+import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import SearchIcon from "@mui/icons-material/Search";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { VOLUNTEER_BASE_COLUMNS } from "./Volunteer.constants";
 import { useQuery } from "@tanstack/react-query";
-import userService from "../../../services/user.service";
+import userService, {
+  type UserListStatus,
+} from "../../../services/user.service";
 import type { IUser } from "../../../interfaces/user.interface";
 import { useVolunteerPageStyles } from "./VolunteerPage.styles";
 import { VolunteerDetails } from "../../../components/VolunteerDetails/VolunteerDetails";
@@ -49,6 +53,8 @@ export const VolunteerPage: React.FC = () => {
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] =
     useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] =
+    useState<UserListStatus>("active");
   const [selectedVolunteer, setSelectedVolunteer] = useState<IUser | null>(
     null,
   );
@@ -58,8 +64,9 @@ export const VolunteerPage: React.FC = () => {
     isFetching: isFetchingVolunteers,
     isError,
   } = useQuery<IUser[]>({
-    queryKey: ["volunteers", activeBranch],
-    queryFn: () => userService.getAllVolunteers(activeBranch ?? undefined),
+    queryKey: ["volunteers", activeBranch, statusFilter],
+    queryFn: () =>
+      userService.getAllVolunteers(activeBranch ?? undefined, statusFilter),
     enabled: !!activeBranch,
   });
 
@@ -71,6 +78,11 @@ export const VolunteerPage: React.FC = () => {
   const closeVolunteerDetails = () => {
     setIsDetailsPanelOpen(false);
     setSelectedVolunteer(null);
+  };
+
+  const switchStatusFilter = (nextStatus: UserListStatus) => {
+    setStatusFilter(nextStatus);
+    closeVolunteerDetails();
   };
 
   const rowsData = useMemo<VolunteerTableRow[]>(() => {
@@ -183,9 +195,12 @@ export const VolunteerPage: React.FC = () => {
     ],
     [],
   );
+  const isArchivedView = statusFilter === "archived";
   const emptyMessage = searchTerm.trim()
     ? "לא נמצאו מתנדבים שתואמים לחיפוש."
-    : "אין עדיין מתנדבים להצגה.";
+    : isArchivedView
+      ? "אין מתנדבים בארכיון."
+      : "אין עדיין מתנדבים להצגה.";
 
   return (
     <Box className={styles.container}>
@@ -222,8 +237,28 @@ export const VolunteerPage: React.FC = () => {
             ),
           }}
         />
+        {isArchivedView ? (
+          <Button
+            variant="outlined"
+            startIcon={<ArrowForwardRoundedIcon />}
+            onClick={() => switchStatusFilter("active")}
+            className={styles.archiveModeButton}
+          >
+            חזרה לפעילים
+          </Button>
+        ) : (
+          <Button
+            variant="outlined"
+            startIcon={<Inventory2OutlinedIcon />}
+            onClick={() => switchStatusFilter("archived")}
+            className={styles.archiveModeButton}
+          >
+            בארכיון
+          </Button>
+        )}
         <Typography className={styles.resultCount}>
-          {filteredRows.length} מתוך {rowsData.length} מתנדבים
+          {filteredRows.length} מתוך {rowsData.length}{" "}
+          {isArchivedView ? "מתנדבים בארכיון" : "מתנדבים"}
         </Typography>
       </Box>
 

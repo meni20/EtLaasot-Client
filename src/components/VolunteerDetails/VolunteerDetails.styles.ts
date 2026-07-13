@@ -113,6 +113,11 @@ export const useVolunteerDetailsStyles = makeStyles({
     fontWeight: "800 !important" as const,
     fontSize: "0.74rem !important",
   },
+  archivedStatusChip: {
+    backgroundColor: "#fff1f1 !important",
+    color: "#b42318 !important",
+    border: "1px solid #ffd6d2 !important",
+  },
   content: {
     padding: "16px",
     backgroundColor: "#faf8fa",
@@ -146,6 +151,65 @@ export const useVolunteerDetailsStyles = makeStyles({
   actionsRow: {
     marginTop: 6,
     marginBottom: 12,
+  },
+  dangerSection: {
+    marginTop: 14,
+    padding: "14px",
+    backgroundColor: "#fff",
+    border: "1px solid #f3c8c4",
+    borderRadius: 16,
+    boxShadow: "0 4px 16px rgba(180, 35, 24, 0.05)",
+  },
+  dangerSectionTitle: {
+    fontFamily: "Rubik, sans-serif",
+    fontWeight: "900 !important" as const,
+    color: "#b42318",
+    fontSize: "0.92rem !important",
+    marginBottom: "10px !important",
+  },
+  dangerButton: {
+    minHeight: 42,
+    borderRadius: "12px !important",
+    fontFamily: "Rubik, sans-serif !important",
+    fontWeight: "800 !important" as const,
+    "& .MuiButton-startIcon": {
+      marginLeft: 6,
+      marginRight: 0,
+    },
+  },
+  deleteIconButton: {
+    width: 40,
+    height: 40,
+    color: "#b42318 !important",
+    backgroundColor: "#fff5f5 !important",
+    border: "1px solid #ffd6d2 !important",
+    "&:hover": {
+      color: "#fff !important",
+      backgroundColor: "#b42318 !important",
+      borderColor: "#b42318 !important",
+    },
+    "&.Mui-disabled": {
+      color: "#d9a6a0 !important",
+      backgroundColor: "#fff8f8 !important",
+      borderColor: "#f3d6d3 !important",
+    },
+  },
+  restoreButton: {
+    minHeight: 42,
+    borderRadius: "12px !important",
+    borderColor: "#d9bfd2 !important",
+    color: "#7a3e6b !important",
+    backgroundColor: "#fff",
+    fontFamily: "Rubik, sans-serif !important",
+    fontWeight: "800 !important" as const,
+    "&:hover": {
+      backgroundColor: "#f8f1f6",
+      borderColor: "#9a5188 !important",
+    },
+    "& .MuiButton-startIcon": {
+      marginLeft: 6,
+      marginRight: 0,
+    },
   },
   buttonContained: {
     minHeight: 42,

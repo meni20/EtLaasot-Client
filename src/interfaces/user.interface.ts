@@ -20,6 +20,10 @@ export interface IUser {
   notes?: string | null;
   parentName?: string | null;
   branchId?: string;
+  isActive?: boolean;
+  archivedAt?: Date | string | null;
+  archivedBy?: string | null;
+  archiveReason?: string | null;
   userRoles?: IUserRole[];
   events?: IEvent[];
 

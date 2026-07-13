@@ -9,13 +9,17 @@ import {
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
+import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import SearchIcon from "@mui/icons-material/Search";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useMemo, useState } from "react";
 import { COLUMNS } from "./Trainee.constants";
 import { useQuery } from "@tanstack/react-query";
-import userService from "../../../services/user.service";
+import userService, {
+  type UserListStatus,
+} from "../../../services/user.service";
 import type { IUser } from "../../../interfaces/user.interface";
 import { CreateTrainee } from "../../../components/CreateTrainee/CreateTrainee";
 import { VolunteerDetails } from "../../../components/VolunteerDetails/VolunteerDetails";
@@ -49,6 +53,8 @@ export const TraineePage: React.FC = () => {
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] =
     useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] =
+    useState<UserListStatus>("active");
   const [selectedTrainee, setSelectedTrainee] = useState<IUser | null>(null);
 
   const {
@@ -56,8 +62,9 @@ export const TraineePage: React.FC = () => {
     isFetching: isFetchingTrainees,
     isError,
   } = useQuery<IUser[]>({
-    queryKey: ["trainees", activeBranch],
-    queryFn: () => userService.getAllTrainees(activeBranch ?? undefined),
+    queryKey: ["trainees", activeBranch, statusFilter],
+    queryFn: () =>
+      userService.getAllTrainees(activeBranch ?? undefined, statusFilter),
     enabled: !!activeBranch,
   });
 
@@ -69,6 +76,11 @@ export const TraineePage: React.FC = () => {
   const closeTraineeDetails = () => {
     setIsDetailsPanelOpen(false);
     setSelectedTrainee(null);
+  };
+
+  const switchStatusFilter = (nextStatus: UserListStatus) => {
+    setStatusFilter(nextStatus);
+    closeTraineeDetails();
   };
 
   const rowsData = useMemo<TraineeTableRow[]>(() => {
@@ -181,9 +193,12 @@ export const TraineePage: React.FC = () => {
     ] as GridColDef[]).filter((column) => column.field !== "actions"),
     [],
   );
+  const isArchivedView = statusFilter === "archived";
   const emptyMessage = searchTerm.trim()
     ? "לא נמצאו חניכים שתואמים לחיפוש."
-    : "אין עדיין חניכים להצגה.";
+    : isArchivedView
+      ? "אין חניכים בארכיון."
+      : "אין עדיין חניכים להצגה.";
 
   return (
     <Box className={styles.container}>
@@ -220,8 +235,28 @@ export const TraineePage: React.FC = () => {
             ),
           }}
         />
+        {isArchivedView ? (
+          <Button
+            variant="outlined"
+            startIcon={<ArrowForwardRoundedIcon />}
+            onClick={() => switchStatusFilter("active")}
+            className={styles.archiveModeButton}
+          >
+            חזרה לפעילים
+          </Button>
+        ) : (
+          <Button
+            variant="outlined"
+            startIcon={<Inventory2OutlinedIcon />}
+            onClick={() => switchStatusFilter("archived")}
+            className={styles.archiveModeButton}
+          >
+            בארכיון
+          </Button>
+        )}
         <Typography className={styles.resultCount}>
-          {filteredRows.length} מתוך {rowsData.length} חניכים
+          {filteredRows.length} מתוך {rowsData.length}{" "}
+          {isArchivedView ? "חניכים בארכיון" : "חניכים"}
         </Typography>
       </Box>
 

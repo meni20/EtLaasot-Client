@@ -78,6 +78,25 @@ export const useTraineePageStyles = makeStyles({
       color: "#9a5188",
     },
   },
+  archiveModeButton: {
+    flexShrink: 0,
+    minHeight: 38,
+    borderRadius: "12px !important",
+    borderColor: "#d9bfd2 !important",
+    color: "#7a3e6b !important",
+    backgroundColor: "#fff",
+    fontFamily: "Rubik, sans-serif !important",
+    fontWeight: "800 !important" as const,
+    padding: "6px 16px !important",
+    "&:hover": {
+      backgroundColor: "#f8f1f6",
+      borderColor: "#9a5188 !important",
+    },
+    "& .MuiButton-startIcon": {
+      marginLeft: 6,
+      marginRight: 0,
+    },
+  },
   resultCount: {
     flexShrink: 0,
     color: "#7a3e6b",
@@ -178,6 +197,9 @@ export const useTraineePageStyles = makeStyles({
     },
     resultCount: {
       textAlign: "right" as const,
+    },
+    archiveModeButton: {
+      alignSelf: "flex-start",
     },
     dataGridBox: {
       height: "calc(100vh - 310px)",
