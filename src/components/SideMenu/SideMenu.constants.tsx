@@ -1,8 +1,9 @@
-import PeopleIcon from "@mui/icons-material/People";
-import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
-import GroupsIcon from "@mui/icons-material/Groups";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import { ReportIcon } from "../../icons/ReportsIcon";
+import AssignmentIndOutlinedIcon from "@mui/icons-material/AssignmentIndOutlined";
+import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
+import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined";
+import VolunteerActivismOutlinedIcon from "@mui/icons-material/VolunteerActivismOutlined";
 
 export interface MenuItem {
   label: string;
@@ -11,10 +12,18 @@ export interface MenuItem {
 }
 
 export const menuItems: MenuItem[] = [
-  { label: "בית", icon: <HomeRoundedIcon />, path: "/dashboard" },
-  { label: "אירועים", icon: <ReportIcon />, path: "/events" },
-  { label: "מתנדבים", icon: <PeopleIcon />, path: "/volunteers" },
-  { label: "חניכים", icon: <PeopleIcon />, path: "/trainee" },
-  { label: "שיבוץ חונכים", icon: <GroupsIcon />, path: "/mentor-assignments" },
-  { label: "פעילויות", icon: <AccessTimeIcon />, path: "/activities" },
+  { label: "בית", icon: <HomeOutlinedIcon />, path: "/dashboard" },
+  { label: "אירועים", icon: <CalendarMonthOutlinedIcon />, path: "/events" },
+  {
+    label: "מתנדבים",
+    icon: <VolunteerActivismOutlinedIcon />,
+    path: "/volunteers",
+  },
+  { label: "חניכים", icon: <SchoolOutlinedIcon />, path: "/trainee" },
+  {
+    label: "שיבוץ חונכים",
+    icon: <AssignmentIndOutlinedIcon />,
+    path: "/mentor-assignments",
+  },
+  { label: "פעילויות", icon: <AssignmentOutlinedIcon />, path: "/activities" },
 ];

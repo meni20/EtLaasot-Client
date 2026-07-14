@@ -8,6 +8,7 @@ import {
   Dialog,
   MenuItem,
   Divider,
+  Tooltip,
   TextField,
   Typography,
   IconButton,
@@ -22,6 +23,7 @@ import { copy, initials } from "./utilities/data.util";
 import CakeRoundedIcon from "@mui/icons-material/CakeRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import BadgeRoundedIcon from "@mui/icons-material/BadgeRounded";
@@ -32,6 +34,8 @@ import FamilyRestroomRoundedIcon from "@mui/icons-material/FamilyRestroomRounded
 import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
 import LockResetRoundedIcon from "@mui/icons-material/LockResetRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
+import PersonRemoveRoundedIcon from "@mui/icons-material/PersonRemoveRounded";
+import SettingsBackupRestoreRoundedIcon from "@mui/icons-material/SettingsBackupRestoreRounded";
 import userService from "../../services/user.service";
 import type { IVolunteerDetailsProps } from "./Volunteer.interface";
 import { useVolunteerDetailsStyles } from "./VolunteerDetails.styles";
@@ -45,6 +49,7 @@ import type {
 } from "../../interfaces/user.interface";
 import {
   calculateAge,
+  formatDateTimeShort,
   formatMaskedNationalId,
   getTodayDateInputValue,
   isValidDateOfBirth,
@@ -107,6 +112,12 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
     temporaryPasswordExpiresAt: string;
   } | null>(null);
   const [passwordResetError, setPasswordResetError] = React.useState("");
+  const [isArchiveDialogOpen, setIsArchiveDialogOpen] = React.useState(false);
+  const [archiveError, setArchiveError] = React.useState("");
+  const [archiveSuccess, setArchiveSuccess] = React.useState("");
+  const [isRestoreDialogOpen, setIsRestoreDialogOpen] = React.useState(false);
+  const [restoreError, setRestoreError] = React.useState("");
+  const [restoreSuccess, setRestoreSuccess] = React.useState("");
   const nationalIdClearTimerRef = React.useRef<ReturnType<
     typeof window.setTimeout
   > | null>(null);
@@ -137,6 +148,12 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
     clearRevealedNationalId();
     setPasswordResetInfo(null);
     setPasswordResetError("");
+    setIsArchiveDialogOpen(false);
+    setArchiveError("");
+    setArchiveSuccess("");
+    setIsRestoreDialogOpen(false);
+    setRestoreError("");
+    setRestoreSuccess("");
   }, [clearRevealedNationalId, volunteerData]);
 
   React.useEffect(() => {
@@ -144,6 +161,12 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
       clearRevealedNationalId();
       setPasswordResetInfo(null);
       setPasswordResetError("");
+      setIsArchiveDialogOpen(false);
+      setArchiveError("");
+      setArchiveSuccess("");
+      setIsRestoreDialogOpen(false);
+      setRestoreError("");
+      setRestoreSuccess("");
     }
   }, [clearRevealedNationalId, open]);
 
@@ -187,6 +210,100 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
           role.branchId === selectedUser.branchId),
     );
   }, [authUser, selectedUser?.branchId, selectedUser?.id]);
+
+  const canArchiveUser = React.useMemo(() => {
+    if (!authUser || !selectedUser?.id || selectedUser.isActive === false) {
+      return false;
+    }
+
+    if (authUser.userId === selectedUser.id) {
+      return false;
+    }
+
+    const roleIds = selectedUser.userRoles?.map((role) => role.roleId) ?? [];
+    const hasAdminRole = roleIds.some(
+      (roleId) =>
+        roleId === AUTH_ROLES.SUPER_ADMIN.id ||
+        roleId === AUTH_ROLES.BRANCH_ADMIN.id,
+    );
+
+    if (hasAdminRole) {
+      return false;
+    }
+
+    const hasArchiveableRole =
+      roleIds.length === 0 ||
+      roleIds.some(
+        (roleId) =>
+          roleId === AUTH_ROLES.VOLUNTEER.id ||
+          roleId === AUTH_ROLES.TRAINEE.id,
+      );
+
+    if (!hasArchiveableRole) {
+      return false;
+    }
+
+    return authUser.roles.some(
+      (role) =>
+        role.roleId === AUTH_ROLES.SUPER_ADMIN.id ||
+        (role.roleId === AUTH_ROLES.BRANCH_ADMIN.id &&
+          !!selectedUser.branchId &&
+          role.branchId === selectedUser.branchId),
+    );
+  }, [
+    authUser,
+    selectedUser?.branchId,
+    selectedUser?.id,
+    selectedUser?.isActive,
+    selectedUser?.userRoles,
+  ]);
+
+  const canRestoreUser = React.useMemo(() => {
+    if (!authUser || !selectedUser?.id || selectedUser.isActive !== false) {
+      return false;
+    }
+
+    if (authUser.userId === selectedUser.id) {
+      return false;
+    }
+
+    const roleIds = selectedUser.userRoles?.map((role) => role.roleId) ?? [];
+    const hasAdminRole = roleIds.some(
+      (roleId) =>
+        roleId === AUTH_ROLES.SUPER_ADMIN.id ||
+        roleId === AUTH_ROLES.BRANCH_ADMIN.id,
+    );
+
+    if (hasAdminRole) {
+      return false;
+    }
+
+    const hasRestorableRole =
+      roleIds.length === 0 ||
+      roleIds.some(
+        (roleId) =>
+          roleId === AUTH_ROLES.VOLUNTEER.id ||
+          roleId === AUTH_ROLES.TRAINEE.id,
+      );
+
+    if (!hasRestorableRole) {
+      return false;
+    }
+
+    return authUser.roles.some(
+      (role) =>
+        role.roleId === AUTH_ROLES.SUPER_ADMIN.id ||
+        (role.roleId === AUTH_ROLES.BRANCH_ADMIN.id &&
+          !!selectedUser.branchId &&
+          role.branchId === selectedUser.branchId),
+    );
+  }, [
+    authUser,
+    selectedUser?.branchId,
+    selectedUser?.id,
+    selectedUser?.isActive,
+    selectedUser?.userRoles,
+  ]);
 
   const resetPasswordMutation = useMutation({
     mutationFn: () => userService.resetPassword(selectedUser.id),
@@ -281,6 +398,124 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
       setFormError("לא הצלחנו לעדכן את הפרטים");
     },
   });
+
+  const archiveUserMutation = useMutation({
+    mutationFn: () => userService.archiveUser(selectedUser.id),
+    onSuccess: async (archiveState) => {
+      const nextUser = {
+        ...selectedUser,
+        ...archiveState,
+      };
+      setSelectedUser(nextUser);
+      onUserUpdated?.(nextUser);
+      setArchiveError("");
+      setArchiveSuccess("המשתמש הוסר מהמערכת");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["volunteers"] }),
+        queryClient.invalidateQueries({ queryKey: ["trainees"] }),
+        queryClient.invalidateQueries({ queryKey: ["users"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+        queryClient.invalidateQueries({ queryKey: ["mentor-assignments"] }),
+        queryClient.invalidateQueries({ queryKey: ["unassigned-trainees"] }),
+      ]);
+    },
+    onError: (error: unknown) => {
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
+
+      if (status === 403) {
+        setArchiveError("אין לך הרשאה להסיר משתמש זה");
+      } else if (status === 409) {
+        setArchiveError("המשתמש כבר הוסר מהמערכת");
+      } else {
+        setArchiveError("לא הצלחנו להסיר את המשתמש");
+      }
+    },
+  });
+
+  const restoreUserMutation = useMutation({
+    mutationFn: () => userService.restoreUser(selectedUser.id),
+    onSuccess: async (restoreState) => {
+      const nextUser = {
+        ...selectedUser,
+        ...restoreState,
+      };
+      setSelectedUser(nextUser);
+      onUserUpdated?.(nextUser);
+      setRestoreError("");
+      setRestoreSuccess("המשתמש הוחזר לפעילות");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["volunteers"] }),
+        queryClient.invalidateQueries({ queryKey: ["trainees"] }),
+        queryClient.invalidateQueries({ queryKey: ["users"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+        queryClient.invalidateQueries({ queryKey: ["mentor-assignments"] }),
+        queryClient.invalidateQueries({ queryKey: ["unassigned-trainees"] }),
+      ]);
+    },
+    onError: (error: unknown) => {
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
+
+      if (status === 403) {
+        setRestoreError("אין לך הרשאה להחזיר משתמש זה לפעילות");
+      } else if (status === 409) {
+        setRestoreError("המשתמש כבר פעיל");
+      } else {
+        setRestoreError("לא הצלחנו להחזיר את המשתמש לפעילות");
+      }
+    },
+  });
+
+  const openArchiveDialog = () => {
+    setArchiveError("");
+    setArchiveSuccess("");
+    setIsArchiveDialogOpen(true);
+  };
+
+  const openArchiveDialogFromEdit = () => {
+    if (updateUserMutation.isPending) return;
+    setIsEditOpen(false);
+    openArchiveDialog();
+  };
+
+  const closeArchiveDialog = () => {
+    if (archiveUserMutation.isPending) return;
+
+    setIsArchiveDialogOpen(false);
+    setArchiveError("");
+
+    if (archiveSuccess) {
+      handleCloseDetails();
+    }
+  };
+
+  const handleArchiveUser = () => {
+    setArchiveError("");
+    archiveUserMutation.mutate();
+  };
+
+  const openRestoreDialog = () => {
+    setRestoreError("");
+    setRestoreSuccess("");
+    setIsRestoreDialogOpen(true);
+  };
+
+  const closeRestoreDialog = () => {
+    if (restoreUserMutation.isPending) return;
+
+    setIsRestoreDialogOpen(false);
+    setRestoreError("");
+
+    if (restoreSuccess) {
+      handleCloseDetails();
+    }
+  };
+
+  const handleRestoreUser = () => {
+    setRestoreError("");
+    restoreUserMutation.mutate();
+  };
 
   const openEditDialog = () => {
     setForm({
@@ -383,6 +618,11 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               <Typography variant="h6" className={classes.nameText} noWrap>
                 {selectedUser?.name ?? entityLabel}
               </Typography>
+              <Chip
+                label={entityLabel}
+                size="small"
+                className={classes.entityChip}
+              />
               <Stack
                 direction="row"
                 alignItems="center"
@@ -419,9 +659,13 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
                   </Stack>
                 )}
                 <Chip
-                  label="פעיל"
+                  label={selectedUser.isActive === false ? "הוסר" : "פעיל"}
                   size="small"
-                  className={classes.statusChip}
+                  className={`${classes.statusChip} ${
+                    selectedUser.isActive === false
+                      ? classes.archivedStatusChip
+                      : ""
+                  }`}
                 />
               </Stack>
               {nationalIdStatus && (
@@ -577,6 +821,39 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
             />
           </Box>
 
+          {selectedUser.isActive === false && (
+            <Box className={classes.section}>
+              <Typography className={classes.sectionTitle}>
+                פרטי ארכיון
+              </Typography>
+              <Row
+                icon={
+                  <PersonRemoveRoundedIcon
+                    className={classes.rowIcon}
+                    fontSize="small"
+                  />
+                }
+                label="תאריך הסרה"
+                value={
+                  selectedUser.archivedAt
+                    ? formatDateTimeShort(selectedUser.archivedAt)
+                    : "-"
+                }
+              />
+              <Divider />
+              <Row
+                icon={
+                  <NotesRoundedIcon
+                    className={classes.rowIcon}
+                    fontSize="small"
+                  />
+                }
+                label="סיבת הסרה"
+                value={selectedUser.archiveReason?.trim() || "-"}
+              />
+            </Box>
+          )}
+
           <Stack direction="row" spacing={1} className={classes.actionsRow}>
             <Button
               fullWidth
@@ -621,6 +898,23 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
             <Alert severity="error" sx={{ mt: 1.2, borderRadius: 2 }}>
               {passwordResetError}
             </Alert>
+          )}
+
+          {canRestoreUser && (
+            <Box className={classes.dangerSection}>
+              <Typography className={classes.dangerSectionTitle}>
+                פעולות משתמש
+              </Typography>
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<SettingsBackupRestoreRoundedIcon />}
+                onClick={openRestoreDialog}
+                className={classes.restoreButton}
+              >
+                החזרת משתמש לפעילות
+              </Button>
+            </Box>
           )}
 
           <Button
@@ -678,6 +972,105 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
           >
             סגירה
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={isArchiveDialogOpen}
+        onClose={closeArchiveDialog}
+        PaperProps={{
+          sx: {
+            direction: "rtl",
+            maxWidth: 460,
+            borderRadius: 3,
+            fontFamily: "Rubik, sans-serif",
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontFamily: "Rubik, sans-serif", fontWeight: 800 }}>
+          הסרת משתמש מהמערכת
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            {archiveSuccess ? (
+              <Alert severity="success">{archiveSuccess}</Alert>
+            ) : (
+              <Typography sx={{ fontFamily: "Rubik, sans-serif" }}>
+                המשתמש לא יוכל להתחבר או להשתמש במערכת. הרשומות ההיסטוריות שלו
+                באירועים, שיוכים ודוחות יישמרו. האם אתה בטוח שברצונך להסיר את
+                המשתמש מהמערכת?
+              </Typography>
+            )}
+            {archiveError && <Alert severity="error">{archiveError}</Alert>}
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={closeArchiveDialog}
+            disabled={archiveUserMutation.isPending}
+          >
+            {archiveSuccess ? "סגירה" : "ביטול"}
+          </Button>
+          {!archiveSuccess && (
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleArchiveUser}
+              disabled={archiveUserMutation.isPending}
+            >
+              {archiveUserMutation.isPending ? "מסיר..." : "הסר משתמש"}
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={isRestoreDialogOpen}
+        onClose={closeRestoreDialog}
+        PaperProps={{
+          sx: {
+            direction: "rtl",
+            maxWidth: 460,
+            borderRadius: 3,
+            fontFamily: "Rubik, sans-serif",
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontFamily: "Rubik, sans-serif", fontWeight: 800 }}>
+          החזרת משתמש לפעילות
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            {restoreSuccess ? (
+              <Alert severity="success">{restoreSuccess}</Alert>
+            ) : (
+              <Typography sx={{ fontFamily: "Rubik, sans-serif" }}>
+                המשתמש יחזור לרשימות הפעילות ויוכל להתחבר למערכת מחדש. האם אתה
+                בטוח שברצונך להחזיר אותו לפעילות?
+              </Typography>
+            )}
+            {restoreError && <Alert severity="error">{restoreError}</Alert>}
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={closeRestoreDialog}
+            disabled={restoreUserMutation.isPending}
+          >
+            {restoreSuccess ? "סגירה" : "ביטול"}
+          </Button>
+          {!restoreSuccess && (
+            <Button
+              variant="contained"
+              onClick={handleRestoreUser}
+              disabled={restoreUserMutation.isPending}
+              className={classes.buttonContained}
+            >
+              {restoreUserMutation.isPending
+                ? "מחזיר..."
+                : "החזר לפעילות"}
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
 
@@ -787,21 +1180,41 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
             />
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button
-            onClick={closeEditDialog}
-            disabled={updateUserMutation.isPending}
-          >
-            ביטול
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleSave}
-            disabled={updateUserMutation.isPending}
-            className={classes.buttonContained}
-          >
-            {updateUserMutation.isPending ? "שומר..." : "שמירה"}
-          </Button>
+        <DialogActions
+          sx={{ px: 3, pb: 2, justifyContent: "space-between" }}
+        >
+          <Box>
+            {canArchiveUser && (
+              <Tooltip title="הסרת משתמש">
+                <span>
+                  <IconButton
+                    aria-label="הסרת משתמש"
+                    onClick={openArchiveDialogFromEdit}
+                    disabled={updateUserMutation.isPending}
+                    className={classes.deleteIconButton}
+                  >
+                    <DeleteOutlineOutlinedIcon />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            )}
+          </Box>
+          <Stack direction="row" spacing={1}>
+            <Button
+              onClick={closeEditDialog}
+              disabled={updateUserMutation.isPending}
+            >
+              ביטול
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleSave}
+              disabled={updateUserMutation.isPending}
+              className={classes.buttonContained}
+            >
+              {updateUserMutation.isPending ? "שומר..." : "שמירה"}
+            </Button>
+          </Stack>
         </DialogActions>
       </Dialog>
     </>

@@ -3,7 +3,13 @@ import { Select, MenuItem } from "@mui/material";
 import { useBranch } from "../../contexts/useBranch";
 import { useBranchSelectorStyles } from "./BranchSelector.styles";
 
-export const BranchSelector: React.FC = () => {
+interface BranchSelectorProps {
+  variant?: "navbar" | "dialog";
+}
+
+export const BranchSelector: React.FC<BranchSelectorProps> = ({
+  variant = "navbar",
+}) => {
   const { activeBranch, availableBranches, switchBranch } = useBranch();
   const classes = useBranchSelectorStyles();
 
@@ -14,7 +20,7 @@ export const BranchSelector: React.FC = () => {
       value={activeBranch ?? ""}
       onChange={(e) => switchBranch(e.target.value as string)}
       size="small"
-      className={classes.select}
+      className={variant === "dialog" ? classes.dialogSelect : classes.select}
       variant="outlined"
     >
       {availableBranches.map((branch) => (

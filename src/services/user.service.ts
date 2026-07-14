@@ -16,15 +16,28 @@ export interface ICreateUserResponse extends ITemporaryPasswordResponse {
   user: IUser;
 }
 
+export interface IArchiveUserResponse {
+  id: string;
+  isActive: boolean;
+  archivedAt: string | null;
+  archivedBy: string | null;
+  archiveReason: string | null;
+}
+
+export type UserListStatus = "active" | "archived" | "all";
+
 export class UserService {
   private api: AxiosInstance;
   constructor() {
     this.api = createServerAxiosInstance("/user");
   }
 
-  public getAllVolunteers = async (branchId?: string) => {
+  public getAllVolunteers = async (
+    branchId?: string,
+    status: UserListStatus = "active",
+  ) => {
     const res = await this.api.get("/get-all-volunteers", {
-      params: branchId ? { branchId } : {},
+      params: { ...(branchId ? { branchId } : {}), status },
     });
     return res.data;
   };
@@ -41,9 +54,12 @@ export class UserService {
     return res.data;
   };
 
-  public getAllTrainees = async (branchId?: string) => {
+  public getAllTrainees = async (
+    branchId?: string,
+    status: UserListStatus = "active",
+  ) => {
     const res = await this.api.get("/get-all-trainees", {
-      params: branchId ? { branchId } : {},
+      params: { ...(branchId ? { branchId } : {}), status },
     });
     return res.data;
   };
@@ -63,9 +79,29 @@ export class UserService {
     return res.data;
   }
 
-  public getAllUsers = async (branchId?: string) => {
+  async archiveUser(userId: string, reason?: string | null) {
+    const res = await this.api.patch<IArchiveUserResponse>(
+      `/${userId}/archive`,
+      {
+        reason,
+      },
+    );
+    return res.data;
+  }
+
+  async restoreUser(userId: string) {
+    const res = await this.api.patch<IArchiveUserResponse>(
+      `/${userId}/restore`,
+    );
+    return res.data;
+  }
+
+  public getAllUsers = async (
+    branchId?: string,
+    status: UserListStatus = "active",
+  ) => {
     const res = await this.api.get("/get-all", {
-      params: branchId ? { branchId } : {},
+      params: { ...(branchId ? { branchId } : {}), status },
     });
     return res.data;
   };

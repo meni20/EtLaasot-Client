@@ -2,6 +2,10 @@ import React, { Suspense, lazy, useMemo, useState } from "react";
 import { Box, Typography, CircularProgress, IconButton, Tooltip } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import EventIcon from "@mui/icons-material/Event";
+import GroupsIcon from "@mui/icons-material/Groups";
+import PersonOffIcon from "@mui/icons-material/PersonOff";
+import SchoolIcon from "@mui/icons-material/School";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import branchService from "../../../services/branch.service";
@@ -150,7 +154,9 @@ export const DashboardPage: React.FC = () => {
           className={classes.summaryCard}
           onClick={() => navigate(dashboardRoutes.volunteers)}
         >
-          <Box className={classes.summaryIcon}>👥</Box>
+          <Box className={classes.summaryIcon}>
+            <GroupsIcon fontSize="inherit" />
+          </Box>
           <Box className={classes.summaryValue}>{summary.totalVolunteers}</Box>
           <Box className={classes.summaryLabel}>מתנדבים</Box>
         </Box>
@@ -159,7 +165,9 @@ export const DashboardPage: React.FC = () => {
           className={classes.summaryCard}
           onClick={() => navigate(dashboardRoutes.trainees)}
         >
-          <Box className={classes.summaryIcon}>🎓</Box>
+          <Box className={classes.summaryIcon}>
+            <SchoolIcon fontSize="inherit" />
+          </Box>
           <Box className={classes.summaryValue}>{summary.totalTrainees}</Box>
           <Box className={classes.summaryLabel}>חניכים</Box>
         </Box>
@@ -168,7 +176,9 @@ export const DashboardPage: React.FC = () => {
           className={classes.summaryCard}
           onClick={() => navigate(dashboardRoutes.events)}
         >
-          <Box className={classes.summaryIcon}>📅</Box>
+          <Box className={classes.summaryIcon}>
+            <EventIcon fontSize="inherit" />
+          </Box>
           <Box className={classes.summaryValue}>{summary.activeEvents}</Box>
           <Box className={classes.summaryLabel}>אירועים קרובים</Box>
         </Box>
@@ -182,7 +192,9 @@ export const DashboardPage: React.FC = () => {
               : {}
           }
         >
-          <Box className={classes.summaryIcon}>⚠️</Box>
+          <Box className={classes.summaryIcon}>
+            <PersonOffIcon fontSize="inherit" />
+          </Box>
           <Box className={classes.summaryValue}>
             {summary.unassignedTrainees}
           </Box>
