@@ -5,6 +5,7 @@ import {
   Button,
   CircularProgress,
   Dialog,
+  DialogActions,
   IconButton,
   Tooltip,
   Typography,
@@ -14,22 +15,31 @@ import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
+import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import attendeeService from "../../services/attendee.service";
 import eventService from "../../services/event.service";
 import type { IAttendees } from "../../interfaces/event.interface";
 import type { IEventAtendeeDialogProps } from "./EventAtendeeDialog.interface";
 import { useStyles } from "./EventAtendeeDialog.styles";
 import { AddAttendeeDialog } from "../AddAttendeeDialog/AddAttendeeDialog";
+import { useBranch } from "../../contexts/useBranch";
+import { EventShabbatSheet } from "./EventShabbatSheet";
 
 export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
   open,
   onClose,
   eventId,
   users,
+  eventName,
+  startDate,
+  endDate,
+  address,
 }) => {
   const classes = useStyles();
   const queryClient = useQueryClient();
+  const { activeBranch, availableBranches } = useBranch();
   const [isAddAttendeeOpen, setIsAddAttendeeOpen] = React.useState(false);
+  const [isPrintPreviewOpen, setIsPrintPreviewOpen] = React.useState(false);
   const [selectedMentorId, setSelectedMentorId] = React.useState<string | null>(
     null,
   );
@@ -94,6 +104,8 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
   const paired = participants?.paired ?? [];
   const unpairedMentors = participants?.unpairedMentors ?? [];
   const unpairedTrainees = participants?.unpairedTrainees ?? [];
+  const branchName =
+    availableBranches.find((branch) => branch.id === activeBranch)?.name ?? "";
   const totalCount =
     paired.length * 2 + unpairedMentors.length + unpairedTrainees.length;
   const isMutating =
@@ -207,6 +219,17 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
         </Box>
 
         <Box className={classes.dialogContent}>
+          <Box className={classes.dialogToolbar}>
+            <Button
+              className={classes.printSheetButton}
+              startIcon={<PrintOutlinedIcon fontSize="small" />}
+              onClick={() => setIsPrintPreviewOpen(true)}
+              disabled={isFetchingAttendees}
+            >
+              הכנת דף שבת
+            </Button>
+          </Box>
+
           {isFetchingAttendees ? (
             <Box className={classes.loadingState}>
               <CircularProgress sx={{ color: "#9a5188" }} size={36} />
@@ -219,89 +242,161 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
               </Typography>
             </Box>
           ) : (
-            <>
-              <Typography className={classes.sectionTitle}>משובצים</Typography>
-              {paired.length === 0 ? (
-                <Typography className={classes.sectionEmpty}>אין שיבוצים</Typography>
-              ) : (
-                paired.map((pair) => (
-                  <Box key={pair.id} className={classes.pairRow}>
-                    <Box className={classes.pairContent}>
-                      <Box className={classes.pairPerson}>
-                        <Avatar className={classes.avatar}>
-                          {pair.mentor?.name?.[0]?.toUpperCase() ?? "?"}
-                        </Avatar>
-                        <Typography className={classes.personName}>
-                          {pair.mentor?.name ?? "ללא שם"}
-                        </Typography>
+            <Box className={classes.participantsGrid}>
+              <Box className={classes.sectionColumn}>
+                <Typography className={classes.sectionTitle}>משובצים</Typography>
+                <Box className={classes.sectionBody}>
+                  {paired.length === 0 ? (
+                    <Typography className={classes.sectionEmpty}>
+                      אין שיבוצים
+                    </Typography>
+                  ) : (
+                    paired.map((pair) => (
+                      <Box key={pair.id} className={classes.pairRow}>
+                        <Box className={classes.pairContent}>
+                          <Box className={classes.pairPerson}>
+                            <Avatar className={classes.avatar}>
+                              {pair.mentor?.name?.[0]?.toUpperCase() ?? "?"}
+                            </Avatar>
+                            <Typography className={classes.personName}>
+                              {pair.mentor?.name ?? "ללא שם"}
+                            </Typography>
+                          </Box>
+                          <Typography className={classes.pairDivider}>
+                            ←
+                          </Typography>
+                          <Box className={classes.pairPerson}>
+                            <Typography className={classes.personName}>
+                              {pair.trainee?.name ?? "ללא שם"}
+                            </Typography>
+                            <Avatar className={classes.avatar}>
+                              {pair.trainee?.name?.[0]?.toUpperCase() ?? "?"}
+                            </Avatar>
+                          </Box>
+                        </Box>
+                        <Tooltip title="הסר שיבוץ">
+                          <Box
+                            component="span"
+                            className={classes.participantActions}
+                          >
+                            <IconButton
+                              size="small"
+                              className={classes.deleteButton}
+                              disabled={deletePairingMutation.isPending}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                deletePairingMutation.mutate(pair.id);
+                              }}
+                              aria-label="הסר שיבוץ"
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        </Tooltip>
                       </Box>
-                      <Typography className={classes.pairDivider}>←</Typography>
-                      <Box className={classes.pairPerson}>
-                        <Typography className={classes.personName}>
-                          {pair.trainee?.name ?? "ללא שם"}
-                        </Typography>
-                        <Avatar className={classes.avatar}>
-                          {pair.trainee?.name?.[0]?.toUpperCase() ?? "?"}
-                        </Avatar>
-                      </Box>
-                    </Box>
-                    <Tooltip title="הסר שיבוץ">
-                      <Box component="span" className={classes.participantActions}>
-                        <IconButton
-                          size="small"
-                          className={classes.deleteButton}
-                          disabled={deletePairingMutation.isPending}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            deletePairingMutation.mutate(pair.id);
-                          }}
-                          aria-label="הסר שיבוץ"
-                        >
-                          <DeleteOutlineIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </Tooltip>
-                  </Box>
-                ))
-              )}
+                    ))
+                  )}
+                </Box>
+              </Box>
 
-              <Typography className={classes.sectionTitle}>
-                חונכים ללא שיבוץ
-              </Typography>
-              {unpairedMentors.length === 0 ? (
-                <Typography className={classes.sectionEmpty}>
-                  אין חונכים ללא שיבוץ
+              <Box className={classes.sectionColumn}>
+                <Typography className={classes.sectionTitle}>
+                  חונכים ללא שיבוץ
                 </Typography>
-              ) : (
-                unpairedMentors.map((attendee) =>
-                  renderAttendee(
-                    attendee,
-                    selectedMentorId === (attendee.user?.id ?? attendee.userId),
-                    () => handleMentorClick(attendee.user?.id ?? attendee.userId),
-                  ),
-                )
-              )}
+                <Box className={classes.sectionBody}>
+                  {unpairedMentors.length === 0 ? (
+                    <Typography className={classes.sectionEmpty}>
+                      אין חונכים ללא שיבוץ
+                    </Typography>
+                  ) : (
+                    unpairedMentors.map((attendee) =>
+                      renderAttendee(
+                        attendee,
+                        selectedMentorId ===
+                          (attendee.user?.id ?? attendee.userId),
+                        () =>
+                          handleMentorClick(attendee.user?.id ?? attendee.userId),
+                      ),
+                    )
+                  )}
+                </Box>
+              </Box>
 
-              <Typography className={classes.sectionTitle}>
-                חניכים ללא שיבוץ
-              </Typography>
-              {unpairedTrainees.length === 0 ? (
-                <Typography className={classes.sectionEmpty}>
-                  אין חניכים ללא שיבוץ
+              <Box className={classes.sectionColumn}>
+                <Typography className={classes.sectionTitle}>
+                  חניכים ללא שיבוץ
                 </Typography>
-              ) : (
-                unpairedTrainees.map((attendee) =>
-                  renderAttendee(
-                    attendee,
-                    selectedTraineeId === (attendee.user?.id ?? attendee.userId),
-                    () =>
-                      handleTraineeClick(attendee.user?.id ?? attendee.userId),
-                  ),
-                )
-              )}
-            </>
+                <Box className={classes.sectionBody}>
+                  {unpairedTrainees.length === 0 ? (
+                    <Typography className={classes.sectionEmpty}>
+                      אין חניכים ללא שיבוץ
+                    </Typography>
+                  ) : (
+                    unpairedTrainees.map((attendee) =>
+                      renderAttendee(
+                        attendee,
+                        selectedTraineeId ===
+                          (attendee.user?.id ?? attendee.userId),
+                        () =>
+                          handleTraineeClick(
+                            attendee.user?.id ?? attendee.userId,
+                          ),
+                      ),
+                    )
+                  )}
+                </Box>
+              </Box>
+            </Box>
           )}
         </Box>
+      </Dialog>
+
+      <Dialog
+        open={isPrintPreviewOpen}
+        onClose={() => setIsPrintPreviewOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ className: classes.printPreviewDialogPaper }}
+      >
+        <Box className={classes.printPreviewHeader}>
+          <Typography className={classes.printPreviewTitle}>הכנת דף שבת</Typography>
+          <IconButton
+            aria-label="close"
+            onClick={() => setIsPrintPreviewOpen(false)}
+            className={classes.printPreviewCloseButton}
+            size="small"
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
+
+        <Box className={classes.printDialogContent}>
+          <EventShabbatSheet
+            classes={classes}
+            participants={participants}
+            eventName={eventName}
+            startDate={startDate}
+            endDate={endDate}
+            address={address}
+            branchName={branchName}
+          />
+        </Box>
+
+        <DialogActions className={classes.printPreviewActions}>
+          <Button
+            className={classes.printPrimaryButton}
+            startIcon={<PrintOutlinedIcon />}
+            onClick={() => window.print()}
+          >
+            הדפסה / שמירה כ-PDF
+          </Button>
+          <Button
+            className={classes.printSecondaryButton}
+            onClick={() => setIsPrintPreviewOpen(false)}
+          >
+            סגירה
+          </Button>
+        </DialogActions>
       </Dialog>
 
       {isAddAttendeeOpen && (

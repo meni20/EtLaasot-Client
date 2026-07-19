@@ -6,6 +6,7 @@ import {
   Avatar,
   Chip,
   Dialog,
+  CircularProgress,
   MenuItem,
   Divider,
   Tooltip,
@@ -17,7 +18,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import React from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Row } from "./Row/RowDetails";
 import { copy, initials } from "./utilities/data.util";
 import CakeRoundedIcon from "@mui/icons-material/CakeRounded";
@@ -26,6 +27,7 @@ import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
+import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
 import BadgeRoundedIcon from "@mui/icons-material/BadgeRounded";
 import WcRoundedIcon from "@mui/icons-material/WcRounded";
 import CheckroomRoundedIcon from "@mui/icons-material/CheckroomRounded";
@@ -36,6 +38,7 @@ import LockResetRoundedIcon from "@mui/icons-material/LockResetRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import PersonRemoveRoundedIcon from "@mui/icons-material/PersonRemoveRounded";
 import SettingsBackupRestoreRoundedIcon from "@mui/icons-material/SettingsBackupRestoreRounded";
+import attendeeService from "../../services/attendee.service";
 import userService from "../../services/user.service";
 import type { IVolunteerDetailsProps } from "./Volunteer.interface";
 import { useVolunteerDetailsStyles } from "./VolunteerDetails.styles";
@@ -49,6 +52,7 @@ import type {
 } from "../../interfaces/user.interface";
 import {
   calculateAge,
+  formatDate,
   formatDateTimeShort,
   formatMaskedNationalId,
   getTodayDateInputValue,
@@ -75,6 +79,16 @@ type UserDetailsFormState = {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const NATIONAL_ID_REVEAL_TIMEOUT_MS = 60_000;
+
+const formatEventTime = (date: Date | string | null | undefined) => {
+  if (!date) return "";
+  const value = new Date(date);
+  if (Number.isNaN(value.getTime())) return "";
+
+  return `${String(value.getHours()).padStart(2, "0")}:${String(
+    value.getMinutes(),
+  ).padStart(2, "0")}`;
+};
 
 export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
   open,
@@ -118,6 +132,8 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
   const [isRestoreDialogOpen, setIsRestoreDialogOpen] = React.useState(false);
   const [restoreError, setRestoreError] = React.useState("");
   const [restoreSuccess, setRestoreSuccess] = React.useState("");
+  const [isRegisteredEventsOpen, setIsRegisteredEventsOpen] =
+    React.useState(false);
   const nationalIdClearTimerRef = React.useRef<ReturnType<
     typeof window.setTimeout
   > | null>(null);
@@ -154,6 +170,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
     setIsRestoreDialogOpen(false);
     setRestoreError("");
     setRestoreSuccess("");
+    setIsRegisteredEventsOpen(false);
   }, [clearRevealedNationalId, volunteerData]);
 
   React.useEffect(() => {
@@ -167,6 +184,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
       setIsRestoreDialogOpen(false);
       setRestoreError("");
       setRestoreSuccess("");
+      setIsRegisteredEventsOpen(false);
     }
   }, [clearRevealedNationalId, open]);
 
@@ -178,6 +196,15 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
   const phoneHref = selectedUser?.phoneNumber
     ? `tel:${selectedUser.phoneNumber}`
     : undefined;
+  const {
+    data: registeredEvents = [],
+    isLoading: isRegisteredEventsLoading,
+    isError: isRegisteredEventsError,
+  } = useQuery({
+    queryKey: ["registered-events", selectedUser?.id],
+    queryFn: () => attendeeService.getRegisteredEventsByUser(selectedUser.id),
+    enabled: isRegisteredEventsOpen && !!selectedUser?.id,
+  });
   const selectedNationalIdDisplay = formatMaskedNationalId(
     selectedUser?.nationalIdMasked,
     selectedUser?.nationalIdLast4,
@@ -515,6 +542,14 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
   const handleRestoreUser = () => {
     setRestoreError("");
     restoreUserMutation.mutate();
+  };
+
+  const openRegisteredEventsDialog = () => {
+    setIsRegisteredEventsOpen(true);
+  };
+
+  const closeRegisteredEventsDialog = () => {
+    setIsRegisteredEventsOpen(false);
   };
 
   const openEditDialog = () => {
@@ -879,6 +914,17 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
             </Button>
           </Stack>
 
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<EventAvailableOutlinedIcon />}
+            onClick={openRegisteredEventsDialog}
+            className={classes.buttonOutlined}
+            sx={{ mt: 1.2 }}
+          >
+            אירועים שנרשם אליהם
+          </Button>
+
           {canResetPassword && (
             <Button
               fullWidth
@@ -927,6 +973,124 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
           </Button>
         </Box>
       </Box>
+
+      <Dialog
+        open={isRegisteredEventsOpen}
+        onClose={closeRegisteredEventsDialog}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            direction: "rtl",
+            borderRadius: 3,
+            fontFamily: "Rubik, sans-serif",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontFamily: "Rubik, sans-serif",
+            fontWeight: 900,
+            color: "#2f2930",
+            pb: 1,
+          }}
+        >
+          אירועים שנרשם אליהם
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={1.5} sx={{ pt: 1 }}>
+            {isRegisteredEventsLoading && (
+              <Stack alignItems="center" spacing={1.2} sx={{ py: 4 }}>
+                <CircularProgress size={28} />
+                <Typography sx={{ fontFamily: "Rubik, sans-serif" }}>
+                  טוען אירועים...
+                </Typography>
+              </Stack>
+            )}
+
+            {isRegisteredEventsError && (
+              <Alert severity="error" sx={{ borderRadius: 2 }}>
+                לא הצלחנו לטעון את האירועים
+              </Alert>
+            )}
+
+            {!isRegisteredEventsLoading &&
+              !isRegisteredEventsError &&
+              registeredEvents.length === 0 && (
+                <Alert severity="info" sx={{ borderRadius: 2 }}>
+                  המשתמש אינו רשום לאירועים
+                </Alert>
+              )}
+
+            {!isRegisteredEventsLoading &&
+              !isRegisteredEventsError &&
+              registeredEvents.map(({ attendeeId, event }) => {
+                const startDate = new Date(event.startDate);
+                const endDate = new Date(event.endDate);
+                const isUpcoming = !Number.isNaN(startDate.getTime())
+                  ? startDate.getTime() >= Date.now()
+                  : false;
+                const timeRange = [formatEventTime(event.startDate), formatEventTime(event.endDate)]
+                  .filter(Boolean)
+                  .join(" - ");
+                const locationText =
+                  event.branch?.name ||
+                  event.address ||
+                  event.branch?.city ||
+                  event.branch?.address ||
+                  "-";
+
+                return (
+                  <Box key={attendeeId} className={classes.eventListItem}>
+                    <Stack
+                      direction="row"
+                      alignItems="flex-start"
+                      justifyContent="space-between"
+                      spacing={1.5}
+                    >
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography className={classes.eventListTitle}>
+                          {event.name}
+                        </Typography>
+                        <Typography className={classes.eventListMeta}>
+                          {formatDate(startDate)}
+                          {timeRange ? ` | ${timeRange}` : ""}
+                        </Typography>
+                        <Typography className={classes.eventListMeta}>
+                          {locationText}
+                        </Typography>
+                      </Box>
+                      <Chip
+                        size="small"
+                        label={isUpcoming ? "עתידי" : "עבר"}
+                        className={`${classes.eventStatusChip} ${
+                          isUpcoming ? "" : classes.pastEventStatusChip
+                        }`}
+                      />
+                    </Stack>
+                    {!Number.isNaN(endDate.getTime()) && (
+                      <Typography className={classes.eventListSecondary}>
+                        סיום: {formatDate(endDate)}
+                        {formatEventTime(event.endDate)
+                          ? ` | ${formatEventTime(event.endDate)}`
+                          : ""}
+                      </Typography>
+                    )}
+                  </Box>
+                );
+              })}
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            variant="contained"
+            onClick={closeRegisteredEventsDialog}
+            className={classes.buttonContained}
+          >
+            סגירה
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         open={!!passwordResetInfo}

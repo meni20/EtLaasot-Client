@@ -18,9 +18,9 @@ interface EventSummaryCardProps {
 }
 
 const ATTENDANCE_STATUS_LABELS: Record<AttendanceIntent, string> = {
-  BOTH: "נרשמת: שנינו מגיעים",
-  VOLUNTEER_ONLY: "נרשמת: רק אני מגיע",
-  TRAINEE_ONLY: "נרשמת: רק החניך מגיע",
+  BOTH: "נרשמת",
+  VOLUNTEER_ONLY: "נרשמת",
+  TRAINEE_ONLY: "נרשמת",
   NONE: "לא נרשמת עדיין",
 };
 

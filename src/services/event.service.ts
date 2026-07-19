@@ -2,6 +2,7 @@ import type { AxiosInstance } from "axios";
 import { createServerAxiosInstance } from "../config/axiosInstance";
 import type {
   IAttendees,
+  ICalendarMonthBackground,
   IEvent,
   IEventAiInsights,
   IEventParticipants,
@@ -28,6 +29,39 @@ export class EventService {
 
   public async removeEventImage(eventId: string): Promise<IEvent> {
     const res = await this.api.delete(`/${eventId}/image`);
+    return res.data;
+  }
+
+  public async getCalendarMonthBackground(
+    branchId: string,
+    monthKey: string,
+  ): Promise<ICalendarMonthBackground | null> {
+    const res = await this.api.get(`/calendar-background/${branchId}/${monthKey}`);
+    return res.data;
+  }
+
+  public async uploadCalendarMonthBackground(
+    branchId: string,
+    monthKey: string,
+    image: File,
+  ): Promise<ICalendarMonthBackground> {
+    const formData = new FormData();
+    formData.append("image", image);
+
+    const res = await this.api.put(
+      `/calendar-background/${branchId}/${monthKey}/image`,
+      formData,
+    );
+    return res.data;
+  }
+
+  public async removeCalendarMonthBackground(
+    branchId: string,
+    monthKey: string,
+  ): Promise<{ ok: boolean }> {
+    const res = await this.api.delete(
+      `/calendar-background/${branchId}/${monthKey}/image`,
+    );
     return res.data;
   }
 

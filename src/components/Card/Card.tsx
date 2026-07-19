@@ -231,6 +231,10 @@ export const BasicCard: React.FC<ICardProps> = ({
           onClose={() => setOpen(false)}
           eventId={eventId}
           users={formattedVolunteers || []}
+          eventName={eventName}
+          startDate={startDate}
+          endDate={endDate}
+          address={address}
         />
       )}
 
