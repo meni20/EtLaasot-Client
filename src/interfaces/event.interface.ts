@@ -84,6 +84,27 @@ export interface IBranch {
   isActive: boolean;
 }
 
+export interface IRegisteredUserEvent {
+  attendeeId: string;
+  rsvpStatus?: AttendeeRsvpStatus;
+  rsvpDate?: Date | string;
+  checkedIn?: boolean;
+  event: IEvent & {
+    branch?: Pick<IBranch, "id" | "name" | "city" | "address">;
+  };
+}
+
+export interface ICalendarMonthBackground {
+  id: string;
+  branchId: string;
+  monthKey: string;
+  imagePath: string;
+  imageUrl: string | null;
+  uploadedBy?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
 export interface IMentorAssignment {
   id: string;
   mentorId: string;

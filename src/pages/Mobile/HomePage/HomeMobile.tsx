@@ -132,8 +132,6 @@ export const HomeMobile: React.FC = () => {
     },
   });
 
-  const activeAssignment = myTrainees.find((assignment) => assignment.isActive);
-
   const activeAssignments = useMemo(
     () => myTrainees.filter((assignment) => assignment.isActive),
     [myTrainees],
@@ -198,18 +196,11 @@ export const HomeMobile: React.FC = () => {
   }, [activeActivity, timerTick]);
 
   const getAttendanceIntent = (event: IEvent): AttendanceIntent => {
-    const volunteerAttends =
+    const userAttends =
       event.attendees?.some((attendee) => attendee.userId === user?.userId) ??
       false;
-    const traineeAttends =
-      event.attendees?.some(
-        (attendee) => attendee.userId === activeAssignment?.traineeId,
-      ) ?? false;
 
-    if (volunteerAttends && traineeAttends) return "BOTH";
-    if (volunteerAttends) return "VOLUNTEER_ONLY";
-    if (traineeAttends) return "TRAINEE_ONLY";
-    return "NONE";
+    return userAttends ? "VOLUNTEER_ONLY" : "NONE";
   };
 
   const selectedUpcomingEvent =

@@ -12,6 +12,7 @@ export const useCalendarStyles = makeStyles({
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
+        gap: 16,
         marginBottom: 20,
         animation: "fadeInDown 0.5s ease-out",
     },
@@ -39,7 +40,44 @@ export const useCalendarStyles = makeStyles({
             backgroundColor: "#f8f0f6",
         },
     },
+    headerActions: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-end",
+        gap: 10,
+        flexWrap: "wrap" as const,
+    },
+    hiddenFileInput: {
+        display: "none",
+    },
+    removeBackgroundButton: {
+        width: 42,
+        height: 42,
+        color: "#b3261e",
+        border: "1px solid #f0c9c6",
+        backgroundColor: "#fff",
+        "&:hover": {
+            backgroundColor: "#fff3f1",
+            borderColor: "#dd8f89",
+        },
+    },
+    backgroundAlert: {
+        marginBottom: 16,
+        borderRadius: 12,
+        fontFamily: "Rubik, sans-serif",
+    },
+    backgroundLoading: {
+        position: "absolute" as const,
+        top: 14,
+        left: 18,
+        zIndex: 2,
+        fontSize: 12,
+        fontWeight: 700,
+        color: "#8a7f89",
+        fontFamily: "Rubik, sans-serif",
+    },
     calendarWrapper: {
+        position: "relative" as const,
         background: "#fff",
         borderRadius: 20,
         padding: "20px 24px 24px",
@@ -47,12 +85,15 @@ export const useCalendarStyles = makeStyles({
         border: "1px solid #f0ecef",
         animation: "fadeInUp 0.6s ease-out",
         transition: "box-shadow 0.3s ease",
+        overflow: "hidden",
         "&:hover": {
             boxShadow: "0 8px 28px rgba(0,0,0,0.08)",
         },
 
         /* FullCalendar overrides */
         "& .fc": {
+            position: "relative" as const,
+            zIndex: 1,
             fontFamily: "Rubik, sans-serif",
             color: "#333",
         },
@@ -124,12 +165,20 @@ export const useCalendarStyles = makeStyles({
             fontWeight: 600,
             color: "#7a3e6b",
             fontSize: 13,
-            padding: "6px 10px",
+            padding: "6px 10px 4px",
         },
         "& .fc-daygrid-day.fc-day-today": {
             backgroundColor: "rgba(154,81,136,0.06) !important",
         },
         "& .fc-daygrid-day.fc-day-today .fc-daygrid-day-number": {
+            background: "transparent",
+            color: "inherit",
+            borderRadius: 0,
+            width: "auto",
+            height: "auto",
+            display: "block",
+        },
+        "& .fc-daygrid-day.fc-day-today $gregorianDate": {
             background: "linear-gradient(135deg, #9a5188 0%, #7a3e6b 100%)",
             color: "#fff",
             borderRadius: "50%",
@@ -177,6 +226,90 @@ export const useCalendarStyles = makeStyles({
             fontFamily: "Rubik, sans-serif",
         },
     },
+    calendarWrapperWithBackground: {
+        "&::before": {
+            content: '""',
+            position: "absolute" as const,
+            inset: 0,
+            backgroundImage: "var(--calendar-background-image)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            opacity: 0.38,
+            pointerEvents: "none" as const,
+            zIndex: 0,
+        },
+        "&::after": {
+            content: '""',
+            position: "absolute" as const,
+            inset: 0,
+            backgroundColor: "rgba(255, 255, 255, 0.68)",
+            pointerEvents: "none" as const,
+            zIndex: 0,
+        },
+        "& .fc-view-harness, & .fc-view, & .fc-scrollgrid, & .fc-scrollgrid table, & .fc-daygrid-body, & .fc-daygrid-body table":
+        {
+            backgroundColor: "transparent !important",
+        },
+        "& .fc-scrollgrid-section, & .fc-scrollgrid td, & .fc-scrollgrid th": {
+            backgroundColor: "transparent !important",
+        },
+        "& .fc-daygrid-day, & .fc-daygrid-day-frame": {
+            backgroundColor: "rgba(255, 255, 255, 0.12) !important",
+        },
+        "& .fc-daygrid-day:hover": {
+            backgroundColor: "rgba(255, 255, 255, 0.28) !important",
+        },
+        "& .fc-col-header-cell": {
+            backgroundColor: "rgba(255, 255, 255, 0.82) !important",
+            backdropFilter: "blur(2px)",
+        },
+        "& .fc-daygrid-day.fc-day-today": {
+            backgroundColor: "rgba(154,81,136,0.18) !important",
+        },
+        "& .fc-event, & .fc-daygrid-event": {
+            backgroundColor: "#9a5188 !important",
+            borderColor: "#7a3e6b !important",
+            opacity: "1 !important",
+            color: "#fff !important",
+        },
+        "& .fc-event-main, & .fc-event-title, & .fc-event-time": {
+            opacity: "1 !important",
+            color: "#fff !important",
+            textShadow: "0 1px 1px rgba(45, 35, 43, 0.28)",
+        },
+    },
+    dayNumberContent: {
+        display: "flex",
+        flexDirection: "column" as const,
+        alignItems: "flex-start",
+        gap: 2,
+        lineHeight: 1.1,
+        direction: "rtl",
+    },
+    gregorianDate: {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minWidth: 20,
+        minHeight: 20,
+        fontFamily: "Rubik, sans-serif",
+        fontSize: "13px !important",
+        fontWeight: "700 !important" as const,
+        color: "#7a3e6b",
+    },
+    hebrewDate: {
+        display: "block",
+        maxWidth: 86,
+        color: "#8a7f89",
+        fontFamily: "Rubik, sans-serif",
+        fontSize: "10.5px !important",
+        fontWeight: "600 !important" as const,
+        lineHeight: "1.15 !important" as const,
+        whiteSpace: "nowrap" as const,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+    },
     loadingBox: {
         display: "flex",
         flexDirection: "column",
@@ -191,5 +324,21 @@ export const useCalendarStyles = makeStyles({
         color: "#999",
         fontFamily: "Rubik, sans-serif",
         fontSize: 15,
+    },
+    "@media (max-width: 760px)": {
+        header: {
+            alignItems: "flex-start",
+            flexDirection: "column" as const,
+        },
+        headerActions: {
+            width: "100%",
+            justifyContent: "flex-start",
+        },
+        hebrewDate: {
+            display: "none",
+        },
+        calendarWrapper: {
+            padding: "16px 12px 18px",
+        },
     },
 });

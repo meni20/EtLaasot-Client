@@ -259,6 +259,47 @@ export const useVolunteerDetailsStyles = makeStyles({
       borderColor: "#d9bfd2",
     },
   },
+  eventListItem: {
+    padding: "14px",
+    borderRadius: 14,
+    backgroundColor: "#fff",
+    border: "1px solid #f0e6ee",
+    boxShadow: "0 4px 14px rgba(45, 35, 43, 0.045)",
+  },
+  eventListTitle: {
+    fontFamily: "Rubik, sans-serif !important",
+    fontWeight: "900 !important" as const,
+    color: "#2f2930",
+    lineHeight: "1.35 !important" as const,
+  },
+  eventListMeta: {
+    marginTop: "5px !important",
+    fontFamily: "Rubik, sans-serif !important",
+    fontSize: "0.86rem !important",
+    color: "#665e66",
+    fontWeight: "700 !important" as const,
+  },
+  eventListSecondary: {
+    marginTop: "8px !important",
+    fontFamily: "Rubik, sans-serif !important",
+    fontSize: "0.78rem !important",
+    color: "#8a7f89",
+    fontWeight: "700 !important" as const,
+  },
+  eventStatusChip: {
+    height: 24,
+    flexShrink: 0,
+    backgroundColor: "#edf8f0 !important",
+    color: "#2e7d32 !important",
+    border: "1px solid #d7eedb !important",
+    fontFamily: "Rubik, sans-serif !important",
+    fontWeight: "800 !important" as const,
+  },
+  pastEventStatusChip: {
+    backgroundColor: "#f2f3f5 !important",
+    color: "#5f6670 !important",
+    border: "1px solid #e1e4e8 !important",
+  },
   "@media (max-width: 900px)": {
     panel: {
       flex: "0 0 auto",

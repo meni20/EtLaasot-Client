@@ -3,6 +3,7 @@ import { createServerAxiosInstance } from "../config/axiosInstance";
 import type {
   AttendeeRsvpStatus,
   AttendanceIntent,
+  IRegisteredUserEvent,
   IEventParticipants,
 } from "../interfaces/event.interface";
 
@@ -35,6 +36,13 @@ export class AttendeeService {
     const res = await this.api.post(`/${eventId}/attendance-intent`, {
       intent,
     });
+    return res.data;
+  }
+
+  public async getRegisteredEventsByUser(
+    userId: string,
+  ): Promise<IRegisteredUserEvent[]> {
+    const res = await this.api.get(`/user/${userId}/events`);
     return res.data;
   }
 

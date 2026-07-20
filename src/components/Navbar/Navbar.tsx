@@ -182,9 +182,14 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
               </IconButton>
             </Tooltip>
           </Box>
-          <Typography variant="h5" component="div" className={classes.title}>
-            {title}
-          </Typography>
+          <Box className={classes.navbarLogoSlot} aria-label={title}>
+            <Box
+              component="img"
+              src="/et-laasot-bat-yam-logo.png"
+              alt="עת לעשות בת ים"
+              className={classes.navbarLogo}
+            />
+          </Box>
           <Tooltip title="הפרטים שלי">
             <ButtonBase
               className={classes.userInfo}

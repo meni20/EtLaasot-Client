@@ -2,8 +2,10 @@ import { Box, Button, Chip, IconButton, Typography } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import EventIcon from "@mui/icons-material/Event";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import EventBusyOutlinedIcon from "@mui/icons-material/EventBusyOutlined";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../../contexts/useAuth";
 import { useMobileEvents } from "../../../hooks/mobile/useMobileEvents";
@@ -11,30 +13,48 @@ import { formatDate } from "../../../utils/data.utillity";
 import { decodeUnicodeEscapes } from "../../../utils/text.util";
 import { AUTH_ROLES, EVENT_TYPES } from "../../../constants/auth.const";
 import attendeeService from "../../../services/attendee.service";
-import mentorAssignmentService from "../../../services/mentorAssignment.service";
 import { BottomNav } from "../../../components/BottomNav/BottomNav";
 import { useStyles } from "./EventMobile.styles";
-import type {
-  AttendanceIntent,
-  IEvent,
-  IMentorAssignment,
-} from "../../../interfaces/event.interface";
+import type { AttendanceIntent, IEvent } from "../../../interfaces/event.interface";
 
 const ATTENDANCE_OPTIONS: {
   intent: AttendanceIntent;
   label: string;
-  icon: string;
+  icon: React.ReactNode;
 }[] = [
-  { intent: "BOTH", label: "שנינו מגיעים", icon: "👥" },
-  { intent: "VOLUNTEER_ONLY", label: "מגיע ויכול להחליף", icon: "🙋" },
-  { intent: "TRAINEE_ONLY", label: "צריך מחליף לחניך", icon: "🧒" },
-  { intent: "NONE", label: "לא מגיעים", icon: "✕" },
+  {
+    intent: "VOLUNTEER_ONLY",
+    label: "מגיע",
+    icon: <CheckCircleOutlineIcon fontSize="inherit" />,
+  },
+  {
+    intent: "NONE",
+    label: "לא מגיע",
+    icon: <EventBusyOutlinedIcon fontSize="inherit" />,
+  },
+];
+
+const TRAINEE_ATTENDANCE_OPTIONS: {
+  intent: AttendanceIntent;
+  label: string;
+  icon: React.ReactNode;
+}[] = [
+  {
+    intent: "TRAINEE_ONLY",
+    label: "מגיע",
+    icon: <CheckCircleOutlineIcon fontSize="inherit" />,
+  },
+  {
+    intent: "NONE",
+    label: "לא מגיע",
+    icon: <EventBusyOutlinedIcon fontSize="inherit" />,
+  },
 ];
 
 const ATTENDANCE_STATUS_LABELS: Record<AttendanceIntent, string> = {
-  BOTH: "נרשמת: שנינו מגיעים",
-  VOLUNTEER_ONLY: "נרשמת: רק אני מגיע",
-  TRAINEE_ONLY: "נרשמת: רק החניך מגיע",
+  BOTH: "נרשמת",
+  VOLUNTEER_ONLY: "נרשמת",
+  TRAINEE_ONLY: "נרשמת",
   NONE: "לא נרשמת עדיין",
 };
 
@@ -59,12 +79,11 @@ export const EventDetailsMobile: React.FC = () => {
   const isVolunteer = user?.roles?.some(
     (role) => role.roleId === AUTH_ROLES.VOLUNTEER.id,
   );
-
-  const { data: myTrainees = [] } = useQuery<IMentorAssignment[]>({
-    queryKey: ["myTrainees"],
-    queryFn: () => mentorAssignmentService.getMyTrainees(),
-    enabled: !!isVolunteer,
-  });
+  const isTrainee = user?.roles?.some(
+    (role) => role.roleId === AUTH_ROLES.TRAINEE.id,
+  );
+  const useTraineeRsvp = Boolean(isTrainee && !isVolunteer);
+  const canUpdateAttendanceIntent = Boolean(isVolunteer || isTrainee);
 
   const attendanceIntentMutation = useMutation({
     mutationFn: ({
@@ -87,21 +106,14 @@ export const EventDetailsMobile: React.FC = () => {
     },
   });
 
-  const activeAssignment = myTrainees.find((assignment) => assignment.isActive);
   const getAttendanceIntent = (currentEvent: IEvent): AttendanceIntent => {
-    const volunteerAttends =
+    const userAttends =
       currentEvent.attendees?.some(
         (attendee) => attendee.userId === user?.userId,
       ) ?? false;
-    const traineeAttends =
-      currentEvent.attendees?.some(
-        (attendee) => attendee.userId === activeAssignment?.traineeId,
-      ) ?? false;
 
-    if (volunteerAttends && traineeAttends) return "BOTH";
-    if (volunteerAttends) return "VOLUNTEER_ONLY";
-    if (traineeAttends) return "TRAINEE_ONLY";
-    return "NONE";
+    if (!userAttends) return "NONE";
+    return useTraineeRsvp ? "TRAINEE_ONLY" : "VOLUNTEER_ONLY";
   };
 
   const handleAttendanceIntent = (
@@ -116,6 +128,9 @@ export const EventDetailsMobile: React.FC = () => {
   };
 
   const selectedIntent = event ? getAttendanceIntent(event) : "NONE";
+  const visibleAttendanceOptions = useTraineeRsvp
+    ? TRAINEE_ATTENDANCE_OPTIONS
+    : ATTENDANCE_OPTIONS;
   const hasImageBackground = Boolean(event?.imageUrl);
 
   return (
@@ -187,7 +202,7 @@ export const EventDetailsMobile: React.FC = () => {
             </Typography>
           )}
 
-          {isVolunteer && (
+          {canUpdateAttendanceIntent && (
             <Box className={styles.rsvpRow}>
               <Box className={styles.rsvpHeader}>
                 <Box>
@@ -200,7 +215,7 @@ export const EventDetailsMobile: React.FC = () => {
                 </Box>
               </Box>
               <Box className={styles.rsvpGrid}>
-                {ATTENDANCE_OPTIONS.map((option) => {
+                {visibleAttendanceOptions.map((option) => {
                   const isSelected = selectedIntent === option.intent;
 
                   return (
