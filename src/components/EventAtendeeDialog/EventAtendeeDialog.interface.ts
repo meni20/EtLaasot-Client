@@ -5,4 +5,8 @@ export interface IEventAtendeeDialogProps {
   onClose: () => void;
   eventId: string;
   users?: IAddAttendeeDialogProps["users"];
+  eventName?: string;
+  startDate?: Date | string;
+  endDate?: Date | string;
+  address?: string;
 }

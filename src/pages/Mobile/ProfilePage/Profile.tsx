@@ -353,17 +353,19 @@ export const ProfilePage: React.FC = () => {
         </Box>
       )}
 
-      <Box className={styles.section}>
-        <Typography className={styles.sectionTitle}>חניכים</Typography>
-        {activeAssignments.map((assignment) => (
-          <TraineeRow
-            key={assignment.id}
-            assignment={assignment}
-            styles={styles}
-            onClick={() => setSelectedAssignment(assignment)}
-          />
-        ))}
-      </Box>
+      {isVolunteer && (
+        <Box className={styles.section}>
+          <Typography className={styles.sectionTitle}>חניכים</Typography>
+          {activeAssignments.map((assignment) => (
+            <TraineeRow
+              key={assignment.id}
+              assignment={assignment}
+              styles={styles}
+              onClick={() => setSelectedAssignment(assignment)}
+            />
+          ))}
+        </Box>
+      )}
 
       <Button
         fullWidth

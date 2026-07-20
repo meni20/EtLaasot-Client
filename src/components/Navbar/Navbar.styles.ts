@@ -9,6 +9,7 @@ export const useNavbarStyles = makeStyles({
     animation: "fadeInDown 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
   },
   toolbar: {
+    position: "relative" as const,
     justifyContent: "space-between",
     paddingLeft: 24,
     paddingRight: 24,
@@ -23,6 +24,27 @@ export const useNavbarStyles = makeStyles({
     fontSize: "1.8rem",
     paddingRight: "8%",
     textShadow: "0 2px 4px rgba(0,0,0,0.15)", // צל עדין לטקסט כדי להקפיץ אותו
+  },
+  navbarLogoSlot: {
+    position: "absolute" as const,
+    left: "50%",
+    top: "50%",
+    transform: "translate(-50%, -50%)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    maxWidth: "min(320px, 42vw)",
+    pointerEvents: "none" as const,
+  },
+  navbarLogo: {
+    display: "block",
+    maxHeight: 54,
+    maxWidth: "100%",
+    width: "auto",
+    height: "auto",
+    objectFit: "contain" as const,
+    transform: "scale(1.18)",
+    transformOrigin: "center",
   },
   userInfo: {
     display: "flex",
@@ -63,6 +85,7 @@ export const useNavbarStyles = makeStyles({
     display: "flex",
     alignItems: "center",
     gap: 10,
+    zIndex: 1,
   },
   menuIconBox: {
     cursor: "pointer",
@@ -176,6 +199,17 @@ export const useNavbarStyles = makeStyles({
     fontWeight: "700 !important" as const,
   },
   "@media (max-width: 640px)": {
+    toolbar: {
+      paddingLeft: 12,
+      paddingRight: 12,
+    },
+    navbarLogoSlot: {
+      maxWidth: "min(220px, 34vw)",
+    },
+    navbarLogo: {
+      maxHeight: 38,
+      transform: "none",
+    },
     profileActions: {
       flexDirection: "column-reverse" as const,
       alignItems: "stretch !important",
