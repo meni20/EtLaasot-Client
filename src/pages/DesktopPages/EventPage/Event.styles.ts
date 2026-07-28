@@ -10,6 +10,11 @@ export const useStyles = makeStyles({
     minHeight: "100vh",
     backgroundColor: "#f9f9f9",
     animation: "fadeIn 0.4s ease-out",
+    "@media (max-width: 760px)": {
+      padding: "72px 12px 16px",
+      gap: 18,
+      overflowX: "hidden",
+    },
   },
   header: {
     display: "flex",
@@ -84,7 +89,7 @@ export const useStyles = makeStyles({
   },
   cardsContainer: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fill, minmax(min(300px, 100%), 1fr))",
     gap: 20,
   },
   emptyState: {
@@ -94,5 +99,30 @@ export const useStyles = makeStyles({
     fontSize: 16,
     fontFamily: "Rubik, sans-serif",
     animation: "fadeIn 0.8s ease-out",
+  },
+  "@media (max-width: 760px)": {
+    header: {
+      alignItems: "stretch",
+      flexDirection: "column" as const,
+      gap: 12,
+    },
+    headerActions: {
+      width: "100%",
+      alignItems: "stretch",
+      flexDirection: "column" as const,
+    },
+    calendarButton: {
+      width: "100%",
+      minHeight: 44,
+      justifyContent: "center",
+    },
+    createButton: {
+      width: "100%",
+      minHeight: 44,
+    },
+    cardsContainer: {
+      gridTemplateColumns: "1fr",
+      gap: 14,
+    },
   },
 });

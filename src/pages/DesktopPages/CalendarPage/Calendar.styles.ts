@@ -326,6 +326,10 @@ export const useCalendarStyles = makeStyles({
         fontSize: 15,
     },
     "@media (max-width: 760px)": {
+        root: {
+            padding: "72px 10px 16px",
+            overflowX: "hidden",
+        },
         header: {
             alignItems: "flex-start",
             flexDirection: "column" as const,
@@ -333,12 +337,35 @@ export const useCalendarStyles = makeStyles({
         headerActions: {
             width: "100%",
             justifyContent: "flex-start",
+            alignItems: "stretch",
+        },
+        eventsButton: {
+            flex: "1 1 100%",
+            minHeight: 44,
+            justifyContent: "center",
         },
         hebrewDate: {
             display: "none",
         },
         calendarWrapper: {
             padding: "16px 12px 18px",
+            overflowX: "auto" as const,
+            WebkitOverflowScrolling: "touch",
+            "& .fc": {
+                minWidth: 620,
+            },
+            "& .fc-toolbar": {
+                alignItems: "stretch",
+                flexDirection: "column" as const,
+            },
+            "& .fc-toolbar-title": {
+                fontSize: "1.12rem",
+                textAlign: "center" as const,
+            },
+            "& .fc-button-primary": {
+                minHeight: 38,
+                padding: "6px 10px",
+            },
         },
     },
 });

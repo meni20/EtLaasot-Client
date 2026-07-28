@@ -4,6 +4,7 @@ import type {
   IAttendees,
   ICalendarMonthBackground,
   IEvent,
+  IEventAssignmentEmailResult,
   IEventAiInsights,
   IEventParticipants,
 } from "../interfaces/event.interface";
@@ -74,6 +75,13 @@ export class EventService {
     eventId: string,
   ): Promise<IEventAiInsights> {
     const res = await this.api.post(`/${eventId}/generate-ai-summary`);
+    return res.data;
+  }
+
+  public async sendEventAssignments(
+    eventId: string,
+  ): Promise<IEventAssignmentEmailResult> {
+    const res = await this.api.post(`/${eventId}/send-assignments`);
     return res.data;
   }
 

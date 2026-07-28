@@ -128,6 +128,9 @@ export const useVolunteerDetailsStyles = makeStyles({
       margin: "6px 0",
       borderColor: "#f1e9ef",
     },
+    "@media (max-width: 900px)": {
+      maxHeight: "calc(78vh - 138px)",
+    },
   },
   section: {
     backgroundColor: "#fff",
@@ -304,7 +307,7 @@ export const useVolunteerDetailsStyles = makeStyles({
     panel: {
       flex: "0 0 auto",
       width: "100%",
-      maxHeight: "none",
+      maxHeight: "min(78vh, 680px)",
     },
   },
 });

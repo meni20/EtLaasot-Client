@@ -119,4 +119,31 @@ export const useMentorAssignmentStyles = makeStyles({
         marginBottom: 16,
         width: "100%",
     },
+    "@media (max-width: 760px)": {
+        root: {
+            padding: "72px 12px 16px",
+            overflowX: "hidden",
+        },
+        header: {
+            alignItems: "flex-start",
+            flexDirection: "column" as const,
+            gap: 12,
+        },
+        card: {
+            padding: 16,
+            borderRadius: 16,
+        },
+        mentorRow: {
+            alignItems: "flex-start",
+            flexDirection: "column" as const,
+        },
+        mentorName: {
+            minWidth: 0,
+        },
+        dialogContent: {
+            minWidth: 0,
+            width: "min(100%, 360px)",
+            padding: 16,
+        },
+    },
 });

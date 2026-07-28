@@ -137,7 +137,9 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
           sx: {
             borderRadius: 4,
             overflow: "hidden",
-            minWidth: 440,
+            minWidth: { xs: "calc(100vw - 24px)", sm: 440 },
+            maxWidth: { xs: "calc(100vw - 24px)", sm: 640 },
+            maxHeight: { xs: "calc(100dvh - 24px)", sm: "calc(100vh - 64px)" },
             direction: "rtl",
             fontFamily: "Rubik, sans-serif",
           },
@@ -170,7 +172,12 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
         >
           <CloseIcon fontSize="small" />
         </IconButton>
-        <DialogContent sx={{ padding: "24px", backgroundColor: "#faf8f9" }}>
+        <DialogContent
+          sx={{
+            padding: { xs: "18px 14px", sm: "24px" },
+            backgroundColor: "#faf8f9",
+          }}
+        >
           {temporaryPasswordInfo ? (
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <Alert severity="success">
@@ -196,7 +203,13 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
               </Button>
             </Box>
           ) : (
-          <Box sx={{ display: "flex", gap: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              gap: 2,
+            }}
+          >
             <Box
               sx={{
                 display: "flex",
@@ -340,7 +353,10 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
           )}
         </DialogContent>
         <DialogActions
-          sx={{ padding: "12px 24px 16px", backgroundColor: "#faf8f9" }}
+          sx={{
+            padding: { xs: "10px 14px 14px", sm: "12px 24px 16px" },
+            backgroundColor: "#faf8f9",
+          }}
         >
           {temporaryPasswordInfo ? (
             <Button

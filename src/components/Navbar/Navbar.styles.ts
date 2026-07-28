@@ -7,6 +7,7 @@ export const useNavbarStyles = makeStyles({
     color: "#fff",
     zIndex: 1200,
     animation: "fadeInDown 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+    overflowX: "clip" as const,
   },
   toolbar: {
     position: "relative" as const,
@@ -200,11 +201,12 @@ export const useNavbarStyles = makeStyles({
   },
   "@media (max-width: 640px)": {
     toolbar: {
-      paddingLeft: 12,
-      paddingRight: 12,
+      minHeight: 58,
+      paddingLeft: 8,
+      paddingRight: 8,
     },
     navbarLogoSlot: {
-      maxWidth: "min(220px, 34vw)",
+      maxWidth: "min(160px, 30vw)",
     },
     navbarLogo: {
       maxHeight: 38,
@@ -219,6 +221,32 @@ export const useNavbarStyles = makeStyles({
     },
     profileAccountActions: {
       justifyContent: "space-between",
+    },
+    userInfo: {
+      maxWidth: 116,
+      padding: "4px 8px",
+      marginRight: 6,
+    },
+    userName: {
+      maxWidth: "100%",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap" as const,
+    },
+    userTz: {
+      display: "none",
+    },
+    navActions: {
+      gap: 4,
+    },
+    homeButton: {
+      width: 36,
+      height: 36,
+    },
+    menuIconBox: {
+      width: 36,
+      height: 36,
+      padding: 6,
     },
   },
 });

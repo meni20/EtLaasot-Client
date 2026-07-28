@@ -7,16 +7,26 @@ import {
   ListItem,
   ListItemAvatar,
   Avatar,
+  Box,
+  InputAdornment,
   ListItemText,
   IconButton,
+  TextField,
   Typography,
 } from "@mui/material";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import type { IAddAttendeeDialogProps } from "./AddAttendeeDialog.interface";
 import AddIcon from "@mui/icons-material/Add";
+import ClearIcon from "@mui/icons-material/Clear";
+import SearchIcon from "@mui/icons-material/Search";
 import eventService from "../../services/event.service";
 import { AUTH_ROLES } from "../../constants/auth.const";
 import { useQueryClient } from "@tanstack/react-query";
+
+const normalizeSearchValue = (value: unknown) =>
+  String(value ?? "")
+    .trim()
+    .toLowerCase();
 
 export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
   open,
@@ -25,6 +35,26 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
   users,
 }) => {
   const queryClient = useQueryClient();
+  const searchInputRef = React.useRef<HTMLInputElement | null>(null);
+  const [searchTerm, setSearchTerm] = React.useState("");
+
+  const filteredUsers = React.useMemo(() => {
+    const normalizedSearch = normalizeSearchValue(searchTerm);
+
+    if (!normalizedSearch) return users ?? [];
+
+    return (users ?? []).filter((user) =>
+      [user.name, user.email].some((value) =>
+        normalizeSearchValue(value).includes(normalizedSearch),
+      ),
+    );
+  }, [searchTerm, users]);
+
+  React.useEffect(() => {
+    if (!open) {
+      setSearchTerm("");
+    }
+  }, [open]);
 
   const handleAddAttendee = async (userId: string) => {
     try {
@@ -99,9 +129,84 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
           backgroundColor: "#faf8f9",
         }}
       >
+        <Box
+          sx={{
+            position: "sticky",
+            top: 0,
+            zIndex: 1,
+            pt: 1,
+            pb: 1.25,
+            backgroundColor: "#faf8f9",
+          }}
+        >
+          <TextField
+            inputRef={searchInputRef}
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder="חיפוש לפי שם"
+            fullWidth
+            size="small"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <IconButton
+                    edge="start"
+                    size="small"
+                    aria-label="חיפוש משתתף"
+                    onClick={() => searchInputRef.current?.focus()}
+                    sx={{ color: "#9a5188" }}
+                  >
+                    <SearchIcon fontSize="small" />
+                  </IconButton>
+                </InputAdornment>
+              ),
+              endAdornment: searchTerm ? (
+                <InputAdornment position="end">
+                  <IconButton
+                    edge="end"
+                    size="small"
+                    aria-label="ניקוי חיפוש"
+                    onClick={() => {
+                      setSearchTerm("");
+                      searchInputRef.current?.focus();
+                    }}
+                    sx={{ color: "#7a6d75" }}
+                  >
+                    <ClearIcon fontSize="small" />
+                  </IconButton>
+                </InputAdornment>
+              ) : null,
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 3,
+                backgroundColor: "#fff",
+                fontFamily: "Rubik, sans-serif",
+              },
+              "& input": {
+                textAlign: "right",
+                fontFamily: "Rubik, sans-serif",
+              },
+            }}
+          />
+        </Box>
         <List disablePadding>
-          {users?.map((user, index) => {
-            const prevRole = users[index - 1]?.role;
+          {filteredUsers.length === 0 ? (
+            <Typography
+              sx={{
+                px: 2,
+                py: 4,
+                textAlign: "center",
+                color: "#8a7f89",
+                fontFamily: "Rubik, sans-serif",
+                fontWeight: 700,
+              }}
+            >
+              לא נמצאו משתתפים
+            </Typography>
+          ) : (
+            filteredUsers.map((user, index) => {
+            const prevRole = filteredUsers[index - 1]?.role;
             const isFirstOfRole = index === 0 || user.role !== prevRole;
             const isAssigned = isUserAssignedToEvent(user.id);
 
@@ -196,7 +301,8 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
                 </ListItem>
               </React.Fragment>
             );
-          })}
+            })
+          )}
         </List>
       </DialogContent>
     </Dialog>
