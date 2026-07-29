@@ -105,6 +105,22 @@ export interface ICalendarMonthBackground {
   updatedAt?: Date | string;
 }
 
+export interface IEventAssignmentEmailDetail {
+  userId: string;
+  name: string;
+  reason: string;
+}
+
+export interface IEventAssignmentEmailResult {
+  eventId: string;
+  totalAttendingMentors: number;
+  sentCount: number;
+  skippedCount: number;
+  failedCount: number;
+  skipped: IEventAssignmentEmailDetail[];
+  failed: IEventAssignmentEmailDetail[];
+}
+
 export interface IMentorAssignment {
   id: string;
   mentorId: string;

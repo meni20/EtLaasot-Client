@@ -140,8 +140,32 @@ export const useDashboardStyles = makeStyles({
         fontSize: "0.95rem",
     },
     "@media (max-width: 900px)": {
+        root: {
+            padding: "72px 12px 16px",
+            overflowX: "hidden",
+        },
+        header: {
+            alignItems: "flex-start",
+            flexDirection: "column" as const,
+            gap: 8,
+        },
+        title: {
+            fontSize: "1.35rem",
+        },
+        summaryGrid: {
+            gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+            gap: 10,
+        },
         chartsGrid: {
             gridTemplateColumns: "1fr",
+            gap: 14,
+        },
+        eventsCarouselViewport: {
+            overflowX: "auto" as const,
+            paddingBottom: 4,
+        },
+        eventsCarouselTrack: {
+            gridTemplateColumns: "repeat(3, minmax(240px, 1fr))",
         },
     },
 });
