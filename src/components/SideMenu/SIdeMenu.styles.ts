@@ -7,7 +7,7 @@ import {
 export const useSideMenuStyles = makeStyles({
   drawerPaper: {
     width: DRAWER_WIDTH,
-    maxWidth: "calc(100vw - 24px)",
+    maxWidth: "min(250px, calc(100vw - 20px))",
     borderRadius: "0 0 0 18px",
     background: "#fbf8fb",
     boxShadow: "-8px 0 24px rgba(45,35,43,0.12)",
@@ -33,6 +33,7 @@ export const useSideMenuStyles = makeStyles({
     flexDirection: "column" as const,
     gap: 8,
     padding: "18px 12px 16px",
+    overflowY: "auto" as const,
     transition: "padding 240ms cubic-bezier(0.4, 0, 0.2, 1)",
   },
   collapsedList: {

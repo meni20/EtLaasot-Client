@@ -7,6 +7,10 @@ export const useVolunteerPageStyles = makeStyles({
     minHeight: "100vh",
     backgroundColor: "#f9f9f9",
     animation: "fadeIn 0.4s ease-out",
+    "@media (max-width: 900px)": {
+      padding: "72px 12px 16px",
+      overflowX: "hidden",
+    },
   },
   header: {
     display: "flex",
@@ -196,7 +200,8 @@ export const useVolunteerPageStyles = makeStyles({
       alignItems: "stretch",
     },
     createButton: {
-      alignSelf: "flex-start",
+      alignSelf: "stretch",
+      minHeight: 44,
     },
     toolbarCard: {
       flexDirection: "column" as const,
@@ -207,9 +212,15 @@ export const useVolunteerPageStyles = makeStyles({
     },
     archiveModeButton: {
       alignSelf: "flex-start",
+      minHeight: 44,
     },
     dataGridBox: {
       height: "calc(100vh - 310px)",
+      minHeight: 360,
+      overflowX: "auto" as const,
+      "& .MuiDataGrid-root": {
+        minWidth: 720,
+      },
     },
     contentLayout: {
       flexDirection: "column" as const,

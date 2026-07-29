@@ -6,6 +6,10 @@ export const useActivityAdminStyles = makeStyles({
     direction: "rtl",
     minHeight: "100vh",
     backgroundColor: "#f9f9f9",
+    "@media (max-width: 900px)": {
+      padding: "72px 12px 16px",
+      overflowX: "hidden",
+    },
   },
   header: {
     marginBottom: 20,
@@ -57,6 +61,19 @@ export const useActivityAdminStyles = makeStyles({
     color: "#999",
     padding: "16px 0",
     fontFamily: "Rubik, sans-serif",
+  },
+  "@media (max-width: 900px)": {
+    filtersCard: {
+      padding: 14,
+    },
+    dataGridBox: {
+      height: "calc(100vh - 380px)",
+      minHeight: 360,
+      overflowX: "auto" as const,
+      "& .MuiDataGrid-root": {
+        minWidth: 980,
+      },
+    },
   },
 });
 

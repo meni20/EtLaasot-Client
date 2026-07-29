@@ -188,7 +188,9 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
         PaperProps={{
           sx: {
             overflow: "hidden",
-            minWidth: 440,
+            minWidth: { xs: "calc(100vw - 24px)", sm: 440 },
+            maxWidth: { xs: "calc(100vw - 24px)", sm: 560 },
+            maxHeight: { xs: "calc(100dvh - 24px)", sm: "calc(100vh - 64px)" },
             direction: "rtl",
             fontFamily: "Rubik, sans-serif",
           },
@@ -221,9 +223,20 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
         >
           <CloseIcon fontSize="small" />
         </IconButton>
-        <DialogContent sx={{ padding: "24px", backgroundColor: "#faf8f9" }}>
+        <DialogContent
+          sx={{
+            padding: { xs: "18px 14px", sm: "24px" },
+            backgroundColor: "#faf8f9",
+          }}
+        >
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-            <Box sx={{ display: "flex", gap: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" },
+                gap: 2,
+              }}
+            >
               <TextField
                 label="שם אירוע"
                 value={form.name}
@@ -245,7 +258,13 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
             </Box>
-            <Box sx={{ display: "flex", gap: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" },
+                gap: 2,
+              }}
+            >
               <DateTimePicker
                 label="תאריך התחלה"
                 value={form.startDate}
@@ -371,7 +390,10 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
           </Box>
         </DialogContent>
         <DialogActions
-          sx={{ padding: "12px 24px 16px", backgroundColor: "#faf8f9" }}
+          sx={{
+            padding: { xs: "10px 14px 14px", sm: "12px 24px 16px" },
+            backgroundColor: "#faf8f9",
+          }}
         >
           <Button
             onClick={handleCreateEvent}

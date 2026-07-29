@@ -47,6 +47,44 @@ export const useStyles = makeStyles({
       backgroundColor: "rgba(255,255,255,0.3)",
     },
   },
+  sendAssignmentsButtonWrap: {
+    position: "absolute" as const,
+    right: 52,
+    top: "50%",
+    transform: "translateY(-50%)",
+    display: "inline-flex",
+  },
+  sendAssignmentsButton: {
+    color: "#fff",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    transition: "all 0.25s ease",
+    "&:hover": {
+      backgroundColor: "rgba(255,255,255,0.3)",
+    },
+    "&.Mui-disabled": {
+      color: "rgba(255,255,255,0.45)",
+      backgroundColor: "rgba(255,255,255,0.08)",
+    },
+  },
+  printSheetButtonWrap: {
+    position: "absolute" as const,
+    right: 96,
+    top: "50%",
+    transform: "translateY(-50%)",
+    display: "inline-flex",
+  },
+  printSheetIconButton: {
+    color: "#fff",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    transition: "all 0.25s ease",
+    "&:hover": {
+      backgroundColor: "rgba(255,255,255,0.3)",
+    },
+    "&.Mui-disabled": {
+      color: "rgba(255,255,255,0.45)",
+      backgroundColor: "rgba(255,255,255,0.08)",
+    },
+  },
   dialogContent: {
     direction: "rtl" as const,
     maxHeight: "min(72vh, 680px)",

@@ -98,10 +98,15 @@ const AppRouter: React.FC = () => {
           component="main"
           sx={{
             minWidth: 0,
+            width: isPersistentSideMenu
+              ? `calc(100% - ${desktopSideMenuWidth}px)`
+              : "100%",
+            overflowX: "hidden",
             marginRight: isPersistentSideMenu
               ? `${desktopSideMenuWidth}px`
               : 0,
-            transition: "margin-right 240ms cubic-bezier(0.4, 0, 0.2, 1)",
+            transition:
+              "margin-right 240ms cubic-bezier(0.4, 0, 0.2, 1), width 240ms cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
           <Suspense fallback={<RouteLoading />}>

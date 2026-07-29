@@ -1,12 +1,16 @@
 import * as React from "react";
 import {
   Avatar,
+  Alert,
   Box,
   Button,
   CircularProgress,
   Dialog,
   DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
+  Stack,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -14,16 +18,22 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import attendeeService from "../../services/attendee.service";
 import eventService from "../../services/event.service";
-import type { IAttendees } from "../../interfaces/event.interface";
+import type {
+  IAttendees,
+  IEventAssignmentEmailResult,
+} from "../../interfaces/event.interface";
 import type { IEventAtendeeDialogProps } from "./EventAtendeeDialog.interface";
 import { useStyles } from "./EventAtendeeDialog.styles";
 import { AddAttendeeDialog } from "../AddAttendeeDialog/AddAttendeeDialog";
 import { useBranch } from "../../contexts/useBranch";
 import { EventShabbatSheet } from "./EventShabbatSheet";
+import { useAuth } from "../../contexts/useAuth";
+import { AUTH_ROLES } from "../../constants/auth.const";
 
 export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
   open,
@@ -38,8 +48,14 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
   const classes = useStyles();
   const queryClient = useQueryClient();
   const { activeBranch, availableBranches } = useBranch();
+  const { user } = useAuth();
   const [isAddAttendeeOpen, setIsAddAttendeeOpen] = React.useState(false);
   const [isPrintPreviewOpen, setIsPrintPreviewOpen] = React.useState(false);
+  const [isAssignmentsDialogOpen, setIsAssignmentsDialogOpen] =
+    React.useState(false);
+  const [assignmentsResult, setAssignmentsResult] =
+    React.useState<IEventAssignmentEmailResult | null>(null);
+  const [assignmentsError, setAssignmentsError] = React.useState("");
   const [selectedMentorId, setSelectedMentorId] = React.useState<string | null>(
     null,
   );
@@ -112,6 +128,26 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
     pairMutation.isPending ||
     deletePairingMutation.isPending ||
     deleteAttendeeMutation.isPending;
+  const isAdmin = Boolean(
+    user?.roles?.some(
+      (role) =>
+        role.roleId === AUTH_ROLES.SUPER_ADMIN.id ||
+        role.roleId === AUTH_ROLES.BRANCH_ADMIN.id,
+    ),
+  );
+
+  const sendAssignmentsMutation = useMutation({
+    mutationFn: () => eventService.sendEventAssignments(eventId),
+    onSuccess: (result) => {
+      setAssignmentsResult(result);
+      setAssignmentsError("");
+    },
+    onError: () => {
+      setAssignmentsError(
+        "לא הצלחנו לשלוח את השיבוצים. נסו שוב מאוחר יותר.",
+      );
+    },
+  });
 
   const createPairIfReady = (
     nextMentorId: string | null,
@@ -138,6 +174,17 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
     if (!attendee.id || deleteAttendeeMutation.isPending) return;
 
     deleteAttendeeMutation.mutate(attendee.id);
+  };
+
+  const openAssignmentsDialog = () => {
+    setAssignmentsResult(null);
+    setAssignmentsError("");
+    setIsAssignmentsDialogOpen(true);
+  };
+
+  const closeAssignmentsDialog = () => {
+    if (sendAssignmentsMutation.isPending) return;
+    setIsAssignmentsDialogOpen(false);
   };
 
   const renderAttendee = (
@@ -208,6 +255,37 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
               <AddIcon fontSize="small" />
             </IconButton>
           </Tooltip>
+          {isAdmin && (
+            <Tooltip title="שליחת שיבוצים">
+              <Box
+                component="span"
+                className={classes.sendAssignmentsButtonWrap}
+              >
+                <IconButton
+                  aria-label="שליחת שיבוצים"
+                  onClick={openAssignmentsDialog}
+                  className={classes.sendAssignmentsButton}
+                  size="small"
+                  disabled={sendAssignmentsMutation.isPending}
+                >
+                  <EmailOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            </Tooltip>
+          )}
+          <Tooltip title="הכנת דף שבת">
+            <Box component="span" className={classes.printSheetButtonWrap}>
+              <IconButton
+                aria-label="הכנת דף שבת"
+                onClick={() => setIsPrintPreviewOpen(true)}
+                className={classes.printSheetIconButton}
+                size="small"
+                disabled={isFetchingAttendees}
+              >
+                <PrintOutlinedIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          </Tooltip>
           <IconButton
             aria-label="close"
             onClick={onClose}
@@ -219,17 +297,6 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
         </Box>
 
         <Box className={classes.dialogContent}>
-          <Box className={classes.dialogToolbar}>
-            <Button
-              className={classes.printSheetButton}
-              startIcon={<PrintOutlinedIcon fontSize="small" />}
-              onClick={() => setIsPrintPreviewOpen(true)}
-              disabled={isFetchingAttendees}
-            >
-              הכנת דף שבת
-            </Button>
-          </Box>
-
           {isFetchingAttendees ? (
             <Box className={classes.loadingState}>
               <CircularProgress sx={{ color: "#9a5188" }} size={36} />
@@ -396,6 +463,106 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
           >
             סגירה
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={isAssignmentsDialogOpen}
+        onClose={closeAssignmentsDialog}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{ sx: { direction: "rtl", borderRadius: 3 } }}
+      >
+        <DialogTitle
+          sx={{
+            fontFamily: "Rubik, sans-serif",
+            fontWeight: 800,
+            color: "#2f2930",
+          }}
+        >
+          שליחת שיבוצים
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2}>
+            <Typography sx={{ fontFamily: "Rubik, sans-serif" }}>
+              שליחת מייל אישי לחונכים הרשומים לאירוע "{eventName}" עם פרטי
+              ההשתתפות והשיבוץ שלהם.
+            </Typography>
+            <Alert severity="warning" sx={{ borderRadius: 2 }}>
+              פעולה זו שולחת מיילים אמיתיים דרך חשבון המערכת. יש לאשר לפני כל
+              שליחה.
+            </Alert>
+
+            {assignmentsError && (
+              <Alert severity="error" sx={{ borderRadius: 2 }}>
+                {assignmentsError}
+              </Alert>
+            )}
+
+            {assignmentsResult && (
+              <Alert
+                severity={
+                  assignmentsResult.failedCount > 0 ? "warning" : "success"
+                }
+                sx={{ borderRadius: 2 }}
+              >
+                <Typography sx={{ fontWeight: 800, mb: 0.75 }}>
+                  סיכום שליחה
+                </Typography>
+                <Typography>
+                  חונכים רשומים: {assignmentsResult.totalAttendingMentors}
+                </Typography>
+                <Typography>נשלחו בהצלחה: {assignmentsResult.sentCount}</Typography>
+                <Typography>
+                  דולגו ללא אימייל: {assignmentsResult.skippedCount}
+                </Typography>
+                <Typography>נכשלו: {assignmentsResult.failedCount}</Typography>
+              </Alert>
+            )}
+
+            {assignmentsResult?.skipped.length ? (
+              <Box>
+                <Typography sx={{ fontWeight: 800, mb: 0.5 }}>
+                  דולגו
+                </Typography>
+                {assignmentsResult.skipped.map((entry) => (
+                  <Typography key={entry.userId} sx={{ fontSize: 13 }}>
+                    {entry.name} ({entry.userId})
+                  </Typography>
+                ))}
+              </Box>
+            ) : null}
+
+            {assignmentsResult?.failed.length ? (
+              <Box>
+                <Typography sx={{ fontWeight: 800, mb: 0.5 }}>
+                  נכשלו
+                </Typography>
+                {assignmentsResult.failed.map((entry) => (
+                  <Typography key={entry.userId} sx={{ fontSize: 13 }}>
+                    {entry.name} ({entry.userId})
+                  </Typography>
+                ))}
+              </Box>
+            ) : null}
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={closeAssignmentsDialog}
+            disabled={sendAssignmentsMutation.isPending}
+          >
+            {assignmentsResult ? "סגירה" : "ביטול"}
+          </Button>
+          {!assignmentsResult && (
+            <Button
+              variant="contained"
+              onClick={() => sendAssignmentsMutation.mutate()}
+              disabled={sendAssignmentsMutation.isPending}
+            >
+              {sendAssignmentsMutation.isPending ? "שולח..." : "שליחת שיבוצים"}
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
 
