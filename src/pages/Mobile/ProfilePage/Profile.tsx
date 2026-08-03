@@ -35,6 +35,12 @@ import mentorAssignmentService from "../../../services/mentorAssignment.service"
 import { AUTH_ROLES } from "../../../constants/auth.const";
 import { calculateAge, formatDate } from "../../../utils/data.utillity";
 import { decodeUnicodeEscapes } from "../../../utils/text.util";
+import {
+  getNewPasswordValidationError,
+  getPasswordChangeErrorMessage,
+  normalizeNewPassword,
+  PASSWORD_POLICY_MESSAGE,
+} from "../../../utils/password.util";
 import { BottomNav } from "../../../components/BottomNav/BottomNav";
 import {
   useCurrentUserProfile,
@@ -256,8 +262,19 @@ export const ProfilePage: React.FC = () => {
       return;
     }
 
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+    const newPassword = normalizeNewPassword(passwordForm.newPassword);
+    const confirmPassword = normalizeNewPassword(
+      passwordForm.confirmPassword,
+    );
+
+    if (newPassword !== confirmPassword) {
       setPasswordError("אימות הסיסמה אינו תואם");
+      return;
+    }
+
+    const validationError = getNewPasswordValidationError(newPassword);
+    if (validationError) {
+      setPasswordError(validationError);
       return;
     }
 
@@ -265,11 +282,20 @@ export const ProfilePage: React.FC = () => {
     setPasswordError("");
 
     try {
-      await changePassword(passwordForm);
+      await changePassword({
+        ...passwordForm,
+        newPassword,
+        confirmPassword,
+      });
       setPasswordForm(INITIAL_PASSWORD_FORM);
       setIsPasswordDialogOpen(false);
-    } catch {
-      setPasswordError("לא הצלחנו לעדכן את הסיסמה");
+    } catch (error) {
+      setPasswordError(
+        getPasswordChangeErrorMessage(
+          error,
+          "לא הצלחנו לעדכן את הסיסמה",
+        ),
+      );
     } finally {
       setIsPasswordSaving(false);
     }
@@ -581,7 +607,7 @@ const PasswordChangeDialog: React.FC<{
           value={form.newPassword}
           visible={visibleFields.newPassword}
           autoComplete="new-password"
-          helperText="לפחות 10 תווים, אותיות גדולות וקטנות, מספר וסימן."
+          helperText={PASSWORD_POLICY_MESSAGE}
           onChange={onChange("newPassword")}
           onToggleVisible={() => onToggleVisible("newPassword")}
         />
