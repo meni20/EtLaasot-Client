@@ -1,9 +1,22 @@
-import { Box, Button, Chip, IconButton, Typography } from "@mui/material";
+import { useState } from "react";
+import {
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Dialog,
+  IconButton,
+  Typography,
+} from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import EventIcon from "@mui/icons-material/Event";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import CloseIcon from "@mui/icons-material/Close";
+import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
 import EventBusyOutlinedIcon from "@mui/icons-material/EventBusyOutlined";
+import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
+import BrokenImageOutlinedIcon from "@mui/icons-material/BrokenImageOutlined";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
@@ -66,6 +79,27 @@ const formatTime = (date: Date | string) => {
   ).padStart(2, "0")}`;
 };
 
+const getImageExtension = (contentType: string) => {
+  const extensions: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+  };
+
+  return extensions[contentType.toLowerCase()] ?? "jpg";
+};
+
+const getSafeImageFilename = (eventName: string, contentType: string) => {
+  const safeName = decodeUnicodeEscapes(eventName)
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80);
+
+  return `${safeName || "event-image"}.${getImageExtension(contentType)}`;
+};
+
 export const EventDetailsMobile: React.FC = () => {
   const styles = useStyles();
   const navigate = useNavigate();
@@ -73,6 +107,10 @@ export const EventDetailsMobile: React.FC = () => {
   const queryClient = useQueryClient();
   const { allEvents } = useMobileEvents();
   const { user } = useAuth();
+  const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
+  const [imageLoadFailed, setImageLoadFailed] = useState(false);
+  const [isDownloadingImage, setIsDownloadingImage] = useState(false);
+  const [downloadError, setDownloadError] = useState(false);
 
   const event = allEvents.find((currentEvent) => currentEvent.id === eventId);
 
@@ -133,6 +171,51 @@ export const EventDetailsMobile: React.FC = () => {
     : ATTENDANCE_OPTIONS;
   const hasImageBackground = Boolean(event?.imageUrl);
 
+  const handleOpenImageViewer = () => {
+    setImageLoadFailed(false);
+    setDownloadError(false);
+    setIsImageViewerOpen(true);
+  };
+
+  const handleCloseImageViewer = () => {
+    setIsImageViewerOpen(false);
+  };
+
+  const handleDownloadImage = async () => {
+    if (!event?.imageUrl || isDownloadingImage) return;
+
+    setIsDownloadingImage(true);
+    setDownloadError(false);
+
+    try {
+      const response = await fetch(event.imageUrl);
+      if (!response.ok) throw new Error("Image download failed");
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const downloadLink = document.createElement("a");
+      downloadLink.href = objectUrl;
+      downloadLink.download = getSafeImageFilename(event.name, blob.type);
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      downloadLink.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+    } catch {
+      setDownloadError(true);
+
+      const fallbackLink = document.createElement("a");
+      fallbackLink.href = event.imageUrl;
+      fallbackLink.download = getSafeImageFilename(event.name, "image/jpeg");
+      fallbackLink.target = "_blank";
+      fallbackLink.rel = "noopener noreferrer";
+      document.body.appendChild(fallbackLink);
+      fallbackLink.click();
+      fallbackLink.remove();
+    } finally {
+      setIsDownloadingImage(false);
+    }
+  };
+
   return (
     <Box className={styles.root}>
       <Box className={styles.detailsHeader}>
@@ -144,7 +227,17 @@ export const EventDetailsMobile: React.FC = () => {
           <ArrowForwardIcon />
         </IconButton>
         <Typography className={styles.detailsHeaderTitle}>פרטי אירוע</Typography>
-        <Box />
+        {event?.imageUrl ? (
+          <IconButton
+            className={styles.detailsImageButton}
+            onClick={handleOpenImageViewer}
+            aria-label="הצגת תמונת האירוע"
+          >
+            <ImageOutlinedIcon />
+          </IconButton>
+        ) : (
+          <Box />
+        )}
       </Box>
 
       {!event ? (
@@ -258,6 +351,71 @@ export const EventDetailsMobile: React.FC = () => {
             </Box>
           )}
         </Box>
+      )}
+
+      {event?.imageUrl && (
+        <Dialog
+          open={isImageViewerOpen}
+          onClose={handleCloseImageViewer}
+          fullScreen
+          aria-labelledby="event-image-viewer-title"
+          PaperProps={{ className: styles.imageViewerPaper }}
+        >
+          <Box className={styles.imageViewerHeader}>
+            <Typography
+              id="event-image-viewer-title"
+              className={styles.imageViewerTitle}
+            >
+              {decodeUnicodeEscapes(event.name)}
+            </Typography>
+            <IconButton
+              className={styles.imageViewerCloseButton}
+              onClick={handleCloseImageViewer}
+              aria-label="סגירת תמונת האירוע"
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+
+          <Box className={styles.imageViewerContent}>
+            {imageLoadFailed ? (
+              <Box className={styles.imageViewerError} role="alert">
+                <BrokenImageOutlinedIcon className={styles.imageViewerErrorIcon} />
+                <Typography>לא הצלחנו לטעון את התמונה</Typography>
+              </Box>
+            ) : (
+              <img
+                src={event.imageUrl}
+                alt={`תמונה עבור ${decodeUnicodeEscapes(event.name)}`}
+                className={styles.imageViewerImage}
+                onError={() => setImageLoadFailed(true)}
+              />
+            )}
+          </Box>
+
+          <Box className={styles.imageViewerActions}>
+            <Button
+              variant="contained"
+              className={styles.imageDownloadButton}
+              startIcon={
+                isDownloadingImage ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <DownloadOutlinedIcon />
+                )
+              }
+              onClick={handleDownloadImage}
+              disabled={isDownloadingImage || imageLoadFailed}
+            >
+              שמירה לגלריה
+            </Button>
+            {downloadError && (
+              <Typography className={styles.imageDownloadHint} role="status">
+                התמונה נפתחה בחלון חדש. ניתן לשמור אותה משם.
+              </Typography>
+            )}
+          </Box>
+        </Dialog>
       )}
 
       <BottomNav />
