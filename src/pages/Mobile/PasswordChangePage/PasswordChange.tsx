@@ -13,6 +13,12 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/useAuth";
+import {
+  getNewPasswordValidationError,
+  getPasswordChangeErrorMessage,
+  normalizeNewPassword,
+  PASSWORD_POLICY_MESSAGE,
+} from "../../../utils/password.util";
 
 type FieldName = "currentPassword" | "newPassword" | "confirmPassword";
 
@@ -53,8 +59,17 @@ export const PasswordChangePage: React.FC = () => {
       return;
     }
 
-    if (form.newPassword !== form.confirmPassword) {
+    const newPassword = normalizeNewPassword(form.newPassword);
+    const confirmPassword = normalizeNewPassword(form.confirmPassword);
+
+    if (newPassword !== confirmPassword) {
       setError("אימות הסיסמה אינו תואם");
+      return;
+    }
+
+    const validationError = getNewPasswordValidationError(newPassword);
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -62,10 +77,19 @@ export const PasswordChangePage: React.FC = () => {
     setError("");
 
     try {
-      await changePassword(form);
+      await changePassword({
+        ...form,
+        newPassword,
+        confirmPassword,
+      });
       navigate("/", { replace: true });
-    } catch {
-      setError("לא הצלחנו לעדכן את הסיסמה. ודאו שהסיסמה הנוכחית נכונה ושהסיסמה החדשה חזקה מספיק.");
+    } catch (error) {
+      setError(
+        getPasswordChangeErrorMessage(
+          error,
+          "לא הצלחנו לעדכן את הסיסמה. ודאו שהסיסמה הנוכחית נכונה.",
+        ),
+      );
     } finally {
       setLoading(false);
     }
@@ -139,7 +163,7 @@ export const PasswordChangePage: React.FC = () => {
             value={form.newPassword}
             visible={visibleFields.newPassword}
             autoComplete="new-password"
-            helperText="לפחות 10 תווים, אותיות גדולות וקטנות, מספר וסימן."
+            helperText={PASSWORD_POLICY_MESSAGE}
             onChange={handleChange("newPassword")}
             onToggleVisible={() => toggleVisible("newPassword")}
           />

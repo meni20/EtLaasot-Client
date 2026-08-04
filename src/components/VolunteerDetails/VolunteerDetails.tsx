@@ -32,6 +32,7 @@ import BadgeRoundedIcon from "@mui/icons-material/BadgeRounded";
 import WcRoundedIcon from "@mui/icons-material/WcRounded";
 import CheckroomRoundedIcon from "@mui/icons-material/CheckroomRounded";
 import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
+import HealthAndSafetyRoundedIcon from "@mui/icons-material/HealthAndSafetyRounded";
 import FamilyRestroomRoundedIcon from "@mui/icons-material/FamilyRestroomRounded";
 import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
 import LockResetRoundedIcon from "@mui/icons-material/LockResetRounded";
@@ -70,6 +71,7 @@ type UserDetailsFormState = {
   gender: UserGender | "";
   shirtSize: ShirtSize | "";
   customShirtSize: string;
+  allergies: string;
   notes: string;
   parentName: string;
   phoneNumber: string;
@@ -109,6 +111,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
     gender: "",
     shirtSize: "",
     customShirtSize: "",
+    allergies: "",
     notes: "",
     parentName: "",
     phoneNumber: "",
@@ -559,6 +562,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
       gender: selectedUser.gender ?? "",
       shirtSize: selectedUser.shirtSize ?? "",
       customShirtSize: selectedUser.customShirtSize ?? "",
+      allergies: selectedUser.allergies ?? "",
       notes: selectedUser.notes ?? "",
       parentName: selectedUser.parentName ?? "",
       phoneNumber: selectedUser.phoneNumber ?? "",
@@ -622,6 +626,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
       shirtSize: form.shirtSize || null,
       customShirtSize:
         form.shirtSize === "OTHER" ? form.customShirtSize.trim() || null : null,
+      allergies: form.allergies.trim() || null,
       notes: form.notes.trim() || null,
       ...(showParentName ? { parentName: form.parentName.trim() || null } : {}),
       phoneNumber,
@@ -776,6 +781,17 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               }
               label="הערות"
               value={selectedUser?.notes?.trim() || "-"}
+            />
+            <Divider />
+            <Row
+              icon={
+                <HealthAndSafetyRoundedIcon
+                  className={classes.rowIcon}
+                  fontSize="small"
+                />
+              }
+              label="אלרגיות"
+              value={selectedUser?.allergies?.trim() || "לא צוין"}
             />
             {showParentName && (
               <>
@@ -1314,6 +1330,15 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
                 inputProps={{ maxLength: 50 }}
               />
             )}
+            <TextField
+              fullWidth
+              label="אלרגיות"
+              value={form.allergies}
+              onChange={handleFormChange("allergies")}
+              multiline
+              minRows={2}
+              inputProps={{ maxLength: 1000 }}
+            />
             <TextField
               fullWidth
               label="הערות"

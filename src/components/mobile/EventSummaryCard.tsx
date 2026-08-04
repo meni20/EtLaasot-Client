@@ -42,14 +42,27 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
   const eventType = event.eventType ? EVENT_TYPES[event.eventType] : undefined;
   const eventName = decodeUnicodeEscapes(event.name);
   const eventAddress = decodeUnicodeEscapes(event.address);
+  const hasImageBackground = Boolean(event.imageUrl);
 
   return (
     <Box
       onClick={onClick}
       sx={{
+        position: "relative",
+        overflow: "hidden",
+        boxSizing: "border-box",
+        width: "100%",
+        maxWidth: "100%",
+        minHeight: 220,
         borderRadius: "20px",
-        p: 2.25,
-        backgroundColor: "#fff",
+        p: 2.5,
+        backgroundColor: hasImageBackground ? "#252027" : "#fff",
+        backgroundImage: hasImageBackground
+          ? `linear-gradient(180deg, rgba(12, 9, 13, 0.54) 0%, rgba(12, 9, 13, 0.68) 100%), url("${event.imageUrl}")`
+          : "none",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
         cursor: onClick ? "pointer" : "default",
         transition: "transform 0.18s ease, box-shadow 0.18s ease",
@@ -62,7 +75,12 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
           : undefined,
       }}
     >
-      <Stack direction="row" alignItems="flex-start" spacing={1}>
+      <Stack
+        direction="row"
+        alignItems="flex-start"
+        spacing={1}
+        sx={{ position: "relative", zIndex: 1, minWidth: 0 }}
+      >
         <Box sx={{ minWidth: 0, flex: 1 }}>
           {eventType && (
             <Chip
@@ -71,8 +89,10 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
               sx={{
                 height: 24,
                 borderRadius: "999px",
-                backgroundColor: "#F3EAF7",
-                color: "#7B3F98",
+                backgroundColor: hasImageBackground
+                  ? "rgba(255, 255, 255, 0.92)"
+                  : "#F3EAF7",
+                color: hasImageBackground ? "#6D3860" : "#7B3F98",
                 fontSize: 11,
                 fontWeight: 700,
                 fontFamily: "Rubik, sans-serif",
@@ -85,7 +105,12 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
               mt: eventType ? 1 : 0,
               fontWeight: 700,
               fontSize: 16,
-              color: "#1F1F1F",
+              lineHeight: 1.4,
+              overflowWrap: "anywhere",
+              color: hasImageBackground ? "#fff" : "#1F1F1F",
+              textShadow: hasImageBackground
+                ? "0 1px 4px rgba(0, 0, 0, 0.55)"
+                : "none",
               fontFamily: "Rubik, sans-serif",
             }}
           >
@@ -95,8 +120,13 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
           <Typography
             sx={{
               fontSize: 12,
-              color: "#6B7280",
+              color: hasImageBackground
+                ? "rgba(255, 255, 255, 0.94)"
+                : "#6B7280",
               mt: 0.5,
+              textShadow: hasImageBackground
+                ? "0 1px 3px rgba(0, 0, 0, 0.55)"
+                : "none",
               fontFamily: "Rubik, sans-serif",
             }}
           >
@@ -107,8 +137,14 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
             <Typography
               sx={{
                 fontSize: 12,
-                color: "#6B7280",
+                color: hasImageBackground
+                  ? "rgba(255, 255, 255, 0.94)"
+                  : "#6B7280",
                 mt: 0.5,
+                overflowWrap: "anywhere",
+                textShadow: hasImageBackground
+                  ? "0 1px 3px rgba(0, 0, 0, 0.55)"
+                  : "none",
                 fontFamily: "Rubik, sans-serif",
               }}
             >
@@ -147,7 +183,16 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
         </Box>
 
         {showChevron && (
-          <ChevronLeftIcon sx={{ color: "#9CA3AF", mt: 0.75 }} />
+          <ChevronLeftIcon
+            sx={{
+              color: hasImageBackground ? "#fff" : "#9CA3AF",
+              mt: 0.75,
+              flexShrink: 0,
+              filter: hasImageBackground
+                ? "drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55))"
+                : "none",
+            }}
+          />
         )}
       </Stack>
     </Box>
