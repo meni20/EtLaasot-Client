@@ -46,6 +46,16 @@ const AppRouter: React.FC = () => {
     [userRoleIds],
   );
 
+  const filteredDesktopRoutes = useMemo(
+    () =>
+      DESKTOP_ROUTES.filter(
+        (route) =>
+          !route.allowedRoles ||
+          route.allowedRoles.some((id) => userRoleIds.includes(id)),
+      ),
+    [userRoleIds],
+  );
+
   if (loading) {
     return (
       <Box
@@ -111,7 +121,7 @@ const AppRouter: React.FC = () => {
         >
           <Suspense fallback={<RouteLoading />}>
             <Routes>
-              {DESKTOP_ROUTES.map(({ path, element }) => (
+              {filteredDesktopRoutes.map(({ path, element }) => (
                 <Route key={path} path={path} element={element} />
               ))}
               <Route path="*" element={<Navigate to="/" replace />} />

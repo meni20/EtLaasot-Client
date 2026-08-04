@@ -10,6 +10,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { menuItems } from "./SideMenu.constants";
 import { useSideMenuStyles } from "./SIdeMenu.styles";
 import { type SideMenuProps } from "./SideMenu.interface";
+import { useAuth } from "../../contexts/useAuth";
 
 export const SideMenu: React.FC<SideMenuProps> = ({
   open,
@@ -19,8 +20,15 @@ export const SideMenu: React.FC<SideMenuProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const classes = useSideMenuStyles();
+  const { user } = useAuth();
   const collapsed = persistent && !open;
   const drawerOpen = persistent || open;
+  const userRoleIds = user?.roles?.map((role) => role.roleId) ?? [];
+  const visibleMenuItems = menuItems.filter(
+    (item) =>
+      !item.allowedRoles ||
+      item.allowedRoles.some((roleId) => userRoleIds.includes(roleId)),
+  );
 
   const isActiveRoute = (path: string) => {
     if (path === "/dashboard") {
@@ -48,7 +56,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({
       <List
         className={`${classes.list} ${collapsed ? classes.collapsedList : ""}`}
       >
-        {menuItems.map((item) => {
+        {visibleMenuItems.map((item) => {
           const isActive = isActiveRoute(item.path);
 
           return (

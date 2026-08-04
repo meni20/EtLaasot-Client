@@ -37,7 +37,9 @@ export class EventService {
     branchId: string,
     monthKey: string,
   ): Promise<ICalendarMonthBackground | null> {
-    const res = await this.api.get(`/calendar-background/${branchId}/${monthKey}`);
+    const res = await this.api.get(
+      `/calendar-background/${branchId}/${monthKey}`,
+    );
     return res.data;
   }
 
@@ -113,6 +115,13 @@ export class EventService {
     eventId: string,
   ): Promise<IEventParticipants> {
     const res = await this.api.get(`/${eventId}/participants`);
+    return res.data;
+  }
+
+  public async getPrintableEventParticipants(
+    eventId: string,
+  ): Promise<IEventParticipants> {
+    const res = await this.api.get(`/${eventId}/participants/print`);
     return res.data;
   }
 

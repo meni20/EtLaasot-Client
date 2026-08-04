@@ -530,6 +530,30 @@ export const useStyles = makeStyles({
       pageBreakInside: "avoid" as const,
     },
   },
+  printParticipantDetails: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: 2,
+    minWidth: 0,
+  },
+  printParticipantName: {
+    fontFamily: "Rubik, Arial, sans-serif",
+    fontSize: 13,
+    fontWeight: 700,
+    lineHeight: 1.35,
+    color: "#111",
+  },
+  printParticipantMeta: {
+    fontFamily: "Rubik, Arial, sans-serif",
+    fontSize: 11.5,
+    fontWeight: 400,
+    lineHeight: 1.35,
+    color: "#333",
+    overflowWrap: "anywhere" as const,
+  },
+  printParticipantLabel: {
+    fontWeight: 700,
+  },
   printEmptyText: {
     fontFamily: "Rubik, Arial, sans-serif",
     fontSize: 13,
@@ -539,6 +563,9 @@ export const useStyles = makeStyles({
     padding: "10px 12px",
     backgroundColor: "#fafafa",
   },
+  printHost: {
+    display: "none",
+  },
   "@media print": {
     "@page": {
       size: "A4 portrait",
@@ -546,19 +573,27 @@ export const useStyles = makeStyles({
     },
     "@global": {
       "html, body": {
-        width: "210mm",
-        minHeight: "297mm",
+        width: "auto !important",
+        minHeight: "auto !important",
+        margin: "0 !important",
+        overflow: "visible !important",
         background: "#fff !important",
       },
-      "body *": {
-        visibility: "hidden !important",
+      "body > *:not(.shabbat-print-host)": {
+        display: "none !important",
       },
-      ".shabbat-print-root, .shabbat-print-root *": {
+      ".shabbat-print-host, .shabbat-print-host *": {
         visibility: "visible !important",
       },
+      ".shabbat-print-host": {
+        display: "block !important",
+        position: "static !important",
+        width: "100% !important",
+        minHeight: "0 !important",
+        overflow: "visible !important",
+      },
       ".shabbat-print-root": {
-        position: "absolute !important",
-        inset: "0 auto auto 0 !important",
+        position: "static !important",
         width: "100% !important",
         maxWidth: "none !important",
         margin: "0 !important",
@@ -570,6 +605,9 @@ export const useStyles = makeStyles({
       ".MuiBackdrop-root, .MuiDialogActions-root": {
         display: "none !important",
       },
+    },
+    printHost: {
+      display: "block !important",
     },
     printPreviewDialogPaper: {
       boxShadow: "none !important",
