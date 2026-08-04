@@ -10,6 +10,7 @@ import {
   DialogTitle,
   IconButton,
   InputAdornment,
+  MenuItem,
   TextField,
   Typography,
 } from "@mui/material";
@@ -27,14 +28,26 @@ import CloseIcon from "@mui/icons-material/Close";
 import LockResetIcon from "@mui/icons-material/LockReset";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import CheckroomOutlinedIcon from "@mui/icons-material/CheckroomOutlined";
+import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/useAuth";
 import { useBranch } from "../../../contexts/useBranch";
 import mentorAssignmentService from "../../../services/mentorAssignment.service";
 import { AUTH_ROLES } from "../../../constants/auth.const";
+import {
+  formatShirtSize,
+  SHIRT_SIZE_OPTIONS,
+} from "../../../constants/user.constants";
 import { calculateAge, formatDate } from "../../../utils/data.utillity";
 import { decodeUnicodeEscapes } from "../../../utils/text.util";
+import {
+  getNewPasswordValidationError,
+  getPasswordChangeErrorMessage,
+  normalizeNewPassword,
+  PASSWORD_POLICY_MESSAGE,
+} from "../../../utils/password.util";
 import { BottomNav } from "../../../components/BottomNav/BottomNav";
 import {
   useCurrentUserProfile,
@@ -42,6 +55,7 @@ import {
 } from "../../../hooks/useCurrentUserProfile";
 import { useStyles } from "./Profile.styles";
 import type { IMentorAssignment } from "../../../interfaces/event.interface";
+import type { ShirtSize } from "../../../interfaces/user.interface";
 
 const ROLE_LABELS: Record<number, string> = {
   [AUTH_ROLES.SUPER_ADMIN.id]: "מנהל על",
@@ -57,6 +71,9 @@ type ProfileFormState = {
   email: string;
   phoneNumber: string;
   address: string;
+  shirtSize: ShirtSize | "";
+  customShirtSize: string;
+  allergies: string;
 };
 
 type PasswordFormState = {
@@ -85,6 +102,9 @@ export const ProfilePage: React.FC = () => {
     email: "",
     phoneNumber: "",
     address: "",
+    shirtSize: "",
+    customShirtSize: "",
+    allergies: "",
   });
   const [formError, setFormError] = useState("");
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
@@ -145,6 +165,11 @@ export const ProfilePage: React.FC = () => {
   const profileEmail = decodeUnicodeEscapes(currentProfile?.email);
   const profilePhone = decodeUnicodeEscapes(currentProfile?.phoneNumber);
   const profileAddress = decodeUnicodeEscapes(currentProfile?.address);
+  const profileShirtSize = formatShirtSize(
+    currentProfile?.shirtSize,
+    currentProfile?.customShirtSize,
+  );
+  const profileAllergies = decodeUnicodeEscapes(currentProfile?.allergies);
   const profileAge = calculateAge(
     currentProfile?.dateOfBirth,
     currentProfile?.age,
@@ -156,9 +181,20 @@ export const ProfilePage: React.FC = () => {
       email: profileEmail,
       phoneNumber: profilePhone,
       address: profileAddress,
+      shirtSize: currentProfile?.shirtSize ?? "",
+      customShirtSize: currentProfile?.customShirtSize ?? "",
+      allergies: profileAllergies,
     });
     setFormError("");
-  }, [isEditDialogOpen, profileAddress, profileEmail, profilePhone]);
+  }, [
+    currentProfile?.customShirtSize,
+    currentProfile?.shirtSize,
+    isEditDialogOpen,
+    profileAddress,
+    profileAllergies,
+    profileEmail,
+    profilePhone,
+  ]);
 
   const handleOpenEditDialog = () => {
     setIsEditDialogOpen(true);
@@ -176,6 +212,9 @@ export const ProfilePage: React.FC = () => {
       setProfileForm((current) => ({
         ...current,
         [field]: event.target.value,
+        ...(field === "shirtSize" && event.target.value !== "OTHER"
+          ? { customShirtSize: "" }
+          : {}),
       }));
     };
 
@@ -205,6 +244,12 @@ export const ProfilePage: React.FC = () => {
         email: nextEmail || null,
         phoneNumber: nextPhone,
         address: nextAddress || null,
+        shirtSize: profileForm.shirtSize || null,
+        customShirtSize:
+          profileForm.shirtSize === "OTHER"
+            ? profileForm.customShirtSize.trim() || null
+            : null,
+        allergies: profileForm.allergies.trim() || null,
       },
       {
         onSuccess: () => {
@@ -256,8 +301,19 @@ export const ProfilePage: React.FC = () => {
       return;
     }
 
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+    const newPassword = normalizeNewPassword(passwordForm.newPassword);
+    const confirmPassword = normalizeNewPassword(
+      passwordForm.confirmPassword,
+    );
+
+    if (newPassword !== confirmPassword) {
       setPasswordError("אימות הסיסמה אינו תואם");
+      return;
+    }
+
+    const validationError = getNewPasswordValidationError(newPassword);
+    if (validationError) {
+      setPasswordError(validationError);
       return;
     }
 
@@ -265,11 +321,20 @@ export const ProfilePage: React.FC = () => {
     setPasswordError("");
 
     try {
-      await changePassword(passwordForm);
+      await changePassword({
+        ...passwordForm,
+        newPassword,
+        confirmPassword,
+      });
       setPasswordForm(INITIAL_PASSWORD_FORM);
       setIsPasswordDialogOpen(false);
-    } catch {
-      setPasswordError("לא הצלחנו לעדכן את הסיסמה");
+    } catch (error) {
+      setPasswordError(
+        getPasswordChangeErrorMessage(
+          error,
+          "לא הצלחנו לעדכן את הסיסמה",
+        ),
+      );
     } finally {
       setIsPasswordSaving(false);
     }
@@ -340,6 +405,18 @@ export const ProfilePage: React.FC = () => {
             icon={<HomeIcon fontSize="small" />}
             label="כתובת"
             value={profileAddress || "לא הוגדרה"}
+            styles={styles}
+          />
+          <InfoRow
+            icon={<CheckroomOutlinedIcon fontSize="small" />}
+            label="מידת חולצה"
+            value={profileShirtSize === "-" ? "לא הוגדרה" : profileShirtSize}
+            styles={styles}
+          />
+          <InfoRow
+            icon={<HealthAndSafetyOutlinedIcon fontSize="small" />}
+            label="אלרגיות"
+            value={profileAllergies || "לא צוין"}
             styles={styles}
           />
           {profileAge !== undefined && profileAge !== null && (
@@ -506,6 +583,38 @@ const ProfileEditDialog: React.FC<{
             helperText={error || "אפשר להשאיר אימייל או כתובת ריקים כדי למחוק אותם"}
             onChange={onChange("address")}
           />
+          <TextField
+            select
+            fullWidth
+            label="מידת חולצה"
+            value={form.shirtSize}
+            onChange={onChange("shirtSize")}
+          >
+            <MenuItem value="">-</MenuItem>
+            {SHIRT_SIZE_OPTIONS.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </TextField>
+          {form.shirtSize === "OTHER" && (
+            <TextField
+              fullWidth
+              label="מידה אחרת"
+              value={form.customShirtSize}
+              inputProps={{ maxLength: 50 }}
+              onChange={onChange("customShirtSize")}
+            />
+          )}
+          <TextField
+            fullWidth
+            multiline
+            minRows={2}
+            label="אלרגיות"
+            value={form.allergies}
+            inputProps={{ maxLength: 1000 }}
+            onChange={onChange("allergies")}
+          />
         </Box>
       </DialogContent>
       <DialogActions className={styles.dialogActions}>
@@ -581,7 +690,7 @@ const PasswordChangeDialog: React.FC<{
           value={form.newPassword}
           visible={visibleFields.newPassword}
           autoComplete="new-password"
-          helperText="לפחות 10 תווים, אותיות גדולות וקטנות, מספר וסימן."
+          helperText={PASSWORD_POLICY_MESSAGE}
           onChange={onChange("newPassword")}
           onToggleVisible={() => onToggleVisible("newPassword")}
         />

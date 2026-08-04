@@ -8,7 +8,12 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import type { IAttendees, IEventParticipants } from "../../interfaces/event.interface";
+import type {
+  IAttendees,
+  IEventParticipants,
+} from "../../interfaces/event.interface";
+import type { IUser } from "../../interfaces/user.interface";
+import { formatShirtSize } from "../../constants/user.constants";
 import type { useStyles } from "./EventAtendeeDialog.styles";
 
 type ShabbatSheetClasses = ReturnType<typeof useStyles>;
@@ -21,6 +26,7 @@ interface IEventShabbatSheetProps {
   endDate?: Date | string;
   address?: string;
   branchName?: string;
+  printRoot?: boolean;
 }
 
 const toDate = (value?: Date | string) => {
@@ -63,13 +69,49 @@ const formatTime = (value?: Date | string) => {
 
 const getName = (name?: string | null) => name || "-";
 
+const renderParticipant = (
+  user: IUser | undefined,
+  classes: ShabbatSheetClasses,
+) => {
+  const allergies = user?.allergies?.trim();
+  const shirtSize = user?.shirtSize
+    ? formatShirtSize(user.shirtSize, user.customShirtSize)
+    : null;
+
+  return (
+    <Box className={classes.printParticipantDetails}>
+      <Typography className={classes.printParticipantName}>
+        {getName(user?.name)}
+      </Typography>
+      {shirtSize && (
+        <Typography className={classes.printParticipantMeta}>
+          <Box component="span" className={classes.printParticipantLabel}>
+            מידת חולצה:
+          </Box>{" "}
+          {shirtSize}
+        </Typography>
+      )}
+      {allergies && (
+        <Typography className={classes.printParticipantMeta}>
+          <Box component="span" className={classes.printParticipantLabel}>
+            אלרגיות:
+          </Box>{" "}
+          {allergies}
+        </Typography>
+      )}
+    </Box>
+  );
+};
+
 const renderAttendeeNames = (
   attendees: IAttendees[],
   emptyText: string,
   classes: ShabbatSheetClasses,
 ) => {
   if (attendees.length === 0) {
-    return <Typography className={classes.printEmptyText}>{emptyText}</Typography>;
+    return (
+      <Typography className={classes.printEmptyText}>{emptyText}</Typography>
+    );
   }
 
   return (
@@ -77,7 +119,7 @@ const renderAttendeeNames = (
       <TableBody>
         {attendees.map((attendee) => (
           <TableRow key={attendee.id ?? attendee.userId}>
-            <TableCell>{getName(attendee.user?.name)}</TableCell>
+            <TableCell>{renderParticipant(attendee.user, classes)}</TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -93,6 +135,7 @@ export const EventShabbatSheet: React.FC<IEventShabbatSheetProps> = ({
   endDate,
   address,
   branchName,
+  printRoot = false,
 }) => {
   const paired = participants?.paired ?? [];
   const unpairedMentors = participants?.unpairedMentors ?? [];
@@ -102,13 +145,19 @@ export const EventShabbatSheet: React.FC<IEventShabbatSheetProps> = ({
     { label: "אירוע", value: eventName || "-" },
     { label: "תאריך", value: formatDate(startDate) },
     { label: "תאריך עברי", value: formatHebrewDate(startDate) },
-    { label: "שעה", value: `${formatTime(startDate)} - ${formatTime(endDate)}` },
+    {
+      label: "שעה",
+      value: `${formatTime(startDate)} - ${formatTime(endDate)}`,
+    },
     { label: "סניף", value: branchName || "-" },
     { label: "מיקום", value: address || "-" },
   ];
 
   return (
-    <Box className={`${classes.shabbatSheet} shabbat-print-root`} dir="rtl">
+    <Box
+      className={`${classes.shabbatSheet}${printRoot ? " shabbat-print-root" : ""}`}
+      dir="rtl"
+    >
       <Box className={classes.printTitleBlock}>
         <Typography className={classes.printOrgTitle}>עת לעשות</Typography>
         <Typography className={classes.printDocumentTitle}>דף שבת</Typography>
@@ -117,8 +166,12 @@ export const EventShabbatSheet: React.FC<IEventShabbatSheetProps> = ({
       <Box className={classes.printEventInfoGrid}>
         {eventInfo.map((item) => (
           <Box key={item.label} className={classes.printEventInfoItem}>
-            <Typography className={classes.printInfoLabel}>{item.label}</Typography>
-            <Typography className={classes.printInfoValue}>{item.value}</Typography>
+            <Typography className={classes.printInfoLabel}>
+              {item.label}
+            </Typography>
+            <Typography className={classes.printInfoValue}>
+              {item.value}
+            </Typography>
           </Box>
         ))}
       </Box>
@@ -126,7 +179,9 @@ export const EventShabbatSheet: React.FC<IEventShabbatSheetProps> = ({
       <Box className={classes.printSection}>
         <Typography className={classes.printSectionTitle}>משובצים</Typography>
         {paired.length === 0 ? (
-          <Typography className={classes.printEmptyText}>אין משובצים</Typography>
+          <Typography className={classes.printEmptyText}>
+            אין משובצים
+          </Typography>
         ) : (
           <Table size="small" className={classes.printTable}>
             <TableHead>
@@ -138,8 +193,12 @@ export const EventShabbatSheet: React.FC<IEventShabbatSheetProps> = ({
             <TableBody>
               {paired.map((pair) => (
                 <TableRow key={pair.id}>
-                  <TableCell>{getName(pair.mentor?.name)}</TableCell>
-                  <TableCell>{getName(pair.trainee?.name)}</TableCell>
+                  <TableCell>
+                    {renderParticipant(pair.mentor, classes)}
+                  </TableCell>
+                  <TableCell>
+                    {renderParticipant(pair.trainee, classes)}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -148,21 +207,17 @@ export const EventShabbatSheet: React.FC<IEventShabbatSheetProps> = ({
       </Box>
 
       <Box className={classes.printSection}>
-        <Typography className={classes.printSectionTitle}>חונכים ללא חניך</Typography>
-        {renderAttendeeNames(
-          unpairedMentors,
-          "אין חונכים ללא חניך",
-          classes,
-        )}
+        <Typography className={classes.printSectionTitle}>
+          חונכים ללא חניך
+        </Typography>
+        {renderAttendeeNames(unpairedMentors, "אין חונכים ללא חניך", classes)}
       </Box>
 
       <Box className={classes.printSection}>
-        <Typography className={classes.printSectionTitle}>חניכים ללא חונך</Typography>
-        {renderAttendeeNames(
-          unpairedTrainees,
-          "אין חניכים ללא חונך",
-          classes,
-        )}
+        <Typography className={classes.printSectionTitle}>
+          חניכים ללא חונך
+        </Typography>
+        {renderAttendeeNames(unpairedTrainees, "אין חניכים ללא חונך", classes)}
       </Box>
     </Box>
   );

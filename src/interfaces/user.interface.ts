@@ -17,6 +17,7 @@ export interface IUser {
   dateOfBirth?: string | null;
   shirtSize?: ShirtSize | "" | null;
   customShirtSize?: string | null;
+  allergies?: string | null;
   notes?: string | null;
   parentName?: string | null;
   branchId?: string;
@@ -54,6 +55,7 @@ export interface ICurrentUserProfile {
   dateOfBirth?: string | null;
   shirtSize?: ShirtSize | null;
   customShirtSize?: string | null;
+  allergies?: string | null;
   branchId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -63,6 +65,9 @@ export interface IUpdateCurrentUserProfilePayload {
   email?: string | null;
   phoneNumber?: string;
   address?: string | null;
+  shirtSize?: ShirtSize | null;
+  customShirtSize?: string | null;
+  allergies?: string | null;
 }
 
 export interface IUpdateUserPayload {
@@ -71,6 +76,7 @@ export interface IUpdateUserPayload {
   gender?: UserGender | null;
   shirtSize?: ShirtSize | null;
   customShirtSize?: string | null;
+  allergies?: string | null;
   notes?: string | null;
   parentName?: string | null;
   phoneNumber: string;

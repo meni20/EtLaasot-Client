@@ -40,6 +40,12 @@ import {
   formatMaskedNationalId,
 } from "../../utils/data.utillity";
 import { decodeUnicodeEscapes } from "../../utils/text.util";
+import {
+  getNewPasswordValidationError,
+  getPasswordChangeErrorMessage,
+  normalizeNewPassword,
+  PASSWORD_POLICY_MESSAGE,
+} from "../../utils/password.util";
 
 type PasswordFormState = {
   currentPassword: string;
@@ -138,8 +144,19 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
       return;
     }
 
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+    const newPassword = normalizeNewPassword(passwordForm.newPassword);
+    const confirmPassword = normalizeNewPassword(
+      passwordForm.confirmPassword,
+    );
+
+    if (newPassword !== confirmPassword) {
       setPasswordError("אימות הסיסמה אינו תואם");
+      return;
+    }
+
+    const validationError = getNewPasswordValidationError(newPassword);
+    if (validationError) {
+      setPasswordError(validationError);
       return;
     }
 
@@ -147,11 +164,20 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
     setPasswordError("");
 
     try {
-      await changePassword(passwordForm);
+      await changePassword({
+        ...passwordForm,
+        newPassword,
+        confirmPassword,
+      });
       setPasswordForm(INITIAL_PASSWORD_FORM);
       setIsPasswordDialogOpen(false);
-    } catch {
-      setPasswordError("לא הצלחנו לעדכן את הסיסמה");
+    } catch (error) {
+      setPasswordError(
+        getPasswordChangeErrorMessage(
+          error,
+          "לא הצלחנו לעדכן את הסיסמה",
+        ),
+      );
     } finally {
       setIsSavingPassword(false);
     }
@@ -338,7 +364,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
               value={passwordForm.newPassword}
               visible={showPasswords}
               autoComplete="new-password"
-              helperText="לפחות 10 תווים, אותיות גדולות וקטנות, מספר וסימן."
+              helperText={PASSWORD_POLICY_MESSAGE}
               onChange={handlePasswordFormChange("newPassword")}
               onToggleVisible={() => setShowPasswords((current) => !current)}
             />

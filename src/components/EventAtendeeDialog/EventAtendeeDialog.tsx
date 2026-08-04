@@ -1,4 +1,5 @@
 import * as React from "react";
+import { createPortal } from "react-dom";
 import {
   Avatar,
   Alert,
@@ -71,6 +72,9 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
 
   const invalidateParticipants = React.useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["attendeesByEvent", eventId] });
+    queryClient.invalidateQueries({
+      queryKey: ["printableEventParticipants", eventId],
+    });
     queryClient.invalidateQueries({ queryKey: ["events"] });
     queryClient.invalidateQueries({ queryKey: ["upcomingEvents"] });
     queryClient.invalidateQueries({ queryKey: ["eventAttendees", eventId] });
@@ -111,7 +115,8 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
   });
 
   const deleteAttendeeMutation = useMutation({
-    mutationFn: (attendeeId: string) => attendeeService.deleteAttendee(attendeeId),
+    mutationFn: (attendeeId: string) =>
+      attendeeService.deleteAttendee(attendeeId),
     onSuccess: () => {
       invalidateParticipants();
     },
@@ -136,6 +141,16 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
     ),
   );
 
+  const {
+    data: printableParticipants,
+    isFetching: isFetchingPrintableParticipants,
+    isError: isPrintableParticipantsError,
+  } = useQuery({
+    queryKey: ["printableEventParticipants", eventId],
+    queryFn: () => eventService.getPrintableEventParticipants(eventId),
+    enabled: isPrintPreviewOpen && isAdmin,
+  });
+
   const sendAssignmentsMutation = useMutation({
     mutationFn: () => eventService.sendEventAssignments(eventId),
     onSuccess: (result) => {
@@ -143,9 +158,7 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
       setAssignmentsError("");
     },
     onError: () => {
-      setAssignmentsError(
-        "לא הצלחנו לשלוח את השיבוצים. נסו שוב מאוחר יותר.",
-      );
+      setAssignmentsError("לא הצלחנו לשלוח את השיבוצים. נסו שוב מאוחר יותר.");
     },
   });
 
@@ -233,6 +246,14 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
     </Box>
   );
 
+  const handlePrint = React.useCallback(async () => {
+    await document.fonts?.ready;
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+    window.print();
+  }, []);
+
   return (
     <>
       <Dialog
@@ -243,7 +264,9 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
         <Box className={classes.header}>
           רשומים לאירוע
           {!isFetchingAttendees && (
-            <Typography className={classes.countBadge}>({totalCount})</Typography>
+            <Typography className={classes.countBadge}>
+              ({totalCount})
+            </Typography>
           )}
           <Tooltip title="הוסף משתתף">
             <IconButton
@@ -273,19 +296,21 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
               </Box>
             </Tooltip>
           )}
-          <Tooltip title="הכנת דף שבת">
-            <Box component="span" className={classes.printSheetButtonWrap}>
-              <IconButton
-                aria-label="הכנת דף שבת"
-                onClick={() => setIsPrintPreviewOpen(true)}
-                className={classes.printSheetIconButton}
-                size="small"
-                disabled={isFetchingAttendees}
-              >
-                <PrintOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Box>
-          </Tooltip>
+          {isAdmin && (
+            <Tooltip title="הכנת דף שבת">
+              <Box component="span" className={classes.printSheetButtonWrap}>
+                <IconButton
+                  aria-label="הכנת דף שבת"
+                  onClick={() => setIsPrintPreviewOpen(true)}
+                  className={classes.printSheetIconButton}
+                  size="small"
+                  disabled={isFetchingAttendees}
+                >
+                  <PrintOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            </Tooltip>
+          )}
           <IconButton
             aria-label="close"
             onClick={onClose}
@@ -311,7 +336,9 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
           ) : (
             <Box className={classes.participantsGrid}>
               <Box className={classes.sectionColumn}>
-                <Typography className={classes.sectionTitle}>משובצים</Typography>
+                <Typography className={classes.sectionTitle}>
+                  משובצים
+                </Typography>
                 <Box className={classes.sectionBody}>
                   {paired.length === 0 ? (
                     <Typography className={classes.sectionEmpty}>
@@ -382,7 +409,9 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
                         selectedMentorId ===
                           (attendee.user?.id ?? attendee.userId),
                         () =>
-                          handleMentorClick(attendee.user?.id ?? attendee.userId),
+                          handleMentorClick(
+                            attendee.user?.id ?? attendee.userId,
+                          ),
                       ),
                     )
                   )}
@@ -426,7 +455,9 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
         PaperProps={{ className: classes.printPreviewDialogPaper }}
       >
         <Box className={classes.printPreviewHeader}>
-          <Typography className={classes.printPreviewTitle}>הכנת דף שבת</Typography>
+          <Typography className={classes.printPreviewTitle}>
+            הכנת דף שבת
+          </Typography>
           <IconButton
             aria-label="close"
             onClick={() => setIsPrintPreviewOpen(false)}
@@ -438,22 +469,37 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
         </Box>
 
         <Box className={classes.printDialogContent}>
-          <EventShabbatSheet
-            classes={classes}
-            participants={participants}
-            eventName={eventName}
-            startDate={startDate}
-            endDate={endDate}
-            address={address}
-            branchName={branchName}
-          />
+          {isFetchingPrintableParticipants ? (
+            <Box className={classes.loadingState}>
+              <CircularProgress sx={{ color: "#9a5188" }} size={36} />
+            </Box>
+          ) : isPrintableParticipantsError ? (
+            <Alert severity="error">
+              לא הצלחנו לטעון את פרטי המשתתפים לדף השבת
+            </Alert>
+          ) : (
+            <EventShabbatSheet
+              classes={classes}
+              participants={printableParticipants}
+              eventName={eventName}
+              startDate={startDate}
+              endDate={endDate}
+              address={address}
+              branchName={branchName}
+            />
+          )}
         </Box>
 
         <DialogActions className={classes.printPreviewActions}>
           <Button
             className={classes.printPrimaryButton}
             startIcon={<PrintOutlinedIcon />}
-            onClick={() => window.print()}
+            onClick={handlePrint}
+            disabled={
+              isFetchingPrintableParticipants ||
+              isPrintableParticipantsError ||
+              !printableParticipants
+            }
           >
             הדפסה / שמירה כ-PDF
           </Button>
@@ -465,6 +511,28 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
+
+      {isPrintPreviewOpen &&
+        printableParticipants &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <Box
+            className={`${classes.printHost} shabbat-print-host`}
+            aria-hidden="true"
+          >
+            <EventShabbatSheet
+              classes={classes}
+              participants={printableParticipants}
+              eventName={eventName}
+              startDate={startDate}
+              endDate={endDate}
+              address={address}
+              branchName={branchName}
+              printRoot
+            />
+          </Box>,
+          document.body,
+        )}
 
       <Dialog
         open={isAssignmentsDialogOpen}
@@ -512,7 +580,9 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
                 <Typography>
                   חונכים רשומים: {assignmentsResult.totalAttendingMentors}
                 </Typography>
-                <Typography>נשלחו בהצלחה: {assignmentsResult.sentCount}</Typography>
+                <Typography>
+                  נשלחו בהצלחה: {assignmentsResult.sentCount}
+                </Typography>
                 <Typography>
                   דולגו ללא אימייל: {assignmentsResult.skippedCount}
                 </Typography>
@@ -522,9 +592,7 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
 
             {assignmentsResult?.skipped.length ? (
               <Box>
-                <Typography sx={{ fontWeight: 800, mb: 0.5 }}>
-                  דולגו
-                </Typography>
+                <Typography sx={{ fontWeight: 800, mb: 0.5 }}>דולגו</Typography>
                 {assignmentsResult.skipped.map((entry) => (
                   <Typography key={entry.userId} sx={{ fontSize: 13 }}>
                     {entry.name} ({entry.userId})
@@ -535,9 +603,7 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
 
             {assignmentsResult?.failed.length ? (
               <Box>
-                <Typography sx={{ fontWeight: 800, mb: 0.5 }}>
-                  נכשלו
-                </Typography>
+                <Typography sx={{ fontWeight: 800, mb: 0.5 }}>נכשלו</Typography>
                 {assignmentsResult.failed.map((entry) => (
                   <Typography key={entry.userId} sx={{ fontSize: 13 }}>
                     {entry.name} ({entry.userId})
