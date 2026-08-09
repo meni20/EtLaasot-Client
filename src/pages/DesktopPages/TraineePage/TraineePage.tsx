@@ -36,7 +36,14 @@ const DEFAULT_PEOPLE_PAGE_SIZE = 100;
 
 type TraineeTableRow = Pick<
   IUser,
-  "id" | "name" | "age" | "gender" | "phoneNumber" | "email" | "address"
+  | "id"
+  | "name"
+  | "age"
+  | "gender"
+  | "phoneNumber"
+  | "parentName"
+  | "email"
+  | "address"
 > & {
   nationalIdMasked: string;
   shirtSizeDisplay: string;
@@ -99,6 +106,7 @@ export const TraineePage: React.FC = () => {
           trainee.customShirtSize,
         ),
         phoneNumber: trainee.phoneNumber,
+        parentName: trainee.parentName,
         email: trainee.email,
         address: trainee.address,
         originalTrainee: trainee,
@@ -116,6 +124,7 @@ export const TraineePage: React.FC = () => {
         trainee.name,
         trainee.nationalIdMasked,
         trainee.phoneNumber,
+        trainee.parentName,
         trainee.email,
         trainee.address,
       ]
@@ -224,7 +233,7 @@ export const TraineePage: React.FC = () => {
           className={styles.searchField}
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="חיפוש לפי שם, 4 ספרות ת.ז, טלפון, אימייל או כתובת"
+          placeholder="חיפוש לפי שם, שם הורה, 4 ספרות ת.ז, טלפון, אימייל או כתובת"
           aria-label="חיפוש חניכים"
           size="small"
           InputProps={{

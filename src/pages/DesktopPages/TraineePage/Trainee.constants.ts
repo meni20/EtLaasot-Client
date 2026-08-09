@@ -17,6 +17,12 @@ export const COLUMNS: GridColDef[] = [
   },
   { field: "shirtSizeDisplay", headerName: "מידת חולצה", width: 120 },
   { field: "phoneNumber", headerName: "טלפון", flex: 1 },
-  { field: "email", headerName: "אימייל", flex: 1 },
+  {
+    field: "parentName",
+    headerName: "שם הורה",
+    flex: 1,
+    minWidth: 150,
+    renderCell: (params) => params.value || "-",
+  },
   { field: "address", headerName: "כתובת", flex: 1 },
 ];

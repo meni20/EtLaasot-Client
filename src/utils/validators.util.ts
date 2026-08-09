@@ -62,6 +62,19 @@ export const validateFormEvent = (form: IEvent): EventValidationErrors => {
     newErrors.name = "Name is required";
   }
 
+  if (
+    !(form.startDate instanceof Date) ||
+    Number.isNaN(form.startDate.getTime())
+  ) {
+    newErrors.startDate = "יש לבחור תאריך ושעת התחלה תקינים";
+  }
+
+  if (!(form.endDate instanceof Date) || Number.isNaN(form.endDate.getTime())) {
+    newErrors.endDate = "יש לבחור שעת סיום תקינה";
+  } else if (!newErrors.startDate && form.endDate <= form.startDate) {
+    newErrors.endDate = "שעת הסיום חייבת להיות מאוחרת משעת ההתחלה";
+  }
+
   return newErrors;
 };
 
