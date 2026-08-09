@@ -1,4 +1,5 @@
 import type { IEvent } from "./event.interface";
+import type { ITraineeMedication } from "./trainee-medication.interface";
 
 export type UserGender = "male" | "female";
 export type ShirtSize = "XS" | "S" | "M" | "L" | "XL" | "XXL" | "OTHER";
@@ -27,6 +28,7 @@ export interface IUser {
   archiveReason?: string | null;
   userRoles?: IUserRole[];
   events?: IEvent[];
+  traineeMedications?: ITraineeMedication[];
 
   // Timestamps
   createdAt?: Date;

@@ -49,6 +49,7 @@ import {
   PASSWORD_POLICY_MESSAGE,
 } from "../../../utils/password.util";
 import { BottomNav } from "../../../components/BottomNav/BottomNav";
+import { TraineeMedicationsSection } from "../../../components/VolunteerDetails/TraineeMedicationsSection";
 import {
   useCurrentUserProfile,
   useUpdateCurrentUserProfile,
@@ -123,6 +124,9 @@ export const ProfilePage: React.FC = () => {
 
   const isVolunteer = user?.roles?.some(
     (role) => role.roleId === AUTH_ROLES.VOLUNTEER.id,
+  );
+  const isTrainee = user?.roles?.some(
+    (role) => role.roleId === AUTH_ROLES.TRAINEE.id,
   );
 
   const {
@@ -429,6 +433,8 @@ export const ProfilePage: React.FC = () => {
           )}
         </Box>
       )}
+
+      {isTrainee && <TraineeMedicationsSection mode="self" />}
 
       {isVolunteer && (
         <Box className={styles.section}>

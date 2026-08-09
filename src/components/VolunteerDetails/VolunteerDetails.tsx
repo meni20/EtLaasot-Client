@@ -64,6 +64,7 @@ import {
   formatShirtSize,
   SHIRT_SIZE_OPTIONS,
 } from "../../constants/user.constants";
+import { TraineeMedicationsSection } from "./TraineeMedicationsSection";
 
 type UserDetailsFormState = {
   name: string;
@@ -240,6 +241,13 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
           role.branchId === selectedUser.branchId),
     );
   }, [authUser, selectedUser?.branchId, selectedUser?.id]);
+  const isSelectedUserTrainee =
+    showParentName ||
+    selectedUser.userRoles?.some(
+      (role) => role.roleId === AUTH_ROLES.TRAINEE.id,
+    );
+  const canManageTraineeMedications =
+    Boolean(isSelectedUserTrainee) && canResetPassword;
 
   const canArchiveUser = React.useMemo(() => {
     if (!authUser || !selectedUser?.id || selectedUser.isActive === false) {
@@ -820,6 +828,13 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               value={displayedNationalId}
             />
           </Box>
+
+          {canManageTraineeMedications && (
+            <TraineeMedicationsSection
+              mode="admin"
+              traineeUuid={selectedUser.id}
+            />
+          )}
 
           <Box className={classes.section}>
             <Typography className={classes.sectionTitle}>פרטי קשר</Typography>

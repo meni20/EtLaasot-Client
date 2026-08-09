@@ -494,6 +494,40 @@ export const useStyles = makeStyles({
     color: "#111",
     overflowWrap: "anywhere" as const,
   },
+  printShirtSizeSummary: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "stretch",
+    gap: 6,
+    marginBottom: 20,
+    padding: "10px 14px",
+    border: "1px solid #d8d3d6",
+    borderRadius: 6,
+    backgroundColor: "#fafafa",
+    breakInside: "avoid" as const,
+    pageBreakInside: "avoid" as const,
+  },
+  printShirtSizeSummaryTitle: {
+    flexShrink: 0,
+    fontFamily: "Rubik, Arial, sans-serif",
+    fontSize: 13,
+    fontWeight: 800,
+    color: "#111",
+  },
+  printShirtSizeSummaryItems: {
+    display: "flex",
+    flex: 1,
+    flexWrap: "wrap" as const,
+    gap: "4px 18px",
+    minWidth: 0,
+  },
+  printShirtSizeSummaryItem: {
+    fontFamily: "Rubik, Arial, sans-serif",
+    fontSize: 12.5,
+    fontWeight: 500,
+    color: "#222",
+    overflowWrap: "anywhere" as const,
+  },
   printSection: {
     marginTop: 18,
     breakInside: "avoid" as const,
@@ -630,6 +664,9 @@ export const useStyles = makeStyles({
       display: "none !important",
     },
     printEventInfoGrid: {
+      backgroundColor: "#fff !important",
+    },
+    printShirtSizeSummary: {
       backgroundColor: "#fff !important",
     },
     printEmptyText: {

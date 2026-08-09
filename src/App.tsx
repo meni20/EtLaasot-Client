@@ -4,6 +4,8 @@ import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { heIL } from "@mui/x-date-pickers/locales";
+import { he } from "date-fns/locale";
 import { AuthProvider } from "./contexts/AuthContext.context";
 import { BranchProvider } from "./contexts/BranchContext.context";
 import { DataProvider } from "./contexts/DataContext.context";
@@ -15,7 +17,13 @@ const queryClient = new QueryClient();
 
 const App: React.FC = () => (
   <QueryClientProvider client={queryClient}>
-    <LocalizationProvider dateAdapter={AdapterDateFns}>
+    <LocalizationProvider
+      dateAdapter={AdapterDateFns}
+      adapterLocale={he}
+      localeText={
+        heIL.components.MuiLocalizationProvider.defaultProps.localeText
+      }
+    >
       <BrowserRouter>
         <AuthProvider>
           <BranchProvider>
