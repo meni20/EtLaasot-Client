@@ -1,24 +1,30 @@
 import React, { useEffect, useState } from "react";
+import createCache from "@emotion/cache";
+import { CacheProvider } from "@emotion/react";
+import { prefixer } from "stylis";
+import rtlPlugin from "stylis-plugin-rtl";
 import {
   Alert,
   Box,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   IconButton,
+  FormControlLabel,
   MenuItem,
   Snackbar,
   TextField,
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { DateTimePicker } from "@mui/x-date-pickers";
+import { DatePicker, TimePicker } from "@mui/x-date-pickers";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   validateFormEvent,
-  type ValidationErrors,
+  type EventValidationErrors,
 } from "../../utils/validators.util";
 import type { ICreateEventProps } from "./CreateEvent.interface";
 import type { IEvent } from "../../interfaces/event.interface";
@@ -28,15 +34,60 @@ import { EVENT_TYPES } from "../../constants/auth.const";
 
 const MAX_EVENT_IMAGE_SIZE = 5 * 1024 * 1024;
 const EVENT_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-
-const emptyEventForm = (): IEvent => ({
-  name: "",
-  address: "",
-  description: "",
-  startDate: new Date(),
-  endDate: new Date(),
-  eventType: "",
+const pickerRtlCache = createCache({
+  key: "create-event-picker-rtl",
+  stylisPlugins: [prefixer, rtlPlugin],
 });
+
+const PICKER_TEXT_FIELD_SX = {
+  "& .MuiOutlinedInput-root, & .MuiPickersInputBase-root": {
+    borderRadius: 3,
+  },
+} as const;
+
+const isValidDate = (value: Date | null | undefined): value is Date =>
+  value instanceof Date && !Number.isNaN(value.getTime());
+
+const isSameCalendarDay = (first: Date, second: Date) =>
+  first.getFullYear() === second.getFullYear() &&
+  first.getMonth() === second.getMonth() &&
+  first.getDate() === second.getDate();
+
+const mergeDateAndTime = (date: Date, time: Date) => {
+  const merged = new Date(date);
+  merged.setHours(
+    time.getHours(),
+    time.getMinutes(),
+    time.getSeconds(),
+    time.getMilliseconds(),
+  );
+  return merged;
+};
+
+const getDefaultEventTimes = () => {
+  const startDate = new Date();
+  startDate.setSeconds(0, 0);
+  const minutesUntilNextHalfHour = 30 - (startDate.getMinutes() % 30);
+  startDate.setMinutes(startDate.getMinutes() + minutesUntilNextHalfHour);
+
+  return {
+    startDate,
+    endDate: new Date(startDate.getTime() + 60 * 60 * 1000),
+  };
+};
+
+const emptyEventForm = (): IEvent => {
+  const { startDate, endDate } = getDefaultEventTimes();
+
+  return {
+    name: "",
+    address: "",
+    description: "",
+    startDate,
+    endDate,
+    eventType: "",
+  };
+};
 
 const toEventPayload = (form: IEvent, branchId: string | null): IEvent => ({
   name: form.name,
@@ -54,7 +105,7 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
   event,
 }) => {
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [errors, setErrors] = useState<EventValidationErrors>({});
   const [errorMsg, setErrorMsg] = useState("");
   const queryClient = useQueryClient();
   const { activeBranch } = useBranch();
@@ -62,21 +113,31 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [removeExistingImage, setRemoveExistingImage] = useState(false);
+  const [endsOnDifferentDay, setEndsOnDifferentDay] = useState(false);
 
   useEffect(() => {
+    setErrors({});
+
     if (event) {
+      const startDate = new Date(event.startDate);
+      const endDate = new Date(event.endDate);
       setForm({
         ...event,
         name: event.name ?? "",
         address: event.address ?? "",
         description: event.description ?? "",
-        startDate: new Date(event.startDate),
-        endDate: new Date(event.endDate),
+        startDate,
+        endDate,
         eventType: event.eventType ?? "",
       });
       setSelectedImageFile(null);
       setImagePreviewUrl(null);
       setRemoveExistingImage(false);
+      setEndsOnDifferentDay(
+        isValidDate(startDate) &&
+          isValidDate(endDate) &&
+          !isSameCalendarDay(startDate, endDate),
+      );
       return;
     }
 
@@ -84,6 +145,7 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
     setSelectedImageFile(null);
     setImagePreviewUrl(null);
     setRemoveExistingImage(false);
+    setEndsOnDifferentDay(false);
   }, [event, open]);
 
   useEffect(() => {
@@ -130,6 +192,101 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
     setImagePreviewUrl(null);
     setRemoveExistingImage(true);
   };
+
+  const handleEventDateChange = (newValue: Date | null) => {
+    if (!newValue) return;
+
+    setForm((current) => {
+      if (!isValidDate(newValue) || !isValidDate(current.startDate)) {
+        return { ...current, startDate: newValue };
+      }
+
+      const startDate = mergeDateAndTime(newValue, current.startDate);
+      const endDate =
+        !endsOnDifferentDay && isValidDate(current.endDate)
+          ? mergeDateAndTime(newValue, current.endDate)
+          : current.endDate;
+
+      return { ...current, startDate, endDate };
+    });
+  };
+
+  const handleEndDateChange = (newValue: Date | null) => {
+    if (!newValue) return;
+
+    setForm((current) => ({
+      ...current,
+      endDate:
+        isValidDate(newValue) && isValidDate(current.endDate)
+          ? mergeDateAndTime(newValue, current.endDate)
+          : newValue,
+    }));
+  };
+
+  const handleStartTimeChange = (newValue: Date | null) => {
+    if (!newValue) return;
+
+    setForm((current) => ({
+      ...current,
+      startDate:
+        isValidDate(newValue) && isValidDate(current.startDate)
+          ? mergeDateAndTime(current.startDate, newValue)
+          : newValue,
+    }));
+  };
+
+  const handleEndTimeChange = (newValue: Date | null) => {
+    if (!newValue) return;
+
+    setForm((current) => ({
+      ...current,
+      endDate:
+        isValidDate(newValue) && isValidDate(current.endDate)
+          ? mergeDateAndTime(current.endDate, newValue)
+          : newValue,
+    }));
+  };
+
+  const handleDifferentDayChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const checked = event.target.checked;
+    setEndsOnDifferentDay(checked);
+
+    setForm((current) => {
+      if (!isValidDate(current.startDate) || !isValidDate(current.endDate)) {
+        return current;
+      }
+
+      if (checked) {
+        const endDate = new Date(current.endDate);
+        if (isSameCalendarDay(current.startDate, endDate)) {
+          endDate.setDate(endDate.getDate() + 1);
+        }
+        return { ...current, endDate };
+      }
+
+      let endDate = mergeDateAndTime(current.startDate, current.endDate);
+      if (endDate <= current.startDate) {
+        endDate = new Date(current.startDate.getTime() + 60 * 60 * 1000);
+      }
+      return { ...current, endDate };
+    });
+  };
+
+  const startDateIsValid = isValidDate(form.startDate);
+  const endDateIsValid = isValidDate(form.endDate);
+  const endIsAfterStart =
+    startDateIsValid &&
+    endDateIsValid &&
+    form.endDate.getTime() > form.startDate.getTime();
+  const dateTimeIsValid =
+    startDateIsValid && endDateIsValid && endIsAfterStart;
+  const endTimeError = !endDateIsValid
+    ? "יש לבחור שעת סיום תקינה"
+    : !endIsAfterStart
+      ? "שעת הסיום חייבת להיות מאוחרת משעת ההתחלה"
+      : "";
 
   const handleCreateEvent = async () => {
     const validationErrors = validateFormEvent(form);
@@ -229,7 +386,11 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
             backgroundColor: "#faf8f9",
           }}
         >
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+          <CacheProvider value={pickerRtlCache}>
+            <Box
+              dir="rtl"
+              sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}
+            >
             <Box
               sx={{
                 display: "flex",
@@ -258,44 +419,110 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
             </Box>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: { xs: "column", sm: "row" },
-                gap: 2,
-              }}
-            >
-              <DateTimePicker
-                label="תאריך התחלה"
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "minmax(0, 1fr)",
+                    sm: endsOnDifferentDay
+                      ? "repeat(2, minmax(0, 1fr))"
+                      : "repeat(3, minmax(0, 1fr))",
+                  },
+                  gap: 2,
+                  minWidth: 0,
+                }}
+              >
+              <DatePicker
+                label="תאריך האירוע"
                 value={form.startDate}
-                onChange={(newValue) => {
-                  if (newValue) setForm({ ...form, startDate: newValue });
-                }}
-                ampm={false}
-                format="dd/MM/yyyy HH:mm"
+                onChange={handleEventDateChange}
+                format="dd/MM/yyyy"
                 slotProps={{
                   textField: {
                     fullWidth: true,
-                    sx: { "& .MuiOutlinedInput-root": { borderRadius: 3 } },
+                    error: !startDateIsValid,
+                    helperText: !startDateIsValid
+                      ? "יש לבחור תאריך תקין"
+                      : undefined,
+                    sx: PICKER_TEXT_FIELD_SX,
                   },
                 }}
               />
-              <DateTimePicker
-                label="תאריך סיום"
+              {endsOnDifferentDay && (
+                <DatePicker
+                  label="תאריך סיום"
+                  value={form.endDate}
+                  onChange={handleEndDateChange}
+                  minDate={startDateIsValid ? form.startDate : undefined}
+                  format="dd/MM/yyyy"
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      error: !endDateIsValid,
+                      helperText: !endDateIsValid
+                        ? "יש לבחור תאריך סיום תקין"
+                        : undefined,
+                      sx: PICKER_TEXT_FIELD_SX,
+                    },
+                  }}
+                />
+              )}
+              <TimePicker
+                label="שעת התחלה"
+                value={form.startDate}
+                onChange={handleStartTimeChange}
+                ampm={false}
+                format="HH:mm"
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    error: !startDateIsValid,
+                    helperText: !startDateIsValid
+                      ? "יש לבחור שעת התחלה תקינה"
+                      : undefined,
+                    sx: PICKER_TEXT_FIELD_SX,
+                  },
+                }}
+              />
+              <TimePicker
+                label="שעת סיום"
                 value={form.endDate}
-                onChange={(newValue) => {
-                  if (newValue) setForm({ ...form, endDate: newValue });
-                }}
+                onChange={handleEndTimeChange}
+                minTime={
+                  !endsOnDifferentDay && startDateIsValid
+                    ? form.startDate
+                    : undefined
+                }
                 ampm={false}
-                format="dd/MM/yyyy HH:mm"
+                format="HH:mm"
                 slotProps={{
                   textField: {
                     fullWidth: true,
-                    sx: { "& .MuiOutlinedInput-root": { borderRadius: 3 } },
+                    error: !!endTimeError,
+                    helperText: endTimeError || undefined,
+                    sx: PICKER_TEXT_FIELD_SX,
                   },
                 }}
               />
-            </Box>
+              </Box>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={endsOnDifferentDay}
+                  onChange={handleDifferentDayChange}
+                  size="small"
+                />
+              }
+              label="האירוע מסתיים ביום אחר"
+              sx={{
+                m: 0,
+                alignSelf: "flex-start",
+                "& .MuiFormControlLabel-label": {
+                  fontFamily: "Rubik, sans-serif",
+                  fontSize: 14,
+                },
+              }}
+            />
             <TextField
               label="תיאור"
               value={form.description}
@@ -387,7 +614,8 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
                 JPEG, PNG או WebP עד 5MB
               </Typography>
             </Box>
-          </Box>
+            </Box>
+          </CacheProvider>
         </DialogContent>
         <DialogActions
           sx={{
@@ -397,7 +625,7 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
         >
           <Button
             onClick={handleCreateEvent}
-            disabled={loading || !form.name.trim()}
+            disabled={loading || !form.name.trim() || !dateTimeIsValid}
             variant="contained"
             fullWidth
             sx={{

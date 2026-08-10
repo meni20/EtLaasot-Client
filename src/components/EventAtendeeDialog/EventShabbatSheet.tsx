@@ -14,6 +14,7 @@ import type {
 } from "../../interfaces/event.interface";
 import type { IUser } from "../../interfaces/user.interface";
 import { formatShirtSize } from "../../constants/user.constants";
+import { formatMedicationFrequency } from "../../constants/trainee-medication.constants";
 import type { useStyles } from "./EventAtendeeDialog.styles";
 
 type ShabbatSheetClasses = ReturnType<typeof useStyles>;
@@ -69,14 +70,62 @@ const formatTime = (value?: Date | string) => {
 
 const getName = (name?: string | null) => name || "-";
 
+const SHIRT_SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL"];
+
+const getShirtSizeSummary = (participants?: IEventParticipants) => {
+  const usersById = new Map<string, IUser>();
+  const addUser = (user?: IUser) => {
+    if (user?.id && !usersById.has(user.id)) {
+      usersById.set(user.id, user);
+    }
+  };
+
+  participants?.paired.forEach((pair) => {
+    addUser(pair.mentor);
+    addUser(pair.trainee);
+  });
+  participants?.unpairedMentors.forEach((attendee) => addUser(attendee.user));
+  participants?.unpairedTrainees.forEach((attendee) => addUser(attendee.user));
+
+  const counts = new Map<string, { label: string; count: number }>();
+  usersById.forEach((user) => {
+    if (!user.shirtSize) return;
+
+    const label = formatShirtSize(user.shirtSize, user.customShirtSize).trim();
+    if (!label || label === "-") return;
+
+    const key = label.toLocaleUpperCase("he-IL");
+    const current = counts.get(key);
+    counts.set(key, {
+      label: current?.label ?? label,
+      count: (current?.count ?? 0) + 1,
+    });
+  });
+
+  return Array.from(counts.values()).sort((a, b) => {
+    const aIndex = SHIRT_SIZE_ORDER.indexOf(a.label.toUpperCase());
+    const bIndex = SHIRT_SIZE_ORDER.indexOf(b.label.toUpperCase());
+    const aRank = aIndex === -1 ? SHIRT_SIZE_ORDER.length : aIndex;
+    const bRank = bIndex === -1 ? SHIRT_SIZE_ORDER.length : bIndex;
+
+    return aRank - bRank || a.label.localeCompare(b.label, "he");
+  });
+};
+
 const renderParticipant = (
   user: IUser | undefined,
   classes: ShabbatSheetClasses,
+  showMedications = false,
 ) => {
   const allergies = user?.allergies?.trim();
   const shirtSize = user?.shirtSize
     ? formatShirtSize(user.shirtSize, user.customShirtSize)
     : null;
+  const activeMedications = showMedications
+    ? (user?.traineeMedications ?? []).filter(
+        (medication) => medication.isActive,
+      )
+    : [];
 
   return (
     <Box className={classes.printParticipantDetails}>
@@ -99,6 +148,23 @@ const renderParticipant = (
           {allergies}
         </Typography>
       )}
+      {activeMedications.length > 0 && (
+        <Box className={classes.printParticipantMeta}>
+          <Box component="span" className={classes.printParticipantLabel}>
+            תרופות:
+          </Box>
+          {activeMedications.map((medication) => (
+            <Box component="span" display="block" key={medication.id}>
+              {[
+                medication.medicationName,
+                medication.dosage?.trim() || "-",
+                formatMedicationFrequency(medication.frequency) || "-",
+                medication.schedule?.trim() || "-",
+              ].join(" — ")}
+            </Box>
+          ))}
+        </Box>
+      )}
     </Box>
   );
 };
@@ -107,6 +173,7 @@ const renderAttendeeNames = (
   attendees: IAttendees[],
   emptyText: string,
   classes: ShabbatSheetClasses,
+  showMedications = false,
 ) => {
   if (attendees.length === 0) {
     return (
@@ -119,7 +186,9 @@ const renderAttendeeNames = (
       <TableBody>
         {attendees.map((attendee) => (
           <TableRow key={attendee.id ?? attendee.userId}>
-            <TableCell>{renderParticipant(attendee.user, classes)}</TableCell>
+            <TableCell>
+              {renderParticipant(attendee.user, classes, showMedications)}
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -140,6 +209,7 @@ export const EventShabbatSheet: React.FC<IEventShabbatSheetProps> = ({
   const paired = participants?.paired ?? [];
   const unpairedMentors = participants?.unpairedMentors ?? [];
   const unpairedTrainees = participants?.unpairedTrainees ?? [];
+  const shirtSizeSummary = getShirtSizeSummary(participants);
 
   const eventInfo = [
     { label: "אירוע", value: eventName || "-" },
@@ -176,6 +246,24 @@ export const EventShabbatSheet: React.FC<IEventShabbatSheetProps> = ({
         ))}
       </Box>
 
+      {shirtSizeSummary.length > 0 && (
+        <Box className={classes.printShirtSizeSummary}>
+          <Typography className={classes.printShirtSizeSummaryTitle}>
+            מידות חולצה:
+          </Typography>
+          <Box className={classes.printShirtSizeSummaryItems}>
+            {shirtSizeSummary.map(({ label, count }) => (
+              <Typography
+                key={label}
+                className={classes.printShirtSizeSummaryItem}
+              >
+                {label} – {count}
+              </Typography>
+            ))}
+          </Box>
+        </Box>
+      )}
+
       <Box className={classes.printSection}>
         <Typography className={classes.printSectionTitle}>משובצים</Typography>
         {paired.length === 0 ? (
@@ -197,7 +285,7 @@ export const EventShabbatSheet: React.FC<IEventShabbatSheetProps> = ({
                     {renderParticipant(pair.mentor, classes)}
                   </TableCell>
                   <TableCell>
-                    {renderParticipant(pair.trainee, classes)}
+                    {renderParticipant(pair.trainee, classes, true)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -217,7 +305,12 @@ export const EventShabbatSheet: React.FC<IEventShabbatSheetProps> = ({
         <Typography className={classes.printSectionTitle}>
           חניכים ללא חונך
         </Typography>
-        {renderAttendeeNames(unpairedTrainees, "אין חניכים ללא חונך", classes)}
+        {renderAttendeeNames(
+          unpairedTrainees,
+          "אין חניכים ללא חונך",
+          classes,
+          true,
+        )}
       </Box>
     </Box>
   );
