@@ -67,10 +67,7 @@ export interface IEventParticipants {
 }
 
 export type AttendanceIntent =
-  | "BOTH"
-  | "VOLUNTEER_ONLY"
-  | "TRAINEE_ONLY"
-  | "NONE";
+  "BOTH" | "VOLUNTEER_ONLY" | "TRAINEE_ONLY" | "NONE";
 
 export type AttendeeRsvpStatus = "pending" | "confirmed" | "declined";
 
@@ -113,7 +110,9 @@ export interface IEventAssignmentEmailDetail {
 
 export interface IEventAssignmentEmailResult {
   eventId: string;
+  totalRegisteredAttendees: number;
   totalAttendingMentors: number;
+  totalAttendingTrainees: number;
   sentCount: number;
   skippedCount: number;
   failedCount: number;
