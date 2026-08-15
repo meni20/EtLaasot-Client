@@ -16,6 +16,7 @@ import type { IUser } from "../../interfaces/user.interface";
 import { formatShirtSize } from "../../constants/user.constants";
 import { formatMedicationFrequency } from "../../constants/trainee-medication.constants";
 import type { useStyles } from "./EventAtendeeDialog.styles";
+import { groupPairingsByTrainee } from "./eventPairing.utils";
 
 type ShabbatSheetClasses = ReturnType<typeof useStyles>;
 
@@ -207,6 +208,7 @@ export const EventShabbatSheet: React.FC<IEventShabbatSheetProps> = ({
   printRoot = false,
 }) => {
   const paired = participants?.paired ?? [];
+  const pairedGroups = groupPairingsByTrainee(paired);
   const unpairedMentors = participants?.unpairedMentors ?? [];
   const unpairedTrainees = participants?.unpairedTrainees ?? [];
   const shirtSizeSummary = getShirtSizeSummary(participants);
@@ -266,7 +268,7 @@ export const EventShabbatSheet: React.FC<IEventShabbatSheetProps> = ({
 
       <Box className={classes.printSection}>
         <Typography className={classes.printSectionTitle}>משובצים</Typography>
-        {paired.length === 0 ? (
+        {pairedGroups.length === 0 ? (
           <Typography className={classes.printEmptyText}>
             אין משובצים
           </Typography>
@@ -279,13 +281,19 @@ export const EventShabbatSheet: React.FC<IEventShabbatSheetProps> = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {paired.map((pair) => (
-                <TableRow key={pair.id}>
+              {pairedGroups.map((group) => (
+                <TableRow key={group.traineeId}>
                   <TableCell>
-                    {renderParticipant(pair.mentor, classes)}
+                    <Box className={classes.printPairedMentors}>
+                      {group.pairings.map((pairing) => (
+                        <React.Fragment key={pairing.id}>
+                          {renderParticipant(pairing.mentor, classes)}
+                        </React.Fragment>
+                      ))}
+                    </Box>
                   </TableCell>
                   <TableCell>
-                    {renderParticipant(pair.trainee, classes, true)}
+                    {renderParticipant(group.trainee, classes, true)}
                   </TableCell>
                 </TableRow>
               ))}

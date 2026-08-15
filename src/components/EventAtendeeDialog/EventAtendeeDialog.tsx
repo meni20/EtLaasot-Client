@@ -27,6 +27,7 @@ import eventService from "../../services/event.service";
 import type {
   IAttendees,
   IEventAssignmentEmailResult,
+  IEventParticipants,
 } from "../../interfaces/event.interface";
 import type { IEventAtendeeDialogProps } from "./EventAtendeeDialog.interface";
 import { useStyles } from "./EventAtendeeDialog.styles";
@@ -35,6 +36,10 @@ import { useBranch } from "../../contexts/useBranch";
 import { EventShabbatSheet } from "./EventShabbatSheet";
 import { useAuth } from "../../contexts/useAuth";
 import { AUTH_ROLES } from "../../constants/auth.const";
+import {
+  countUniqueEventParticipants,
+  groupPairingsByTrainee,
+} from "./eventPairing.utils";
 
 export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
   open,
@@ -70,18 +75,26 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
     enabled: open,
   });
 
-  const invalidateParticipants = React.useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["attendeesByEvent", eventId] });
-    queryClient.invalidateQueries({
-      queryKey: ["printableEventParticipants", eventId],
-    });
-    queryClient.invalidateQueries({ queryKey: ["events"] });
-    queryClient.invalidateQueries({ queryKey: ["upcomingEvents"] });
-    queryClient.invalidateQueries({ queryKey: ["eventAttendees", eventId] });
-    queryClient.invalidateQueries({ queryKey: ["eventAttendees"] });
-    queryClient.invalidateQueries({ queryKey: ["users"] });
-    queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-  }, [eventId, queryClient]);
+  const invalidateParticipants = React.useCallback(
+    (refreshCurrentParticipants = true) => {
+      if (refreshCurrentParticipants) {
+        queryClient.invalidateQueries({
+          queryKey: ["attendeesByEvent", eventId],
+        });
+      }
+
+      queryClient.invalidateQueries({
+        queryKey: ["printableEventParticipants", eventId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      queryClient.invalidateQueries({ queryKey: ["upcomingEvents"] });
+      queryClient.invalidateQueries({ queryKey: ["eventAttendees", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["eventAttendees"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+    [eventId, queryClient],
+  );
 
   const pairMutation = useMutation({
     mutationFn: ({
@@ -91,26 +104,82 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
       mentorId: string;
       traineeId: string;
     }) => eventService.createEventPairing(eventId, mentorId, traineeId),
-    onSuccess: (updatedParticipants) => {
+    onMutate: async ({ mentorId, traineeId }) => {
+      await queryClient.cancelQueries({
+        queryKey: ["attendeesByEvent", eventId],
+      });
+
+      const previousParticipants = queryClient.getQueryData<IEventParticipants>(
+        ["attendeesByEvent", eventId],
+      );
+      if (!previousParticipants) return { previousParticipants };
+
+      const mentorAttendee = previousParticipants.unpairedMentors.find(
+        (attendee) => (attendee.user?.id ?? attendee.userId) === mentorId,
+      );
+      const trainee = previousParticipants.paired.find(
+        (pairing) => pairing.traineeId === traineeId,
+      )?.trainee;
+
+      if (mentorAttendee && trainee) {
+        queryClient.setQueryData<IEventParticipants>(
+          ["attendeesByEvent", eventId],
+          {
+            ...previousParticipants,
+            paired: [
+              ...previousParticipants.paired,
+              {
+                id: `pending-${mentorId}-${traineeId}`,
+                eventId,
+                mentorId,
+                traineeId,
+                mentor: mentorAttendee.user,
+                trainee,
+              },
+            ],
+            unpairedMentors: previousParticipants.unpairedMentors.filter(
+              (attendee) => (attendee.user?.id ?? attendee.userId) !== mentorId,
+            ),
+          },
+        );
+      }
+
+      return { previousParticipants };
+    },
+    onSuccess: async (updatedParticipants) => {
+      await queryClient.cancelQueries({
+        queryKey: ["attendeesByEvent", eventId],
+      });
       queryClient.setQueryData(
         ["attendeesByEvent", eventId],
         updatedParticipants,
       );
       setSelectedMentorId(null);
       setSelectedTraineeId(null);
-      invalidateParticipants();
+      invalidateParticipants(false);
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousParticipants) {
+        queryClient.setQueryData(
+          ["attendeesByEvent", eventId],
+          context.previousParticipants,
+        );
+      }
     },
   });
 
   const deletePairingMutation = useMutation({
     mutationFn: (pairingId: string) =>
       eventService.deleteEventPairing(eventId, pairingId),
-    onSuccess: (updatedParticipants) => {
+    onSuccess: async (updatedParticipants) => {
+      await queryClient.cancelQueries({
+        queryKey: ["attendeesByEvent", eventId],
+      });
       queryClient.setQueryData(
         ["attendeesByEvent", eventId],
         updatedParticipants,
       );
-      invalidateParticipants();
+      invalidateParticipants(false);
     },
   });
 
@@ -123,12 +192,26 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
   });
 
   const paired = participants?.paired ?? [];
-  const unpairedMentors = participants?.unpairedMentors ?? [];
+  const pairedGroups = React.useMemo(
+    () => groupPairingsByTrainee(paired),
+    [paired],
+  );
+  const pairedMentorIds = React.useMemo(
+    () => new Set(paired.map((pairing) => pairing.mentorId)),
+    [paired],
+  );
+  const unpairedMentors = React.useMemo(
+    () =>
+      (participants?.unpairedMentors ?? []).filter(
+        (attendee) =>
+          !pairedMentorIds.has(attendee.user?.id ?? attendee.userId),
+      ),
+    [pairedMentorIds, participants?.unpairedMentors],
+  );
   const unpairedTrainees = participants?.unpairedTrainees ?? [];
   const branchName =
     availableBranches.find((branch) => branch.id === activeBranch)?.name ?? "";
-  const totalCount =
-    paired.length * 2 + unpairedMentors.length + unpairedTrainees.length;
+  const totalCount = countUniqueEventParticipants(participants);
   const isMutating =
     pairMutation.isPending ||
     deletePairingMutation.isPending ||
@@ -181,6 +264,13 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
     const nextTraineeId = selectedTraineeId === traineeId ? null : traineeId;
     setSelectedTraineeId(nextTraineeId);
     createPairIfReady(selectedMentorId, nextTraineeId);
+  };
+
+  const handlePairedTraineeClick = (traineeId: string) => {
+    if (!selectedMentorId || pairMutation.isPending) return;
+
+    setSelectedTraineeId(traineeId);
+    pairMutation.mutate({ mentorId: selectedMentorId, traineeId });
   };
 
   const handleDeleteAttendee = (attendee: IAttendees) => {
@@ -339,54 +429,131 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
                 <Typography className={classes.sectionTitle}>
                   משובצים
                 </Typography>
-                <Box className={classes.sectionBody}>
-                  {paired.length === 0 ? (
+                <Box
+                  className={`${classes.sectionBody} ${classes.pairedCardsGrid}`}
+                >
+                  {pairedGroups.length === 0 ? (
                     <Typography className={classes.sectionEmpty}>
                       אין שיבוצים
                     </Typography>
                   ) : (
-                    paired.map((pair) => (
-                      <Box key={pair.id} className={classes.pairRow}>
-                        <Box className={classes.pairContent}>
-                          <Box className={classes.pairPerson}>
-                            <Avatar className={classes.avatar}>
-                              {pair.mentor?.name?.[0]?.toUpperCase() ?? "?"}
-                            </Avatar>
-                            <Typography className={classes.personName}>
-                              {pair.mentor?.name ?? "ללא שם"}
-                            </Typography>
-                          </Box>
-                          <Typography className={classes.pairDivider}>
-                            ←
-                          </Typography>
-                          <Box className={classes.pairPerson}>
-                            <Typography className={classes.personName}>
-                              {pair.trainee?.name ?? "ללא שם"}
-                            </Typography>
-                            <Avatar className={classes.avatar}>
-                              {pair.trainee?.name?.[0]?.toUpperCase() ?? "?"}
-                            </Avatar>
-                          </Box>
-                        </Box>
-                        <Tooltip title="הסר שיבוץ">
-                          <Box
-                            component="span"
-                            className={classes.participantActions}
-                          >
-                            <IconButton
-                              size="small"
-                              className={classes.deleteButton}
-                              disabled={deletePairingMutation.isPending}
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                deletePairingMutation.mutate(pair.id);
-                              }}
-                              aria-label="הסר שיבוץ"
+                    pairedGroups.map((group) => (
+                      <Box
+                        key={group.traineeId}
+                        className={`${classes.pairRow} ${
+                          selectedMentorId && !isMutating
+                            ? classes.availablePairingTarget
+                            : ""
+                        }`}
+                        onClick={
+                          selectedMentorId && !isMutating
+                            ? () =>
+                                handlePairedTraineeClick(group.traineeId)
+                            : undefined
+                        }
+                        onKeyDown={(event) => {
+                          if (
+                            event.target !== event.currentTarget ||
+                            !selectedMentorId ||
+                            isMutating ||
+                            (event.key !== "Enter" && event.key !== " ")
+                          ) {
+                            return;
+                          }
+
+                          event.preventDefault();
+                          handlePairedTraineeClick(group.traineeId);
+                        }}
+                        role={
+                          selectedMentorId && !isMutating
+                            ? "button"
+                            : undefined
+                        }
+                        tabIndex={
+                          selectedMentorId && !isMutating ? 0 : undefined
+                        }
+                        aria-label={
+                          selectedMentorId && !isMutating
+                            ? `שבץ חונך נוסף ל${group.trainee?.name ?? "חניך"}`
+                            : undefined
+                        }
+                      >
+                        <Box className={classes.pairedMentorsList}>
+                          {group.pairings.map((pairing) => (
+                            <Box
+                              key={pairing.id}
+                              className={classes.pairedMentorRow}
                             >
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          </Box>
-                        </Tooltip>
+                              <Box className={classes.pairedMentorInfo}>
+                                <Avatar className={classes.mentorAvatar}>
+                                  {pairing.mentor?.name?.[0]?.toUpperCase() ??
+                                    "?"}
+                                </Avatar>
+                                <Typography className={classes.personName}>
+                                  {pairing.mentor?.name ?? "ללא שם"}
+                                </Typography>
+                              </Box>
+                              <Tooltip title="הסר שיבוץ">
+                                <Box
+                                  component="span"
+                                  className={classes.participantActions}
+                                >
+                                  <IconButton
+                                    size="small"
+                                    className={classes.deleteButton}
+                                    disabled={deletePairingMutation.isPending}
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      deletePairingMutation.mutate(pairing.id);
+                                    }}
+                                    aria-label={`הסר את השיבוץ של ${
+                                      pairing.mentor?.name ?? "החונך"
+                                    }`}
+                                  >
+                                    <DeleteOutlineIcon fontSize="small" />
+                                  </IconButton>
+                                </Box>
+                              </Tooltip>
+                            </Box>
+                          ))}
+                        </Box>
+
+                        <Typography className={classes.pairDirection}>
+                          ←
+                        </Typography>
+
+                        <Button
+                          className={`${classes.pairedTraineeButton} ${
+                            selectedTraineeId === group.traineeId
+                              ? classes.selectedItem
+                              : ""
+                          }`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handlePairedTraineeClick(group.traineeId);
+                          }}
+                          disabled={!selectedMentorId || isMutating}
+                          aria-label={
+                            selectedMentorId
+                              ? `שבץ חונך נוסף ל${group.trainee?.name ?? "חניך"}`
+                              : undefined
+                          }
+                        >
+                          <Avatar className={classes.mentorAvatar}>
+                            {group.trainee?.name?.[0]?.toUpperCase() ?? "?"}
+                          </Avatar>
+                          <Typography className={classes.personName}>
+                            {group.trainee?.name ?? "ללא שם"}
+                          </Typography>
+                          <AddIcon
+                            className={`${classes.pairingTargetIcon} ${
+                              selectedMentorId
+                                ? classes.pairingTargetIconVisible
+                                : ""
+                            }`}
+                            fontSize="small"
+                          />
+                        </Button>
                       </Box>
                     ))
                   )}
@@ -556,11 +723,6 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
               שליחת מייל אישי לחונכים הרשומים לאירוע "{eventName}" עם פרטי
               ההשתתפות והשיבוץ שלהם.
             </Typography>
-            <Alert severity="warning" sx={{ borderRadius: 2 }}>
-              פעולה זו שולחת מיילים אמיתיים דרך חשבון המערכת. יש לאשר לפני כל
-              שליחה.
-            </Alert>
-
             {assignmentsError && (
               <Alert severity="error" sx={{ borderRadius: 2 }}>
                 {assignmentsError}
@@ -578,7 +740,13 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
                   סיכום שליחה
                 </Typography>
                 <Typography>
+                  נרשמים: {assignmentsResult.totalRegisteredAttendees}
+                </Typography>
+                <Typography>
                   חונכים רשומים: {assignmentsResult.totalAttendingMentors}
+                </Typography>
+                <Typography>
+                  חניכים רשומים: {assignmentsResult.totalAttendingTrainees}
                 </Typography>
                 <Typography>
                   נשלחו בהצלחה: {assignmentsResult.sentCount}
