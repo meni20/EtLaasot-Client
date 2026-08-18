@@ -4,10 +4,11 @@ import type { IUpdateCurrentUserProfilePayload } from "../interfaces/user.interf
 
 export const CURRENT_USER_PROFILE_QUERY_KEY = ["current-user-profile"] as const;
 
-export const useCurrentUserProfile = () => {
+export const useCurrentUserProfile = (enabled = true) => {
   return useQuery({
     queryKey: CURRENT_USER_PROFILE_QUERY_KEY,
     queryFn: () => userService.getMe(),
+    enabled,
   });
 };
 
