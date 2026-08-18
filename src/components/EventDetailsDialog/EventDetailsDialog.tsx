@@ -30,12 +30,15 @@ export const EventDetailsDialog: React.FC<IEventDetailsDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
+      aria-labelledby="event-details-title"
       PaperProps={{ className: classes.dialogPaper }}
     >
       <Box className={classes.header}>
-        {eventData.name}
+        <Typography id="event-details-title" className={classes.title}>
+          {eventData.name}
+        </Typography>
         <IconButton
-          aria-label="close"
+          aria-label="סגירת פרטי האירוע"
           onClick={onClose}
           className={classes.closeButton}
           size="small"
@@ -50,14 +53,7 @@ export const EventDetailsDialog: React.FC<IEventDetailsDialogProps> = ({
             <Box sx={{ display: "flex", justifyContent: "center" }}>
               <Chip
                 label={`${eventTypeInfo.icon} ${eventTypeInfo.label}`}
-                sx={{
-                  fontFamily: "Rubik, sans-serif",
-                  fontWeight: 600,
-                  fontSize: 13,
-                  background: "rgba(154,81,136,0.1)",
-                  color: "#9a5188",
-                  borderRadius: 3,
-                }}
+                className={classes.typeChip}
               />
             </Box>
           )}

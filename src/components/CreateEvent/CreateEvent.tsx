@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from "react";
-import createCache from "@emotion/cache";
-import { CacheProvider } from "@emotion/react";
-import { prefixer } from "stylis";
-import rtlPlugin from "stylis-plugin-rtl";
 import {
   Alert,
   Box,
   Button,
   Checkbox,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -19,6 +16,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import CloseIcon from "@mui/icons-material/Close";
 import { DatePicker, TimePicker } from "@mui/x-date-pickers";
 import { useQueryClient } from "@tanstack/react-query";
@@ -34,14 +32,11 @@ import { EVENT_TYPES } from "../../constants/auth.const";
 
 const MAX_EVENT_IMAGE_SIZE = 5 * 1024 * 1024;
 const EVENT_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const pickerRtlCache = createCache({
-  key: "create-event-picker-rtl",
-  stylisPlugins: [prefixer, rtlPlugin],
-});
 
 const PICKER_TEXT_FIELD_SX = {
   "& .MuiOutlinedInput-root, & .MuiPickersInputBase-root": {
-    borderRadius: 3,
+    borderRadius: 2.5,
+    minHeight: 48,
   },
 } as const;
 
@@ -347,50 +342,85 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
             overflow: "hidden",
             minWidth: { xs: "calc(100vw - 24px)", sm: 440 },
             maxWidth: { xs: "calc(100vw - 24px)", sm: 560 },
-            maxHeight: { xs: "calc(100dvh - 24px)", sm: "calc(100vh - 64px)" },
+            maxHeight: { xs: "calc(100dvh - 24px)", sm: "calc(100dvh - 64px)" },
             direction: "rtl",
-            fontFamily: "Rubik, sans-serif",
+            fontFamily: (theme) => theme.typography.fontFamily,
+            background: (theme) =>
+              `linear-gradient(180deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`,
           },
         }}
       >
         <DialogTitle
           sx={{
-            fontWeight: 700,
-            fontSize: 18,
-            textAlign: "center",
-            background: "linear-gradient(135deg, #9a5188 0%, #7a3e6b 100%)",
-            color: "#fff",
-            padding: "14px 24px",
-            fontFamily: "Rubik, sans-serif",
+            pr: { xs: 5, sm: 6 },
+            pl: { xs: 7, sm: 8 },
+            pt: 5,
+            pb: 2,
+            fontWeight: 800,
+            fontSize: { xs: 20, sm: 22 },
+            lineHeight: 1.25,
+            color: "text.primary",
           }}
         >
           {event ? "עריכת אירוע" : "יצירת אירוע"}
+          <Typography
+            component="span"
+            sx={{
+              display: "block",
+              mt: 0.75,
+              color: "text.secondary",
+              fontSize: 13,
+              fontWeight: 500,
+            }}
+          >
+            פרטים, זמן ותמונה במקום אחד
+          </Typography>
         </DialogTitle>
         <IconButton
-          aria-label="close"
+          aria-label="סגירת חלון יצירת אירוע"
           onClick={onClose}
+          disabled={loading}
           sx={{
             position: "absolute",
-            left: 8,
-            top: 8,
-            color: "#fff",
-            backgroundColor: "rgba(0,0,0,0.15)",
-            "&:hover": { backgroundColor: "rgba(0,0,0,0.25)" },
+            left: 12,
+            top: 14,
+            color: "text.secondary",
+            backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.06),
+            "&:hover": {
+              backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.1),
+            },
           }}
         >
           <CloseIcon fontSize="small" />
         </IconButton>
         <DialogContent
           sx={{
-            padding: { xs: "18px 14px", sm: "24px" },
-            backgroundColor: "#faf8f9",
+            px: { xs: 3.5, sm: 6 },
+            py: { xs: 3, sm: 4 },
+            backgroundColor: "transparent",
           }}
         >
-          <CacheProvider value={pickerRtlCache}>
+          <Box dir="rtl" sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
             <Box
-              dir="rtl"
-              sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}
+              sx={{
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 4,
+                p: { xs: 2.5, sm: 3 },
+                backgroundColor: "background.paper",
+                boxShadow: (theme) => theme.shadows[0],
+              }}
             >
+              <Typography
+                sx={{
+                  mb: 2,
+                  fontWeight: 800,
+                  fontSize: 14,
+                  color: "text.primary",
+                }}
+              >
+                פרטי האירוע
+              </Typography>
             <Box
               sx={{
                 display: "flex",
@@ -406,7 +436,8 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
                 error={!!errors.name}
                 helperText={errors.name}
                 fullWidth
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+                autoFocus
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2.5 } }}
               />
               <TextField
                 label="כתובת"
@@ -416,9 +447,55 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
                 error={!!errors.address}
                 helperText={errors.address}
                 fullWidth
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2.5 } }}
               />
             </Box>
+            <TextField
+              label="סוג אירוע"
+              value={form.eventType ?? ""}
+              onChange={handleChange}
+              name="eventType"
+              select
+              fullWidth
+              sx={{ mt: 2, "& .MuiOutlinedInput-root": { borderRadius: 2.5 } }}
+            >
+              {Object.entries(EVENT_TYPES).map(([key, { label, icon }]) => (
+                <MenuItem key={key} value={key}>
+                  {icon} {label}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              label="תיאור"
+              value={form.description}
+              onChange={handleChange}
+              name="description"
+              multiline
+              rows={3}
+              fullWidth
+              sx={{ mt: 2, "& .MuiOutlinedInput-root": { borderRadius: 2.5 } }}
+            />
+            </Box>
+
+            <Box
+              sx={{
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 4,
+                p: { xs: 2.5, sm: 3 },
+                backgroundColor: "background.paper",
+              }}
+            >
+              <Typography
+                sx={{
+                  mb: 2,
+                  fontWeight: 800,
+                  fontSize: 14,
+                  color: "text.primary",
+                }}
+              >
+                מועד
+              </Typography>
               <Box
                 sx={{
                   display: "grid",
@@ -510,58 +587,42 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
                 <Checkbox
                   checked={endsOnDifferentDay}
                   onChange={handleDifferentDayChange}
-                  size="small"
+                  sx={{ p: 1.25 }}
                 />
               }
               label="האירוע מסתיים ביום אחר"
               sx={{
+                mt: 1.5,
                 m: 0,
                 alignSelf: "flex-start",
                 "& .MuiFormControlLabel-label": {
-                  fontFamily: "Rubik, sans-serif",
+                  fontFamily: (theme) => theme.typography.fontFamily,
                   fontSize: 14,
                 },
               }}
             />
-            <TextField
-              label="תיאור"
-              value={form.description}
-              onChange={handleChange}
-              name="description"
-              multiline
-              rows={3}
-              fullWidth
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
-            />
-            <TextField
-              label="סוג אירוע"
-              value={form.eventType ?? ""}
-              onChange={handleChange}
-              name="eventType"
-              select
-              fullWidth
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
-            >
-              {Object.entries(EVENT_TYPES).map(([key, { label, icon }]) => (
-                <MenuItem key={key} value={key}>
-                  {icon} {label}
-                </MenuItem>
-              ))}
-            </TextField>
+            {!dateTimeIsValid && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                יש להשלים תאריך ושעות תקינים לפני שמירה.
+              </Alert>
+            )}
+            </Box>
+
             <Box
               sx={{
-                border: "1px dashed #d7bfd1",
-                borderRadius: 3,
-                p: 2,
-                backgroundColor: "#fff",
+                border: "1px dashed",
+                borderColor: (theme) => alpha(theme.palette.primary.main, 0.35),
+                borderRadius: 4,
+                p: { xs: 2.5, sm: 3 },
+                backgroundColor: (theme) => alpha(theme.palette.primary.light, 0.38),
               }}
             >
               <Typography
                 sx={{
-                  fontWeight: 700,
+                  fontWeight: 800,
                   fontSize: 14,
                   mb: 1,
-                  fontFamily: "Rubik, sans-serif",
+                  color: "text.primary",
                 }}
               >
                 תמונת אירוע
@@ -575,14 +636,14 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
                     width: "100%",
                     height: 160,
                     objectFit: "cover",
-                    borderRadius: 2,
-                    mb: 1.5,
-                    backgroundColor: "#F3F4F6",
+                    borderRadius: 3,
+                    mb: 2,
+                    backgroundColor: "background.default",
                   }}
                 />
               )}
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                <Button component="label" variant="outlined" size="small">
+              <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
+                <Button component="label" variant="outlined">
                   בחר תמונה
                   <input
                     type="file"
@@ -596,7 +657,6 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
                   <Button
                     variant="text"
                     color="error"
-                    size="small"
                     onClick={handleRemoveImage}
                   >
                     הסר תמונה
@@ -605,22 +665,22 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
               </Box>
               <Typography
                 sx={{
-                  color: "#6B7280",
+                  color: "text.secondary",
                   fontSize: 12,
                   mt: 1,
-                  fontFamily: "Rubik, sans-serif",
                 }}
               >
                 JPEG, PNG או WebP עד 5MB
               </Typography>
             </Box>
-            </Box>
-          </CacheProvider>
+          </Box>
         </DialogContent>
         <DialogActions
           sx={{
-            padding: { xs: "10px 14px 14px", sm: "12px 24px 16px" },
-            backgroundColor: "#faf8f9",
+            px: { xs: 3.5, sm: 6 },
+            pt: 1,
+            pb: { xs: 3.5, sm: 5 },
+            backgroundColor: "transparent",
           }}
         >
           <Button
@@ -630,19 +690,18 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
             fullWidth
             sx={{
               borderRadius: 3,
-              height: 44,
+              minHeight: 48,
               fontWeight: 700,
               fontSize: 15,
-              textTransform: "none",
-              fontFamily: "Rubik, sans-serif",
-              background: "linear-gradient(135deg, #9a5188 0%, #7a3e6b 100%)",
-              boxShadow: "0 4px 14px rgba(154, 81, 136, 0.3)",
-              "&:hover": {
-                background: "linear-gradient(135deg, #7a3e6b 0%, #5c2d52 100%)",
-              },
             }}
           >
-            {loading ? "טוען..." : event ? "שמור שינויים" : "צור אירוע"}
+            {loading ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : event ? (
+              "שמור שינויים"
+            ) : (
+              "צור אירוע"
+            )}
           </Button>
         </DialogActions>
       </Dialog>

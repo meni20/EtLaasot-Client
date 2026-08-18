@@ -22,6 +22,7 @@ export const BranchSelector: React.FC<BranchSelectorProps> = ({
       size="small"
       className={variant === "dialog" ? classes.dialogSelect : classes.select}
       variant="outlined"
+      inputProps={{ "aria-label": "בחירת סניף פעיל" }}
     >
       {availableBranches.map((branch) => (
         <MenuItem key={branch.id} value={branch.id}>

@@ -2,29 +2,32 @@ import { makeStyles } from "@mui/styles";
 
 export const useNavbarStyles = makeStyles({
   appBar: {
-    background: "linear-gradient(135deg, #844173 0%, #5c2950 100%)",
-    boxShadow: "0 4px 20px rgba(154, 81, 136, 0.25)",
+    background: "rgba(92, 41, 80, 0.84)",
+    backdropFilter: "blur(22px) saturate(180%)",
+    WebkitBackdropFilter: "blur(22px) saturate(180%)",
+    borderBottom: "1px solid rgba(255, 255, 255, 0.18)",
+    boxShadow: "0 12px 32px rgba(45, 35, 43, 0.16)",
     color: "#fff",
-    zIndex: 1200,
-    animation: "fadeInDown 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+    zIndex: 1250,
+    paddingTop: "env(safe-area-inset-top, 0px)",
+    animation: "fadeInDown var(--transition-slow, 240ms cubic-bezier(0.32, 0.72, 0, 1))",
     overflowX: "clip" as const,
   },
   toolbar: {
     position: "relative" as const,
     justifyContent: "space-between",
-    paddingLeft: 24,
-    paddingRight: 24,
+    paddingInline: "24px !important",
     minHeight: 64,
   },
   title: {
     flexGrow: 1,
     textAlign: "center" as const,
-    fontFamily: "Rubik, sans-serif",
+    fontFamily: "inherit",
     fontWeight: 700,
-    letterSpacing: "-0.02em", // צמצום רווחים קל למראה מודרני (כמו במותגי הייטק)
+    letterSpacing: 0,
     fontSize: "1.8rem",
-    paddingRight: "8%",
-    textShadow: "0 2px 4px rgba(0,0,0,0.15)", // צל עדין לטקסט כדי להקפיץ אותו
+    paddingInlineEnd: "8%",
+    textShadow: "0 2px 4px rgba(0,0,0,0.15)",
   },
   navbarLogoSlot: {
     position: "absolute" as const,
@@ -51,14 +54,18 @@ export const useNavbarStyles = makeStyles({
     display: "flex",
     flexDirection: "column" as const,
     alignItems: "flex-end",
-    backgroundColor: "rgba(255,255,255,0.12)",
-    backdropFilter: "blur(8px)",
-    borderRadius: 10,
-    padding: "4px 12px",
-    marginRight: 12,
+    backgroundColor: "rgba(255,255,255,0.14)",
+    backdropFilter: "blur(10px) saturate(150%)",
+    WebkitBackdropFilter: "blur(10px) saturate(150%)",
+    border: "1px solid rgba(255,255,255,0.14)",
+    borderRadius: 12,
+    padding: "6px 12px",
+    marginInlineEnd: 12,
+    minHeight: 44,
     lineHeight: 1.3,
     cursor: "pointer",
-    transition: "all 0.3s ease",
+    transition:
+      "background-color 180ms ease, border-color 180ms ease, transform 120ms ease",
     "&:hover": {
       backgroundColor: "rgba(255,255,255,0.2)",
     },
@@ -67,19 +74,22 @@ export const useNavbarStyles = makeStyles({
       outlineOffset: 3,
       backgroundColor: "rgba(255,255,255,0.22)",
     },
+    "&:active": {
+      transform: "scale(0.98)",
+    },
   },
   userName: {
-    fontFamily: "Rubik, sans-serif",
+    fontFamily: "inherit",
     fontWeight: 700,
     fontSize: "0.9rem",
     color: "#fff",
     lineHeight: 1.4,
   },
   userTz: {
-    fontFamily: "Rubik, sans-serif",
+    fontFamily: "inherit",
     fontWeight: 400,
     fontSize: "0.72rem",
-    color: "rgba(255, 255, 255, 0.65)", // ניגודיות טובה ונעימה יותר לעין
+    color: "rgba(255, 255, 255, 0.74)",
     marginTop: 1,
   },
   navActions: {
@@ -89,31 +99,32 @@ export const useNavbarStyles = makeStyles({
     zIndex: 1,
   },
   menuIconBox: {
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 8,
-    borderRadius: 10,
-    backgroundColor: "rgba(255, 255, 255, 0.05)", // בסיס עדין לכפתור התפריט
-    transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
+    width: "44px !important",
+    height: "44px !important",
+    borderRadius: "12px !important",
+    backgroundColor: "rgba(255, 255, 255, 0.10) !important",
+    transition:
+      "background-color 180ms ease, transform 120ms ease !important",
     "&:hover": {
-      backgroundColor: "rgba(255, 255, 255, 0.15)",
-      transform: "translateY(-1px)",
+      backgroundColor: "rgba(255, 255, 255, 0.18) !important",
     },
     "&:active": {
-      transform: "scale(0.95)",
+      transform: "scale(0.96)",
+    },
+    "&:focus-visible": {
+      outline: "2px solid rgba(255,255,255,0.85)",
+      outlineOffset: 3,
     },
   },
   homeButton: {
-    width: 38,
-    height: 38,
+    width: 44,
+    height: 44,
     color: "#fff",
-    borderRadius: 10,
-    transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
+    borderRadius: "12px !important",
+    transition:
+      "background-color 180ms ease, transform 120ms ease !important",
     "&:hover": {
       backgroundColor: "rgba(255,255,255,0.2)",
-      transform: "scale(1.08)",
     },
     "&:active": {
       transform: "scale(0.95)",
@@ -122,7 +133,7 @@ export const useNavbarStyles = makeStyles({
   profileDialogTitle: {
     position: "relative" as const,
     padding: "18px 24px 10px !important",
-    fontFamily: "Rubik, sans-serif !important",
+    fontFamily: "inherit !important",
     fontWeight: "800 !important" as const,
     color: "#2f2930",
   },
@@ -153,20 +164,20 @@ export const useNavbarStyles = makeStyles({
     justifyContent: "center",
     backgroundColor: "#f2e6ee",
     color: "#7a3e6b",
-    fontFamily: "Rubik, sans-serif",
+    fontFamily: "inherit",
     fontWeight: 800,
     fontSize: "1.1rem",
     flexShrink: 0,
   },
   profileName: {
-    fontFamily: "Rubik, sans-serif",
+    fontFamily: "inherit",
     fontWeight: "800 !important" as const,
     color: "#2f2930",
     fontSize: "1.08rem",
   },
   profileMeta: {
     marginTop: "2px !important",
-    fontFamily: "Rubik, sans-serif",
+    fontFamily: "inherit",
     color: "#7a6d75",
     fontSize: "0.86rem !important",
   },
@@ -183,7 +194,7 @@ export const useNavbarStyles = makeStyles({
     minWidth: 0,
   },
   profileBranchLabel: {
-    fontFamily: "Rubik, sans-serif",
+    fontFamily: "inherit",
     fontWeight: "700 !important" as const,
     color: "#6b6068",
     fontSize: "0.84rem !important",
@@ -196,14 +207,13 @@ export const useNavbarStyles = makeStyles({
   },
   profileActionButton: {
     borderRadius: "10px !important",
-    fontFamily: "Rubik, sans-serif !important",
+    fontFamily: "inherit !important",
     fontWeight: "700 !important" as const,
   },
   "@media (max-width: 640px)": {
     toolbar: {
       minHeight: 58,
-      paddingLeft: 8,
-      paddingRight: 8,
+      paddingInline: "8px !important",
     },
     navbarLogoSlot: {
       maxWidth: "min(160px, 30vw)",
@@ -225,7 +235,8 @@ export const useNavbarStyles = makeStyles({
     userInfo: {
       maxWidth: 116,
       padding: "4px 8px",
-      marginRight: 6,
+      marginInlineEnd: 6,
+      minHeight: 40,
     },
     userName: {
       maxWidth: "100%",
@@ -240,13 +251,43 @@ export const useNavbarStyles = makeStyles({
       gap: 4,
     },
     homeButton: {
-      width: 36,
-      height: 36,
+      width: 40,
+      height: 40,
     },
     menuIconBox: {
-      width: 36,
-      height: 36,
-      padding: 6,
+      width: "40px !important",
+      height: "40px !important",
+    },
+  },
+  "@media (prefers-reduced-motion: reduce)": {
+    appBar: {
+      animation: "none",
+    },
+    userInfo: {
+      transition: "background-color 120ms ease, border-color 120ms ease",
+    },
+    menuIconBox: {
+      transition: "background-color 120ms ease !important",
+      "&:active": {
+        transform: "none",
+      },
+    },
+    homeButton: {
+      transition: "background-color 120ms ease !important",
+      "&:active": {
+        transform: "none",
+      },
+    },
+  },
+  "@media (prefers-reduced-transparency: reduce)": {
+    appBar: {
+      background: "#5c2950",
+      backdropFilter: "none",
+      WebkitBackdropFilter: "none",
+    },
+    userInfo: {
+      backdropFilter: "none",
+      WebkitBackdropFilter: "none",
     },
   },
 });

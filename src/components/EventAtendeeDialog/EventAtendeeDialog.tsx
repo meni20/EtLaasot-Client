@@ -191,7 +191,10 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
     },
   });
 
-  const paired = participants?.paired ?? [];
+  const paired = React.useMemo(
+    () => participants?.paired ?? [],
+    [participants?.paired],
+  );
   const pairedGroups = React.useMemo(
     () => groupPairingsByTrainee(paired),
     [paired],
@@ -302,6 +305,8 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
         }`}
         onClick={onClick}
         disabled={isMutating}
+        aria-pressed={selected}
+        aria-label={`בחר ${attendee.user?.name ?? "משתתף"} לשיבוץ`}
       >
         <Avatar className={classes.avatar}>
           {attendee.user?.name?.[0]?.toUpperCase() ?? "?"}
@@ -402,7 +407,7 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
             </Tooltip>
           )}
           <IconButton
-            aria-label="close"
+            aria-label="סגירת חלון משתתפים"
             onClick={onClose}
             className={classes.closeButton}
             size="small"
@@ -414,18 +419,34 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
         <Box className={classes.dialogContent}>
           {isFetchingAttendees ? (
             <Box className={classes.loadingState}>
-              <CircularProgress sx={{ color: "#9a5188" }} size={36} />
+              <CircularProgress size={36} />
             </Box>
           ) : totalCount === 0 ? (
             <Box className={classes.emptyState}>
-              <PeopleOutlineIcon sx={{ fontSize: 48, mb: 1, color: "#ddd" }} />
-              <Typography sx={{ fontFamily: "Rubik", color: "#bbb" }}>
+              <PeopleOutlineIcon
+                sx={{ fontSize: 48, mb: 1, color: "text.disabled" }}
+              />
+              <Typography sx={{ color: "text.secondary", fontWeight: 700 }}>
                 אין משתתפים רשומים
               </Typography>
             </Box>
           ) : (
-            <Box className={classes.participantsGrid}>
-              <Box className={classes.sectionColumn}>
+            <Stack spacing={2}>
+              {(pairMutation.isError ||
+                deletePairingMutation.isError ||
+                deleteAttendeeMutation.isError) && (
+                <Alert severity="error">
+                  הפעולה לא הושלמה. בדקו את החיבור ונסו שוב.
+                </Alert>
+              )}
+              {selectedMentorId && !isMutating && (
+                <Alert severity="info">
+                  בחרו חניך כדי להשלים את השיבוץ, או לחצו שוב על החונך לביטול
+                  הבחירה.
+                </Alert>
+              )}
+              <Box className={classes.participantsGrid}>
+                <Box className={classes.sectionColumn}>
                 <Typography className={classes.sectionTitle}>
                   משובצים
                 </Typography>
@@ -556,11 +577,11 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
                         </Button>
                       </Box>
                     ))
-                  )}
-                </Box>
+                )}
               </Box>
+                </Box>
 
-              <Box className={classes.sectionColumn}>
+                <Box className={classes.sectionColumn}>
                 <Typography className={classes.sectionTitle}>
                   חונכים ללא שיבוץ
                 </Typography>
@@ -581,11 +602,11 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
                           ),
                       ),
                     )
-                  )}
-                </Box>
+                )}
               </Box>
+                </Box>
 
-              <Box className={classes.sectionColumn}>
+                <Box className={classes.sectionColumn}>
                 <Typography className={classes.sectionTitle}>
                   חניכים ללא שיבוץ
                 </Typography>
@@ -606,10 +627,11 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
                           ),
                       ),
                     )
-                  )}
+                )}
+              </Box>
                 </Box>
               </Box>
-            </Box>
+            </Stack>
           )}
         </Box>
       </Dialog>
@@ -626,7 +648,7 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
             הכנת דף שבת
           </Typography>
           <IconButton
-            aria-label="close"
+            aria-label="סגירת תצוגה מקדימה להדפסה"
             onClick={() => setIsPrintPreviewOpen(false)}
             className={classes.printPreviewCloseButton}
             size="small"
@@ -638,7 +660,7 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
         <Box className={classes.printDialogContent}>
           {isFetchingPrintableParticipants ? (
             <Box className={classes.loadingState}>
-              <CircularProgress sx={{ color: "#9a5188" }} size={36} />
+              <CircularProgress size={36} />
             </Box>
           ) : isPrintableParticipantsError ? (
             <Alert severity="error">
@@ -710,16 +732,16 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
       >
         <DialogTitle
           sx={{
-            fontFamily: "Rubik, sans-serif",
+            fontFamily: (theme) => theme.typography.fontFamily,
             fontWeight: 800,
-            color: "#2f2930",
+            color: "text.primary",
           }}
         >
           שליחת שיבוצים
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2}>
-            <Typography sx={{ fontFamily: "Rubik, sans-serif" }}>
+            <Typography>
               שליחת מייל אישי לחונכים הרשומים לאירוע "{eventName}" עם פרטי
               ההשתתפות והשיבוץ שלהם.
             </Typography>

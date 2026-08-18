@@ -147,8 +147,8 @@ export const CalendarPage: React.FC = () => {
     start: event.startDate,
     end: event.endDate,
     allDay: false,
-    backgroundColor: "#9a5188",
-    borderColor: "#7a3e6b",
+    backgroundColor: "#2f6f61",
+    borderColor: "#285e52",
     textColor: "#fff",
     extendedProps: { ...event },
   }));
@@ -244,8 +244,8 @@ export const CalendarPage: React.FC = () => {
 
       {isLoading ? (
         <Box className={styles.loadingBox}>
-          <CircularProgress sx={{ color: "#9a5188" }} />
-          <Typography sx={{ mt: 2, color: "#999", fontFamily: "Rubik" }}>
+          <CircularProgress sx={{ color: "var(--color-primary, #2f6f61)" }} />
+          <Typography sx={{ mt: 2, color: "var(--color-text-muted, #6e737a)" }}>
             טוען אירועים...
           </Typography>
         </Box>

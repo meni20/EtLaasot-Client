@@ -1,5 +1,12 @@
 import React, { Suspense, lazy, useMemo, useState } from "react";
-import { Box, Typography, CircularProgress, IconButton, Tooltip } from "@mui/material";
+import {
+  Box,
+  ButtonBase,
+  Typography,
+  CircularProgress,
+  IconButton,
+  Tooltip,
+} from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import EventIcon from "@mui/icons-material/Event";
@@ -61,13 +68,13 @@ export const DashboardPage: React.FC = () => {
 
   if (!activeBranch || isLoading || isFetching) {
     return (
-      <Box
-        className={classes.root}
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-      >
-        <CircularProgress sx={{ color: "#9a5188" }} />
+      <Box className={classes.root}>
+        <Box className={classes.stateCard} aria-live="polite">
+          <CircularProgress sx={{ color: "var(--color-primary)" }} />
+          <Typography className={classes.stateText}>
+            טוען את נתוני הדשבורד...
+          </Typography>
+        </Box>
       </Box>
     );
   }
@@ -75,16 +82,11 @@ export const DashboardPage: React.FC = () => {
   if (isError) {
     return (
       <Box className={classes.root}>
-        <Typography
-          sx={{
-            textAlign: "center",
-            mt: 10,
-            color: "#999",
-            fontFamily: "Rubik, sans-serif",
-          }}
-        >
-          לא הצלחנו לטעון את נתוני הדשבורד.
-        </Typography>
+        <Box className={classes.stateCard} role="alert">
+          <Typography className={classes.stateText}>
+            לא הצלחנו לטעון את נתוני הדשבורד.
+          </Typography>
+        </Box>
       </Box>
     );
   }
@@ -92,16 +94,9 @@ export const DashboardPage: React.FC = () => {
   if (!data) {
     return (
       <Box className={classes.root}>
-        <Typography
-          sx={{
-            textAlign: "center",
-            mt: 10,
-            color: "#999",
-            fontFamily: "Rubik, sans-serif",
-          }}
-        >
-          אין נתונים להצגה
-        </Typography>
+        <Box className={classes.stateCard}>
+          <Typography className={classes.stateText}>אין נתונים להצגה</Typography>
+        </Box>
       </Box>
     );
   }
@@ -144,53 +139,57 @@ export const DashboardPage: React.FC = () => {
   return (
     <Box className={classes.root}>
       <Box className={classes.header}>
-        <Typography variant="h4" className={classes.title}>
+        <Typography component="h1" variant="h4" className={classes.title}>
           {branchName} - בית
+        </Typography>
+        <Typography className={classes.subtitle}>
+          מבט מהיר על מתנדבים, חניכים ואירועים קרובים
         </Typography>
       </Box>
 
       <Box className={classes.summaryGrid}>
-        <Box
+        <ButtonBase
           className={classes.summaryCard}
           onClick={() => navigate(dashboardRoutes.volunteers)}
+          aria-label="מעבר לרשימת מתנדבים"
         >
           <Box className={classes.summaryIcon}>
             <GroupsIcon fontSize="inherit" />
           </Box>
           <Box className={classes.summaryValue}>{summary.totalVolunteers}</Box>
           <Box className={classes.summaryLabel}>מתנדבים</Box>
-        </Box>
+        </ButtonBase>
 
-        <Box
+        <ButtonBase
           className={classes.summaryCard}
           onClick={() => navigate(dashboardRoutes.trainees)}
+          aria-label="מעבר לרשימת חניכים"
         >
           <Box className={classes.summaryIcon}>
             <SchoolIcon fontSize="inherit" />
           </Box>
           <Box className={classes.summaryValue}>{summary.totalTrainees}</Box>
           <Box className={classes.summaryLabel}>חניכים</Box>
-        </Box>
+        </ButtonBase>
 
-        <Box
+        <ButtonBase
           className={classes.summaryCard}
           onClick={() => navigate(dashboardRoutes.events)}
+          aria-label="מעבר לרשימת אירועים"
         >
           <Box className={classes.summaryIcon}>
             <EventIcon fontSize="inherit" />
           </Box>
           <Box className={classes.summaryValue}>{summary.activeEvents}</Box>
           <Box className={classes.summaryLabel}>אירועים קרובים</Box>
-        </Box>
+        </ButtonBase>
 
-        <Box
-          className={classes.summaryCard}
+        <ButtonBase
+          className={`${classes.summaryCard} ${
+            summary.unassignedTrainees > 0 ? classes.summaryCardAttention : ""
+          }`}
           onClick={() => navigate(dashboardRoutes.mentorAssignments)}
-          style={
-            summary.unassignedTrainees > 0
-              ? { borderLeft: "4px solid #e65100" }
-              : {}
-          }
+          aria-label="מעבר לחניכים ללא חונך"
         >
           <Box className={classes.summaryIcon}>
             <PersonOffIcon fontSize="inherit" />
@@ -199,45 +198,51 @@ export const DashboardPage: React.FC = () => {
             {summary.unassignedTrainees}
           </Box>
           <Box className={classes.summaryLabel}>חניכים ללא חונך</Box>
-        </Box>
+        </ButtonBase>
       </Box>
 
-      {dashboardUpcomingEvents.length > 0 && (
-        <Box className={classes.upcomingSection}>
-          <Box className={classes.carouselHeader}>
-            <Typography className={classes.chartTitle}>אירועים קרובים</Typography>
-            {hasCarouselControls && (
-              <Box className={classes.carouselControls}>
-                <Tooltip title="אירועים קודמים">
-                  <span>
-                    <IconButton
-                      className={classes.carouselButton}
-                      onClick={handlePreviousEvents}
-                      disabled={effectiveCarouselStart === 0}
-                      size="small"
-                    >
-                      <ChevronRightIcon fontSize="small" />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-                <Tooltip title="אירועים נוספים">
-                  <span>
-                    <IconButton
-                      className={classes.carouselButton}
-                      onClick={handleNextEvents}
-                      disabled={effectiveCarouselStart >= maxCarouselStart}
-                      size="small"
-                    >
-                      <ChevronLeftIcon fontSize="small" />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-              </Box>
-            )}
-          </Box>
+      <Box className={classes.upcomingSection}>
+        <Box className={classes.carouselHeader}>
+          <Typography component="h2" className={classes.chartTitle}>
+            אירועים קרובים
+          </Typography>
+          {hasCarouselControls && (
+            <Box className={classes.carouselControls}>
+              <Tooltip title="אירועים קודמים">
+                <span>
+                  <IconButton
+                    className={classes.carouselButton}
+                    onClick={handlePreviousEvents}
+                    disabled={effectiveCarouselStart === 0}
+                    size="small"
+                    aria-label="אירועים קודמים"
+                  >
+                    <ChevronRightIcon fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+              <Tooltip title="אירועים נוספים">
+                <span>
+                  <IconButton
+                    className={classes.carouselButton}
+                    onClick={handleNextEvents}
+                    disabled={effectiveCarouselStart >= maxCarouselStart}
+                    size="small"
+                    aria-label="אירועים נוספים"
+                  >
+                    <ChevronLeftIcon fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Box>
+          )}
+        </Box>
 
+        {dashboardUpcomingEvents.length === 0 ? (
+          <Box className={classes.emptyPanel}>אין אירועים קרובים להצגה.</Box>
+        ) : (
           <Box className={classes.eventsCarouselViewport}>
-            <Box className={classes.eventsCarouselTrack}>
+            <Box className={classes.eventsCarouselTrack} aria-live="polite">
               {visibleUpcomingEvents.map((event) => (
                 <Box key={event.id} className={classes.carouselCard}>
                   <BasicCard
@@ -259,22 +264,17 @@ export const DashboardPage: React.FC = () => {
               ))}
             </Box>
           </Box>
-        </Box>
-      )}
+        )}
+      </Box>
 
       <Box className={classes.chartCard}>
-        <Typography className={classes.chartTitle}>
+        <Typography component="h2" className={classes.chartTitle}>
           משתתפים לפי אירוע
         </Typography>
         <Suspense
           fallback={
-            <Box
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              minHeight={160}
-            >
-              <CircularProgress size={24} sx={{ color: "#9a5188" }} />
+            <Box className={classes.chartFallback} aria-live="polite">
+              <CircularProgress size={24} sx={{ color: "var(--color-primary)" }} />
             </Box>
           }
         >

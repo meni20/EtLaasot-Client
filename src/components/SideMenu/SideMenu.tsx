@@ -45,15 +45,19 @@ export const SideMenu: React.FC<SideMenuProps> = ({
       onClose={onClose}
       variant={persistent ? "persistent" : "temporary"}
       PaperProps={{
+        id: "app-side-menu",
+        component: "nav",
+        "aria-label": "ניווט ראשי",
         className: `${classes.drawerPaper} ${
           collapsed ? classes.collapsedDrawerPaper : ""
         }`,
-        sx: { right: 0, left: "auto" },
+        sx: { insetInlineEnd: 0, insetInlineStart: "auto" },
       }}
       SlideProps={{ direction: "left" }}
       ModalProps={{ keepMounted: true }}
     >
       <List
+        aria-label="עמודי המערכת"
         className={`${classes.list} ${collapsed ? classes.collapsedList : ""}`}
       >
         {visibleMenuItems.map((item) => {
@@ -71,6 +75,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({
               } ${collapsed ? classes.collapsedListItemButton : ""}`}
               selected={isActive}
               aria-label={item.label}
+              aria-current={isActive ? "page" : undefined}
               onClick={() => {
                 navigate(item.path);
                 if (!persistent) {

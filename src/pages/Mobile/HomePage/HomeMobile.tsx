@@ -35,7 +35,6 @@ import {
 } from "../../../utils/data.utillity";
 import { decodeUnicodeEscapes } from "../../../utils/text.util";
 import { AUTH_ROLES, EVENT_TYPES } from "../../../constants/auth.const";
-import { BottomNav } from "../../../components/BottomNav/BottomNav";
 import { useStyles } from "./HomeMobile.styles";
 import type { IVolunteerActivity } from "../../../interfaces/activity.interface";
 import type {
@@ -323,7 +322,7 @@ export const HomeMobile: React.FC = () => {
             {activeActivity && (
               <Chip
                 size="small"
-                label="ACTIVE"
+                label="פעילה"
                 color="warning"
                 className={styles.typeChip}
               />
@@ -332,7 +331,10 @@ export const HomeMobile: React.FC = () => {
 
           {isLoadingActiveActivity ? (
             <Box sx={{ mt: 1.5 }}>
-              <CircularProgress size={22} sx={{ color: "#7B3F98" }} />
+              <CircularProgress
+                size={22}
+                sx={{ color: "var(--color-primary, #2f6f61)" }}
+              />
             </Box>
           ) : activeActivity ? (
             <Box sx={{ mt: 2 }}>
@@ -406,16 +408,17 @@ export const HomeMobile: React.FC = () => {
                 onClick={() => setIsActivityPanelOpen((open) => !open)}
                 sx={{
                   mt: 1.5,
-                  bgcolor: "#7B3F98",
+                  bgcolor: "var(--color-primary, #2f6f61)",
                   color: "#fff",
                   fontWeight: 700,
                   borderRadius: "14px",
                   textTransform: "none",
-                  boxShadow: "0 4px 12px rgba(123, 63, 152, 0.22)",
+                  boxShadow: "var(--shadow-sm, 0 3px 12px rgba(16, 24, 40, 0.07))",
                   transition: "transform 0.18s ease, box-shadow 0.18s ease",
                   "&:hover": {
-                    bgcolor: "#6D3588",
-                    boxShadow: "0 6px 16px rgba(123, 63, 152, 0.26)",
+                    bgcolor: "var(--color-primary-dark, #285e52)",
+                    boxShadow:
+                      "var(--shadow-md, 0 12px 34px rgba(16, 24, 40, 0.1))",
                   },
                   "&:active": { transform: "scale(0.98)" },
                 }}
@@ -489,16 +492,18 @@ export const HomeMobile: React.FC = () => {
                     variant="contained"
                     sx={{
                       mt: 2,
-                      bgcolor: "#7B3F98",
+                      bgcolor: "var(--color-primary, #2f6f61)",
                       color: "#fff",
                       fontWeight: 700,
                       borderRadius: "14px",
                       textTransform: "none",
-                      boxShadow: "0 4px 12px rgba(123, 63, 152, 0.22)",
+                      boxShadow:
+                        "var(--shadow-sm, 0 3px 12px rgba(16, 24, 40, 0.07))",
                       transition: "transform 0.18s ease, box-shadow 0.18s ease",
                       "&:hover": {
-                        bgcolor: "#6D3588",
-                        boxShadow: "0 6px 16px rgba(123, 63, 152, 0.26)",
+                        bgcolor: "var(--color-primary-dark, #285e52)",
+                        boxShadow:
+                          "var(--shadow-md, 0 12px 34px rgba(16, 24, 40, 0.1))",
                       },
                       "&:active": { transform: "scale(0.98)" },
                     }}
@@ -523,8 +528,6 @@ export const HomeMobile: React.FC = () => {
           )}
         </Box>
       )}
-
-      <BottomNav />
     </Box>
   );
 };

@@ -134,22 +134,21 @@ export const VolunteerPage: React.FC = () => {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
             <Avatar
               sx={{
-                width: 32,
-                height: 32,
-                bgcolor: "#f2e6ee",
-                color: "#7a3e6b",
+                width: 34,
+                height: 34,
+                bgcolor: "primary.light",
+                color: "primary.dark",
                 fontWeight: 800,
                 fontSize: 14,
-                fontFamily: "Rubik, sans-serif",
+                fontFamily: "inherit",
               }}
             >
               {avatarLetter(params.value)}
             </Avatar>
             <Typography
               sx={{
-                fontFamily: "Rubik, sans-serif",
                 fontWeight: 700,
-                color: "#2f2930",
+                color: "text.primary",
                 fontSize: 14,
               }}
             >
@@ -178,12 +177,15 @@ export const VolunteerPage: React.FC = () => {
                 );
               }}
               sx={{
-                color: "#7a3e6b",
-                bgcolor: "#fbf7fa",
-                border: "1px solid #ead8e5",
+                minWidth: 44,
+                minHeight: 44,
+                color: "primary.dark",
+                bgcolor: "background.paper",
+                border: "1px solid",
+                borderColor: "divider",
                 "&:hover": {
-                  bgcolor: "#9a5188",
-                  color: "#fff",
+                  bgcolor: "primary.light",
+                  borderColor: "primary.main",
                 },
               }}
             >
@@ -221,7 +223,7 @@ export const VolunteerPage: React.FC = () => {
         </Button>
       </Box>
 
-      <Box className={styles.toolbarCard}>
+      <Box className={styles.toolbarCard} role="search">
         <TextField
           className={styles.searchField}
           value={searchTerm}
@@ -229,6 +231,8 @@ export const VolunteerPage: React.FC = () => {
           placeholder="חיפוש לפי שם, 4 ספרות ת.ז, טלפון, אימייל או כתובת"
           aria-label="חיפוש מתנדבים"
           size="small"
+          type="search"
+          autoComplete="off"
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -287,6 +291,8 @@ export const VolunteerPage: React.FC = () => {
               rows={filteredRows}
               columns={columns}
               loading={isFetchingVolunteers}
+              rowHeight={60}
+              columnHeaderHeight={48}
               disableRowSelectionOnClick
               onRowClick={(params) =>
                 openVolunteerDetails(

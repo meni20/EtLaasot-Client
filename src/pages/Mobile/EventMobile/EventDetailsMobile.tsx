@@ -26,7 +26,6 @@ import { formatDate } from "../../../utils/data.utillity";
 import { decodeUnicodeEscapes } from "../../../utils/text.util";
 import { AUTH_ROLES, EVENT_TYPES } from "../../../constants/auth.const";
 import attendeeService from "../../../services/attendee.service";
-import { BottomNav } from "../../../components/BottomNav/BottomNav";
 import { useStyles } from "./EventMobile.styles";
 import type { AttendanceIntent, IEvent } from "../../../interfaces/event.interface";
 
@@ -316,25 +315,37 @@ export const EventDetailsMobile: React.FC = () => {
                       key={option.intent}
                       variant="outlined"
                       className={styles.rsvpOptionCard}
+                      aria-pressed={isSelected}
+                      aria-label={`${option.label} - ${ATTENDANCE_STATUS_LABELS[option.intent]}`}
                       onClick={() => handleAttendanceIntent(event, option.intent)}
                       disabled={attendanceIntentMutation.isPending}
                       sx={{
-                        bgcolor: isSelected ? "#7B3F98" : "#fff",
-                        borderColor: isSelected ? "#7B3F98" : "#E4D7EB",
-                        color: isSelected ? "#fff" : "#1F1F1F",
+                        bgcolor: isSelected
+                          ? "var(--color-primary, #2f6f61)"
+                          : "var(--color-surface, #fff)",
+                        borderColor: isSelected
+                          ? "var(--color-primary, #2f6f61)"
+                          : "var(--color-border, #dadde3)",
+                        color: isSelected ? "#fff" : "var(--color-text, #1d1d1f)",
                         boxShadow: isSelected
-                          ? "0 6px 16px rgba(123, 63, 152, 0.24)"
+                          ? "0 6px 16px rgba(47, 111, 97, 0.22)"
                           : "none",
                         "&:hover": {
-                          bgcolor: isSelected ? "#6D3588" : "#F7F2FA",
-                          borderColor: "#7B3F98",
+                          bgcolor: isSelected
+                            ? "var(--color-primary-dark, #285e52)"
+                            : "var(--color-primary-soft, #eaf4f1)",
+                          borderColor: "var(--color-primary, #2f6f61)",
                           boxShadow: isSelected
-                            ? "0 6px 16px rgba(123, 63, 152, 0.24)"
+                            ? "0 6px 16px rgba(47, 111, 97, 0.22)"
                             : "none",
                         },
                         "&.Mui-disabled": {
-                          color: isSelected ? "#fff" : "#6B7280",
-                          borderColor: isSelected ? "#7B3F98" : "#E4D7EB",
+                          color: isSelected
+                            ? "#fff"
+                            : "var(--color-text-muted, #6e737a)",
+                          borderColor: isSelected
+                            ? "var(--color-primary, #2f6f61)"
+                            : "var(--color-border, #dadde3)",
                         },
                       }}
                     >
@@ -417,8 +428,6 @@ export const EventDetailsMobile: React.FC = () => {
           </Box>
         </Dialog>
       )}
-
-      <BottomNav />
     </Box>
   );
 };

@@ -56,6 +56,82 @@ const EMPTY_FORM: MedicationFormState = {
 
 const optionalValue = (value: string) => value.trim() || null;
 
+const medicationDialogPaperSx = {
+  direction: "rtl",
+  borderRadius: { xs: "22px 22px 0 0", sm: 4 },
+  m: { xs: "auto 0 0", sm: 3 },
+  maxHeight: { xs: "90dvh", sm: "calc(100dvh - 64px)" },
+  backgroundColor: "rgba(255,255,255,0.92)",
+  backdropFilter: "blur(22px) saturate(170%)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  boxShadow: "0 22px 70px rgba(31,31,35,0.2)",
+  fontFamily: "inherit",
+  "@media (prefers-reduced-transparency: reduce), (prefers-contrast: more)": {
+    backgroundColor: "#fff",
+    backdropFilter: "none",
+    borderColor: "var(--people-border-strong, #d6c8d3)",
+  },
+};
+
+const medicationFormSx = {
+  pt: 1,
+  direction: "rtl",
+  textAlign: "right",
+  "& .MuiInputBase-root": { direction: "rtl", borderRadius: 3 },
+  "& .MuiInputBase-input, & .MuiSelect-select": {
+    textAlign: "right",
+  },
+  "& .MuiInputLabel-root": {
+    right: 14,
+    left: "auto",
+    transform: "translate(0, 16px) scale(1)",
+    transformOrigin: "top right",
+  },
+  "& .MuiInputLabel-root.MuiInputLabel-shrink": {
+    transform: "translate(0, -9px) scale(0.75)",
+  },
+  "& fieldset.MuiOutlinedInput-notchedOutline": {
+    textAlign: "right",
+  },
+  "& fieldset.MuiOutlinedInput-notchedOutline > legend": {
+    marginRight: 0,
+    marginLeft: 0,
+    textAlign: "right",
+  },
+  "& .MuiFormHelperText-root": {
+    mr: 0,
+    ml: 0,
+    textAlign: "right",
+  },
+  "& .MuiSelect-icon": {
+    right: "auto",
+    left: 7,
+  },
+};
+
+const medicationFieldSx = {
+  "& .MuiOutlinedInput-root": {
+    minHeight: 44,
+    backgroundColor: "#fff",
+  },
+};
+
+const medicationMenuProps = {
+  PaperProps: {
+    sx: { direction: "rtl", textAlign: "right" },
+  },
+  MenuListProps: {
+    sx: {
+      direction: "rtl",
+      "& .MuiMenuItem-root": {
+        justifyContent: "flex-start",
+        minHeight: 44,
+        textAlign: "right",
+      },
+    },
+  },
+};
+
 export const TraineeMedicationsSection: React.FC<
   ITraineeMedicationsSectionProps
 > = (props) => {
@@ -204,8 +280,8 @@ export const TraineeMedicationsSection: React.FC<
                 borderRadius: "20px",
                 p: "18px",
                 mb: "14px",
-                bgcolor: "#fff",
-                boxShadow: "0 5px 20px rgba(55, 35, 52, 0.08)",
+                bgcolor: "var(--people-surface, #fff)",
+                boxShadow: "var(--people-shadow-card, 0 8px 24px rgba(31,31,35,0.07))",
               }
             : undefined
         }
@@ -231,7 +307,20 @@ export const TraineeMedicationsSection: React.FC<
               size="small"
               aria-label="הוספת תרופה"
               onClick={openCreateDialog}
-              sx={{ color: "#7a3e6b", border: "1px solid #ead8e5" }}
+              sx={{
+                width: 44,
+                height: 44,
+                color: "var(--people-primary, #6f3d64)",
+                border: "1px solid var(--people-border, #e6e1e6)",
+                backgroundColor: "#fff",
+                "&:hover": {
+                  backgroundColor: "var(--people-primary-soft, #efe5ed)",
+                },
+                "&:active": { transform: "scale(0.96)" },
+                "@media (prefers-reduced-motion: reduce)": {
+                  "&:active": { transform: "none" },
+                },
+              }}
             >
               <AddRoundedIcon fontSize="small" />
             </IconButton>
@@ -240,14 +329,23 @@ export const TraineeMedicationsSection: React.FC<
 
         {isLoading ? (
           <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-            <CircularProgress size={28} sx={{ color: "#7a3e6b" }} />
+            <CircularProgress
+              size={28}
+              sx={{ color: "var(--people-primary, #6f3d64)" }}
+            />
           </Box>
         ) : isError ? (
-          <Alert severity="error">לא הצלחנו לטעון את התרופות</Alert>
+          <Alert severity="error" sx={{ borderRadius: 3 }}>
+            לא הצלחנו לטעון את התרופות
+          </Alert>
         ) : medications.length === 0 ? (
           <Typography
             variant="body2"
-            sx={{ color: "#817680", fontFamily: "Rubik, sans-serif", py: 1 }}
+            sx={{
+              color: "var(--people-text-muted, #6d6670)",
+              fontFamily: "inherit",
+              py: 1,
+            }}
           >
             לא הוגדרו תרופות
           </Typography>
@@ -257,11 +355,12 @@ export const TraineeMedicationsSection: React.FC<
               <Box
                 key={medication.id}
                 sx={{
-                  border: "1px solid #eee3eb",
-                  borderRadius: 2,
-                  p: 1.25,
+                  border: "1px solid var(--people-border, #e6e1e6)",
+                  borderRadius: 3,
+                  p: 1.5,
                   minWidth: 0,
-                  backgroundColor: "#fcfafc",
+                  backgroundColor: "#fff",
+                  boxShadow: "0 6px 18px rgba(31,31,35,0.045)",
                 }}
               >
                 <Stack
@@ -274,8 +373,8 @@ export const TraineeMedicationsSection: React.FC<
                     sx={{
                       minWidth: 0,
                       overflowWrap: "anywhere",
-                      color: "#2f2930",
-                      fontFamily: "Rubik, sans-serif",
+                      color: "var(--people-text, #1f1f23)",
+                      fontFamily: "inherit",
                       fontWeight: 800,
                     }}
                   >
@@ -287,7 +386,15 @@ export const TraineeMedicationsSection: React.FC<
                         size="small"
                         aria-label={`עריכת ${medication.medicationName}`}
                         onClick={() => openEditDialog(medication)}
-                        sx={{ color: "#7a3e6b" }}
+                        sx={{
+                          width: 44,
+                          height: 44,
+                          color: "var(--people-primary, #6f3d64)",
+                          "&:hover": {
+                            backgroundColor:
+                              "var(--people-primary-soft, #efe5ed)",
+                          },
+                        }}
                       >
                         <EditOutlinedIcon fontSize="small" />
                       </IconButton>
@@ -300,7 +407,15 @@ export const TraineeMedicationsSection: React.FC<
                           setDeleteError("");
                           setPendingDelete(medication);
                         }}
-                        sx={{ color: "#b42318" }}
+                        sx={{
+                          width: 44,
+                          height: 44,
+                          color: "var(--people-danger, #b42318)",
+                          "&:hover": {
+                            backgroundColor:
+                              "var(--people-danger-soft, #fff1ef)",
+                          },
+                        }}
                       >
                         <DeleteOutlineOutlinedIcon fontSize="small" />
                       </IconButton>
@@ -315,8 +430,8 @@ export const TraineeMedicationsSection: React.FC<
                           key={row.label}
                           variant="body2"
                           sx={{
-                            color: "#5f5660",
-                            fontFamily: "Rubik, sans-serif",
+                            color: "var(--people-text-muted, #6d6670)",
+                            fontFamily: "inherit",
                             overflowWrap: "anywhere",
                             whiteSpace: "pre-wrap",
                           }}
@@ -338,7 +453,13 @@ export const TraineeMedicationsSection: React.FC<
           size="small"
           startIcon={<AddRoundedIcon />}
           onClick={openCreateDialog}
-          sx={{ mt: 1, color: "#7a3e6b", fontFamily: "Rubik, sans-serif" }}
+          sx={{
+            mt: 1,
+            minHeight: 44,
+            color: "var(--people-primary, #6f3d64)",
+            fontFamily: "inherit",
+            fontWeight: 800,
+          }}
         >
           הוספת תרופה
         </Button>
@@ -349,14 +470,18 @@ export const TraineeMedicationsSection: React.FC<
         onClose={closeFormDialog}
         fullWidth
         maxWidth="sm"
-        PaperProps={{ sx: { direction: "rtl", borderRadius: 3 } }}
+        PaperProps={{ sx: medicationDialogPaperSx }}
+        aria-labelledby="medication-form-title"
       >
         <DialogTitle
+          id="medication-form-title"
           sx={{
             direction: "rtl",
             textAlign: "right",
-            fontFamily: "Rubik, sans-serif",
-            fontWeight: 800,
+            fontFamily: "inherit",
+            fontWeight: 900,
+            color: "var(--people-text, #1f1f23)",
+            borderBottom: "1px solid var(--people-border, #e6e1e6)",
           }}
         >
           {editingMedication ? "עריכת תרופה" : "הוספת תרופה"}
@@ -364,46 +489,13 @@ export const TraineeMedicationsSection: React.FC<
         <DialogContent sx={{ direction: "rtl", textAlign: "right" }}>
           <Stack
             spacing={2}
-            sx={{
-              pt: 1,
-              direction: "rtl",
-              textAlign: "right",
-              "& .MuiInputBase-root": { direction: "rtl" },
-              "& .MuiInputBase-input, & .MuiSelect-select": {
-                textAlign: "right",
-              },
-              "& .MuiInputLabel-root": {
-                right: 14,
-                left: "auto",
-                transform: "translate(0, 16px) scale(1)",
-                transformOrigin: "top right",
-              },
-              "& .MuiInputLabel-root.MuiInputLabel-shrink": {
-                transform: "translate(0, -9px) scale(0.75)",
-              },
-              "& fieldset.MuiOutlinedInput-notchedOutline": {
-                textAlign: "right",
-              },
-              "& fieldset.MuiOutlinedInput-notchedOutline > legend": {
-                marginRight: 0,
-                marginLeft: 0,
-                textAlign: "right",
-              },
-              "& .MuiFormHelperText-root": {
-                mr: 0,
-                ml: 0,
-                textAlign: "right",
-              },
-              "& .MuiSelect-icon": {
-                right: "auto",
-                left: 7,
-              },
-            }}
+            sx={medicationFormSx}
           >
             {formError && (
               <Alert
                 severity="error"
                 sx={{
+                  borderRadius: 3,
                   direction: "rtl",
                   textAlign: "right",
                   "& .MuiAlert-message": { width: "100%" },
@@ -428,15 +520,17 @@ export const TraineeMedicationsSection: React.FC<
                 value={form.medicationName}
                 onChange={handleFieldChange("medicationName")}
                 inputProps={{ maxLength: 200 }}
-                sx={{ flex: "2 1 220px", minWidth: 0 }}
+                helperText="שדה חובה"
+                sx={{ ...medicationFieldSx, flex: "2 1 220px", minWidth: 0 }}
               />
               <TextField
                 fullWidth
                 label="מינון"
                 value={form.dosage}
                 onChange={handleFieldChange("dosage")}
-                inputProps={{ maxLength: 100 }}
-                sx={{ flex: "1 1 120px", minWidth: 0 }}
+                inputProps={{ maxLength: 100, inputMode: "decimal" }}
+                helperText="לדוגמה: 5 מ״ג"
+                sx={{ ...medicationFieldSx, flex: "1 1 120px", minWidth: 0 }}
               />
             </Box>
             <Box
@@ -454,23 +548,9 @@ export const TraineeMedicationsSection: React.FC<
                 label="תדירות"
                 value={form.frequency}
                 onChange={handleFieldChange("frequency")}
-                sx={{ flex: "1 1 160px", minWidth: 0 }}
-                SelectProps={{
-                  MenuProps: {
-                    PaperProps: {
-                      sx: { direction: "rtl", textAlign: "right" },
-                    },
-                    MenuListProps: {
-                      sx: {
-                        direction: "rtl",
-                        "& .MuiMenuItem-root": {
-                          justifyContent: "flex-start",
-                          textAlign: "right",
-                        },
-                      },
-                    },
-                  },
-                }}
+                helperText="אופציונלי"
+                sx={{ ...medicationFieldSx, flex: "1 1 160px", minWidth: 0 }}
+                SelectProps={{ MenuProps: medicationMenuProps }}
               >
                 <MenuItem value="">לא צוין</MenuItem>
                 {MEDICATION_FREQUENCY_OPTIONS.map((option) => (
@@ -485,7 +565,12 @@ export const TraineeMedicationsSection: React.FC<
                 value={form.schedule}
                 onChange={handleFieldChange("schedule")}
                 inputProps={{ maxLength: 300 }}
-                sx={{ flex: "1.25 1 190px", minWidth: 0 }}
+                helperText="לדוגמה: בוקר וערב"
+                sx={{
+                  ...medicationFieldSx,
+                  flex: "1.25 1 190px",
+                  minWidth: 0,
+                }}
               />
             </Box>
             <TextField
@@ -496,6 +581,8 @@ export const TraineeMedicationsSection: React.FC<
               value={form.instructions}
               onChange={handleFieldChange("instructions")}
               inputProps={{ maxLength: 2000 }}
+              helperText="הנחיות לצוות בזמן פעילות"
+              sx={medicationFieldSx}
             />
             <TextField
               fullWidth
@@ -505,11 +592,17 @@ export const TraineeMedicationsSection: React.FC<
               value={form.notes}
               onChange={handleFieldChange("notes")}
               inputProps={{ maxLength: 2000 }}
+              helperText="אופציונלי"
+              sx={medicationFieldSx}
             />
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={closeFormDialog} disabled={saveMutation.isPending}>
+        <DialogActions sx={{ px: 3, pb: 2, borderTop: "1px solid #e6e1e6" }}>
+          <Button
+            onClick={closeFormDialog}
+            disabled={saveMutation.isPending}
+            sx={{ minHeight: 44, borderRadius: 3 }}
+          >
             ביטול
           </Button>
           <Button
@@ -518,7 +611,14 @@ export const TraineeMedicationsSection: React.FC<
             disabled={saveMutation.isPending}
             className={classes.buttonContained}
           >
-            {saveMutation.isPending ? "שומר..." : "שמירה"}
+            {saveMutation.isPending ? (
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <CircularProgress size={18} color="inherit" />
+                <span>שומר...</span>
+              </Stack>
+            ) : (
+              "שמירה"
+            )}
           </Button>
         </DialogActions>
       </Dialog>
@@ -526,23 +626,33 @@ export const TraineeMedicationsSection: React.FC<
       <Dialog
         open={!!pendingDelete}
         onClose={() => !deleteMutation.isPending && setPendingDelete(null)}
-        PaperProps={{ sx: { direction: "rtl", borderRadius: 3 } }}
+        PaperProps={{
+          sx: {
+            ...medicationDialogPaperSx,
+            maxWidth: 460,
+          },
+        }}
       >
-        <DialogTitle sx={{ fontFamily: "Rubik, sans-serif", fontWeight: 800 }}>
+        <DialogTitle sx={{ fontFamily: "inherit", fontWeight: 900 }}>
           הסרת תרופה
         </DialogTitle>
         <DialogContent>
           <Stack spacing={1.5} sx={{ pt: 1 }}>
-            <Typography sx={{ fontFamily: "Rubik, sans-serif" }}>
+            <Typography sx={{ fontFamily: "inherit" }}>
               האם להסיר את התרופה {pendingDelete?.medicationName}?
             </Typography>
-            {deleteError && <Alert severity="error">{deleteError}</Alert>}
+            {deleteError && (
+              <Alert severity="error" sx={{ borderRadius: 3 }}>
+                {deleteError}
+              </Alert>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button
             onClick={() => setPendingDelete(null)}
             disabled={deleteMutation.isPending}
+            sx={{ minHeight: 44, borderRadius: 3 }}
           >
             ביטול
           </Button>
@@ -553,8 +663,16 @@ export const TraineeMedicationsSection: React.FC<
             onClick={() =>
               pendingDelete && deleteMutation.mutate(pendingDelete.id)
             }
+            sx={{ minHeight: 44, borderRadius: 3, fontWeight: 800 }}
           >
-            {deleteMutation.isPending ? "מסיר..." : "הסרה"}
+            {deleteMutation.isPending ? (
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <CircularProgress size={18} color="inherit" />
+                <span>מסיר...</span>
+              </Stack>
+            ) : (
+              "הסרה"
+            )}
           </Button>
         </DialogActions>
       </Dialog>

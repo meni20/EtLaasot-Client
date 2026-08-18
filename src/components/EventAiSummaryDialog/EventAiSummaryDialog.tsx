@@ -9,7 +9,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Divider,
   IconButton,
   Stack,
   Tab,
@@ -17,8 +16,10 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import CloseIcon from "@mui/icons-material/Close";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import eventService from "../../services/event.service";
 import type { IEventAiInsights } from "../../interfaces/event.interface";
@@ -86,17 +87,87 @@ export const EventAiSummaryDialog: React.FC<EventAiSummaryDialogProps> = ({
   const isGenerating = generateMutation.isPending;
   const hasSummary = Boolean(data?.aiSummary);
   const aiActionLabel = hasSummary
-    ? "Regenerate AI Summary"
-    : "Generate AI Summary";
+    ? "יצירת סיכום מחדש"
+    : "יצירת סיכום AI";
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" dir="rtl">
-      <DialogTitle>סיכום AI לאירוע: {eventName}</DialogTitle>
-      <DialogContent dividers>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="md"
+      dir="rtl"
+      PaperProps={{
+        sx: {
+          overflow: "hidden",
+          backgroundColor: "background.default",
+        },
+      }}
+    >
+      <DialogTitle
+        sx={{
+          position: "relative",
+          pr: { xs: 5, sm: 6 },
+          pl: { xs: 8, sm: 9 },
+          pt: 5,
+          pb: 2,
+        }}
+      >
+        <Typography component="span" sx={{ display: "block", fontSize: 22, fontWeight: 800 }}>
+          סיכום AI לאירוע
+        </Typography>
+        <Typography
+          component="span"
+          sx={{
+            display: "block",
+            mt: 0.75,
+            color: "text.secondary",
+            fontSize: 14,
+            fontWeight: 500,
+          }}
+        >
+          {eventName}
+        </Typography>
+        <IconButton
+          aria-label="סגור"
+          onClick={onClose}
+          disabled={isGenerating}
+          sx={{
+            position: "absolute",
+            left: 12,
+            top: 14,
+            color: "text.secondary",
+            backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.06),
+          }}
+        >
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent sx={{ px: { xs: 3, sm: 6 }, pb: 3 }}>
         <Tabs
           value={activeTab}
           onChange={(_, value) => setActiveTab(value)}
-          sx={{ mb: 2 }}
+          variant="fullWidth"
+          sx={{
+            mb: 3,
+            minHeight: 46,
+            backgroundColor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 3,
+            p: 0.5,
+            "& .MuiTabs-indicator": { display: "none" },
+            "& .MuiTab-root": {
+              minHeight: 38,
+              borderRadius: 2.25,
+              fontWeight: 700,
+              color: "text.secondary",
+            },
+            "& .Mui-selected": {
+              color: "primary.main",
+              backgroundColor: "primary.light",
+            },
+          }}
         >
           <Tab label="סיכום AI" />
           <Tab label={`הערות מקור (${data?.notes.length ?? 0})`} />
@@ -126,19 +197,22 @@ export const EventAiSummaryDialog: React.FC<EventAiSummaryDialogProps> = ({
               <Box
                 sx={{
                   whiteSpace: "pre-wrap",
-                  border: "1px solid #ead8e5",
-                  borderRadius: 2,
-                  p: 2,
-                  backgroundColor: "#fffafc",
-                  color: "#2f2930",
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 4,
+                  p: { xs: 2.5, sm: 3 },
+                  backgroundColor: "background.paper",
+                  color: "text.primary",
                   lineHeight: 1.7,
-                  fontFamily: "Rubik, sans-serif",
+                  boxShadow: (theme) => theme.shadows[0],
                 }}
               >
                 {data?.aiSummary}
               </Box>
             ) : (
-              <Alert severity="info">No AI summary yet.</Alert>
+              <Alert severity="info">
+                עדיין אין סיכום AI. אפשר ליצור אחד מהכפתור למטה.
+              </Alert>
             )}
 
             {data?.aiSummaryGeneratedAt && (
@@ -160,37 +234,60 @@ export const EventAiSummaryDialog: React.FC<EventAiSummaryDialogProps> = ({
             )}
 
             {data?.notes.map((note) => (
-              <Box key={note.id}>
+              <Box
+                key={note.id}
+                sx={{
+                  p: { xs: 2, sm: 2.5 },
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 3,
+                  backgroundColor: "background.paper",
+                }}
+              >
                 <Stack spacing={0.5}>
                   <Typography fontWeight={700}>
-                    מתנדב/ת: {note.volunteerName || "-"} · חניך/ה:{" "}
+                    מתנדב/ת: {note.volunteerName || "-"} | חניך/ה:{" "}
                     {note.traineeName || "-"}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    סטטוס: {note.status} · עודכן:{" "}
+                    סטטוס: {note.status} | עודכן:{" "}
                     {formatDateTime(note.updatedAt)}
                   </Typography>
                   <Typography sx={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
                     {note.notes}
                   </Typography>
                 </Stack>
-                <Divider sx={{ mt: 2 }} />
               </Box>
             ))}
           </Stack>
         )}
       </DialogContent>
-      <DialogActions sx={{ justifyContent: "space-between", px: 3, py: 2 }}>
-        <Button onClick={onClose}>סגור</Button>
+      <DialogActions
+        sx={{
+          justifyContent: "space-between",
+          px: { xs: 3, sm: 6 },
+          py: 4,
+          backgroundColor: "background.paper",
+          borderTop: "1px solid",
+          borderColor: "divider",
+        }}
+      >
+        <Button onClick={onClose} disabled={isGenerating}>
+          סגור
+        </Button>
         <Stack direction="row" spacing={1}>
           {hasSummary && (
-            <Tooltip title="Copy Summary">
+            <Tooltip title="העתקת הסיכום">
               <span>
                 <IconButton
                   onClick={handleCopySummary}
                   disabled={isGenerating}
-                  aria-label="Copy Summary"
-                  size="small"
+                  aria-label="העתקת הסיכום"
+                  sx={{
+                    border: "1px solid",
+                    borderColor: "divider",
+                    backgroundColor: "background.default",
+                  }}
                 >
                   <ContentCopyIcon fontSize="small" />
                 </IconButton>
@@ -204,7 +301,11 @@ export const EventAiSummaryDialog: React.FC<EventAiSummaryDialogProps> = ({
                 onClick={() => generateMutation.mutate()}
                 disabled={isGenerating || isFetching}
                 aria-label={aiActionLabel}
-                size="small"
+                sx={{
+                  border: "1px solid",
+                  borderColor: "primary.main",
+                  backgroundColor: "primary.light",
+                }}
               >
                 <Badge
                   color="warning"

@@ -66,7 +66,7 @@ const ROLE_LABELS: Record<number, string> = {
   [AUTH_ROLES.TRAINEE.id]: AUTH_ROLES.TRAINEE.name,
 };
 
-const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
+const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title, menuOpen }) => {
   const classes = useNavbarStyles();
   const navigate = useNavigate();
   const { user, logout, changePassword } = useAuth();
@@ -191,12 +191,21 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
 
   return (
     <>
-      <AppBar position="fixed" className={classes.appBar}>
-        <Toolbar className={classes.toolbar}>
+      <AppBar position="fixed" className={classes.appBar} component="header">
+        <Toolbar className={classes.toolbar} aria-label="סרגל ניווט עליון">
           <Box className={classes.navActions}>
-            <Box className={classes.menuIconBox} onClick={onMenuClick}>
-              <SideMenuIcon />
-            </Box>
+            <Tooltip title={menuOpen ? "צמצום תפריט" : "פתיחת תפריט"}>
+              <IconButton
+                className={classes.menuIconBox}
+                onClick={onMenuClick}
+                aria-label={menuOpen ? "צמצום תפריט" : "פתיחת תפריט"}
+                aria-controls="app-side-menu"
+                aria-expanded={menuOpen ?? false}
+                size="small"
+              >
+                <SideMenuIcon />
+              </IconButton>
+            </Tooltip>
             <Tooltip title="חזרה לבית">
               <IconButton
                 className={classes.homeButton}
@@ -221,6 +230,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
               className={classes.userInfo}
               onClick={() => setIsProfileDialogOpen(true)}
               aria-label="פתיחת הפרטים שלי"
+              aria-haspopup="dialog"
+              aria-expanded={isProfileDialogOpen}
             >
               <Typography className={classes.userName}>{user?.name}</Typography>
               {user?.nationalIdMasked && (
@@ -236,11 +247,15 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
       <Dialog
         open={isProfileDialogOpen}
         onClose={() => setIsProfileDialogOpen(false)}
+        aria-labelledby="profile-dialog-title"
         fullWidth
         maxWidth="sm"
         PaperProps={{ sx: { direction: "rtl", borderRadius: 3 } }}
       >
-        <DialogTitle className={classes.profileDialogTitle}>
+        <DialogTitle
+          id="profile-dialog-title"
+          className={classes.profileDialogTitle}
+        >
           הפרטים שלי
           <IconButton
             aria-label="סגירת הפרטים שלי"
@@ -334,11 +349,15 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
       <Dialog
         open={isPasswordDialogOpen}
         onClose={closePasswordDialog}
+        aria-labelledby="password-dialog-title"
         fullWidth
         maxWidth="xs"
         PaperProps={{ sx: { direction: "rtl", borderRadius: 3 } }}
       >
-        <DialogTitle className={classes.profileDialogTitle}>
+        <DialogTitle
+          id="password-dialog-title"
+          className={classes.profileDialogTitle}
+        >
           שינוי סיסמה
           <IconButton
             aria-label="סגירת חלון שינוי סיסמה"
@@ -411,7 +430,7 @@ const ProfileInfoRow: React.FC<{ label: string; value: string }> = ({
     <Typography
       sx={{
         color: "#6b6068",
-        fontFamily: "Rubik, sans-serif",
+        fontFamily: "inherit",
         fontSize: "0.86rem",
       }}
     >
@@ -420,7 +439,7 @@ const ProfileInfoRow: React.FC<{ label: string; value: string }> = ({
     <Typography
       sx={{
         color: "#2f2930",
-        fontFamily: "Rubik, sans-serif",
+        fontFamily: "inherit",
         fontWeight: 700,
         textAlign: "left",
         minWidth: 0,
@@ -461,7 +480,8 @@ const PasswordField: React.FC<{
       endAdornment: (
         <InputAdornment position="end">
           <IconButton
-            aria-label={visible ? "Hide password" : "Show password"}
+            aria-label={visible ? "הסתרת סיסמה" : "הצגת סיסמה"}
+            aria-pressed={visible}
             edge="end"
             size="small"
             onClick={onToggleVisible}

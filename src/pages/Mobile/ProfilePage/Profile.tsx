@@ -48,7 +48,6 @@ import {
   normalizeNewPassword,
   PASSWORD_POLICY_MESSAGE,
 } from "../../../utils/password.util";
-import { BottomNav } from "../../../components/BottomNav/BottomNav";
 import { TraineeMedicationsSection } from "../../../components/VolunteerDetails/TraineeMedicationsSection";
 import {
   useCurrentUserProfile,
@@ -460,13 +459,13 @@ export const ProfilePage: React.FC = () => {
           height: 48,
           mb: 1,
           fontWeight: 800,
-          color: "#7B3F98",
-          borderColor: "#E8D7EF",
-          bgcolor: "#FFFFFF",
-          fontFamily: "Rubik, sans-serif",
+          color: "var(--color-primary, #2f6f61)",
+          borderColor: "var(--color-border, #dadde3)",
+          bgcolor: "var(--color-surface, #fff)",
+          fontFamily: "inherit",
           "&:hover": {
-            borderColor: "#D6B9E1",
-            bgcolor: "#F8F1FA",
+            borderColor: "var(--color-primary, #2f6f61)",
+            bgcolor: "var(--color-primary-soft, #eaf4f1)",
           },
         }}
       >
@@ -516,8 +515,6 @@ export const ProfilePage: React.FC = () => {
         styles={styles}
         onClose={() => setSelectedAssignment(null)}
       />
-
-      <BottomNav />
     </Box>
   );
 };
@@ -547,6 +544,7 @@ const ProfileEditDialog: React.FC<{
     <Dialog
       open={open}
       onClose={onClose}
+      aria-labelledby="edit-profile-dialog-title"
       fullWidth
       maxWidth="xs"
       PaperProps={{
@@ -558,9 +556,13 @@ const ProfileEditDialog: React.FC<{
         },
       }}
     >
-      <DialogTitle className={styles.dialogTitle}>
+      <DialogTitle id="edit-profile-dialog-title" className={styles.dialogTitle}>
         עריכת פרטים אישיים
-        <IconButton onClick={onClose} className={styles.dialogCloseButton}>
+        <IconButton
+          onClick={onClose}
+          className={styles.dialogCloseButton}
+          aria-label="סגירת עריכת פרטים אישיים"
+        >
           <CloseIcon fontSize="small" />
         </IconButton>
       </DialogTitle>
@@ -570,6 +572,7 @@ const ProfileEditDialog: React.FC<{
             fullWidth
             label="אימייל"
             type="email"
+            autoComplete="email"
             value={form.email}
             error={!!error}
             onChange={onChange("email")}
@@ -577,6 +580,9 @@ const ProfileEditDialog: React.FC<{
           <TextField
             fullWidth
             label="טלפון"
+            type="tel"
+            autoComplete="tel"
+            inputProps={{ inputMode: "tel" }}
             value={form.phoneNumber}
             error={!!error}
             onChange={onChange("phoneNumber")}
@@ -584,6 +590,7 @@ const ProfileEditDialog: React.FC<{
           <TextField
             fullWidth
             label="כתובת"
+            autoComplete="street-address"
             value={form.address}
             error={!!error}
             helperText={error || "אפשר להשאיר אימייל או כתובת ריקים כדי למחוק אותם"}
@@ -676,7 +683,11 @@ const PasswordChangeDialog: React.FC<{
   >
     <DialogTitle className={styles.dialogTitle}>
       שינוי סיסמה
-      <IconButton onClick={onClose} className={styles.dialogCloseButton}>
+      <IconButton
+        onClick={onClose}
+        className={styles.dialogCloseButton}
+        aria-label="סגירת שינוי סיסמה"
+      >
         <CloseIcon fontSize="small" />
       </IconButton>
     </DialogTitle>
@@ -750,7 +761,7 @@ const ProfilePasswordField: React.FC<{
       endAdornment: (
         <InputAdornment position="end">
           <IconButton
-            aria-label={visible ? "Hide password" : "Show password"}
+            aria-label={visible ? "הסתרת סיסמה" : "הצגת סיסמה"}
             edge="end"
             size="small"
             onClick={onToggleVisible}
@@ -833,7 +844,11 @@ const TraineeDetailsDialog: React.FC<{
     >
       <DialogTitle className={styles.dialogTitle}>
         פרטי חניך
-        <IconButton onClick={onClose} className={styles.dialogCloseButton}>
+        <IconButton
+          onClick={onClose}
+          className={styles.dialogCloseButton}
+          aria-label="סגירת פרטי חניך"
+        >
           <CloseIcon fontSize="small" />
         </IconButton>
       </DialogTitle>
@@ -887,11 +902,12 @@ const TraineeDetailsDialog: React.FC<{
             sx={{
               mt: 2,
               borderRadius: "14px",
-              bgcolor: "#7B3F98",
+              bgcolor: "var(--color-primary, #2f6f61)",
               fontWeight: 800,
               textTransform: "none",
-              boxShadow: "0 4px 12px rgba(123, 63, 152, 0.22)",
-              "&:hover": { bgcolor: "#6D3588" },
+              boxShadow:
+                "var(--shadow-sm, 0 3px 12px rgba(16, 24, 40, 0.07))",
+              "&:hover": { bgcolor: "var(--color-primary-dark, #285e52)" },
             }}
           >
             התקשר

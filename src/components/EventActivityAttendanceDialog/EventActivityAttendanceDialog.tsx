@@ -7,7 +7,9 @@ import {
   IconButton,
   Typography,
   Alert,
+  Snackbar,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -19,6 +21,10 @@ export const EventActivityAttendanceDialog: React.FC<
 > = ({ open, eventId, onClose }) => {
   const queryClient = useQueryClient();
   const queryKey = ["activity", "event-attendance", eventId];
+  const [notice, setNotice] = React.useState<{
+    severity: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const {
     data: attendance = [],
@@ -38,53 +44,64 @@ export const EventActivityAttendanceDialog: React.FC<
       queryClient.invalidateQueries({ queryKey });
       queryClient.invalidateQueries({ queryKey: ["activity"] });
       queryClient.invalidateQueries({ queryKey: ["activities"] });
+      setNotice({ severity: "success", message: "הרשומה הוסרה מהנוכחות" });
+    },
+    onError: () => {
+      setNotice({
+        severity: "error",
+        message: "לא הצלחנו להסיר את רשומת הנוכחות. נסו שוב.",
+      });
     },
   });
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      PaperProps={{
-        sx: {
-          width: 420,
-          maxWidth: "90vw",
-          borderRadius: 2,
-          overflow: "hidden",
-          direction: "rtl",
-          fontFamily: "Rubik, sans-serif",
-        },
-      }}
-    >
-      <Box
-        sx={{
-          position: "relative",
-          background: "linear-gradient(135deg, #9a5188 0%, #7a3e6b 100%)",
-          color: "#fff",
-          p: "16px 24px",
-          textAlign: "center",
-          fontWeight: 700,
-          fontSize: 18,
+    <>
+      <Dialog
+        open={open}
+        onClose={onClose}
+        PaperProps={{
+          sx: {
+            width: 460,
+            maxWidth: "calc(100vw - 24px)",
+            borderRadius: 5,
+            overflow: "hidden",
+            direction: "rtl",
+            fontFamily: (theme) => theme.typography.fontFamily,
+            backgroundColor: "background.default",
+          },
         }}
       >
-        נוכחות באירוע
-        <IconButton
-          aria-label="close"
-          onClick={onClose}
-          size="small"
+        <Box
           sx={{
-            position: "absolute",
-            left: 8,
-            top: "50%",
-            transform: "translateY(-50%)",
-            color: "#fff",
+            position: "relative",
+            px: { xs: 4, sm: 5 },
+            pt: 5,
+            pb: 2,
           }}
         >
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      </Box>
+          <Typography sx={{ fontWeight: 800, fontSize: 21 }}>
+            נוכחות באירוע
+          </Typography>
+          <Typography sx={{ mt: 0.75, color: "text.secondary", fontSize: 13 }}>
+            ניהול רשומות פעילות בלבד
+          </Typography>
+          <IconButton
+            aria-label="סגירת חלון נוכחות בפעילות"
+            onClick={onClose}
+            disabled={removeMutation.isPending}
+            sx={{
+              position: "absolute",
+              left: 12,
+              top: 14,
+              color: "text.secondary",
+              backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.06),
+            }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
 
-      <Box sx={{ p: 2, minHeight: 180, backgroundColor: "#faf8f9" }}>
+      <Box sx={{ px: { xs: 3, sm: 5 }, pb: 5, minHeight: 220 }}>
         {isFetching ? (
           <Box
             sx={{
@@ -94,7 +111,7 @@ export const EventActivityAttendanceDialog: React.FC<
               justifyContent: "center",
             }}
           >
-            <CircularProgress size={28} sx={{ color: "#9a5188" }} />
+            <CircularProgress size={28} />
           </Box>
         ) : isError ? (
           <Alert severity="error" sx={{ direction: "rtl" }}>
@@ -103,9 +120,9 @@ export const EventActivityAttendanceDialog: React.FC<
         ) : attendance.length === 0 ? (
           <Typography
             sx={{
-              color: "#888",
               textAlign: "center",
-              fontFamily: "Rubik, sans-serif",
+              color: "text.secondary",
+              fontWeight: 700,
               py: 5,
             }}
           >
@@ -119,21 +136,28 @@ export const EventActivityAttendanceDialog: React.FC<
                 display: "flex",
                 alignItems: "center",
                 gap: 1.5,
-                p: "10px 12px",
+                p: 1.5,
                 mb: 1,
-                backgroundColor: "#fff",
-                border: "1px solid #f0ecef",
-                borderRadius: 1,
+                backgroundColor: "background.paper",
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 3,
+                transition: (theme) =>
+                  `background-color 140ms ease, transform 140ms ${theme.transitions.easing.easeOut}`,
+                "&:hover": {
+                  backgroundColor: "primary.light",
+                  transform: "translateY(-1px)",
+                },
               }}
             >
               <Avatar
                 sx={{
                   width: 36,
                   height: 36,
-                  backgroundColor: "#f3e8f0",
-                  color: "#9a5188",
+                  backgroundColor: "primary.light",
+                  color: "primary.main",
                   fontSize: 14,
-                  fontWeight: 700,
+                  fontWeight: 800,
                 }}
               >
                 {row.name?.[0]?.toUpperCase() ?? "?"}
@@ -144,8 +168,7 @@ export const EventActivityAttendanceDialog: React.FC<
                   minWidth: 0,
                   fontWeight: 700,
                   fontSize: 14,
-                  color: "#333",
-                  fontFamily: "Rubik, sans-serif",
+                  color: "text.primary",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
@@ -157,11 +180,15 @@ export const EventActivityAttendanceDialog: React.FC<
                 size="small"
                 disabled={removeMutation.isPending}
                 onClick={() => removeMutation.mutate(row.volunteerId)}
+                aria-label={`הסר נוכחות עבור ${row.name}`}
                 sx={{
-                  color: "#bbb",
+                  color: "error.main",
+                  backgroundColor: "error.light",
+                  border: "1px solid",
+                  borderColor: (theme) => alpha(theme.palette.error.main, 0.2),
                   "&:hover": {
-                    color: "#d32f2f",
-                    backgroundColor: "rgba(211,47,47,0.08)",
+                    backgroundColor: "error.light",
+                    borderColor: "error.main",
                   },
                 }}
               >
@@ -171,6 +198,20 @@ export const EventActivityAttendanceDialog: React.FC<
           ))
         )}
       </Box>
-    </Dialog>
+      </Dialog>
+      <Snackbar
+        open={Boolean(notice)}
+        autoHideDuration={3000}
+        onClose={() => setNotice(null)}
+      >
+        <Alert
+          severity={notice?.severity ?? "success"}
+          onClose={() => setNotice(null)}
+          sx={{ width: "100%" }}
+        >
+          {notice?.message}
+        </Alert>
+      </Snackbar>
+    </>
   );
 };
