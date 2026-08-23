@@ -23,7 +23,7 @@ export const Row = ({
       borderRadius: 2,
       transition: "background-color 140ms ease",
       "&:hover": {
-        backgroundColor: "rgba(111, 61, 100, 0.045)",
+        backgroundColor: "rgba(var(--color-primary-rgb), 0.045)",
       },
       "@media (prefers-reduced-motion: reduce)": {
         transition: "none",
@@ -35,7 +35,7 @@ export const Row = ({
         width: 40,
         height: 40,
         borderRadius: "12px",
-        color: "var(--people-primary, #6f3d64)",
+        color: "var(--people-primary)",
         backgroundColor: "var(--people-primary-soft, #efe5ed)",
         display: "flex",
         alignItems: "center",
@@ -81,20 +81,20 @@ export const Row = ({
         sx={{
           width: 44,
           height: 44,
-          color: "var(--people-primary, #6f3d64)",
+          color: "var(--people-primary)",
           backgroundColor: "#fff",
           border: "1px solid var(--people-border, #e6e1e6)",
           flexShrink: 0,
           "&:hover": {
             color: "#fff",
-            backgroundColor: "var(--people-primary, #6f3d64)",
-            borderColor: "var(--people-primary, #6f3d64)",
+            backgroundColor: "var(--people-primary)",
+            borderColor: "var(--people-primary)",
           },
           "&:active": {
             transform: "scale(0.96)",
           },
           "&.Mui-focusVisible": {
-            boxShadow: "0 0 0 4px var(--people-focus, rgba(111,61,100,0.34))",
+            boxShadow: "0 0 0 4px var(--people-focus)",
           },
           "@media (prefers-reduced-motion: reduce)": {
             "&:active": {

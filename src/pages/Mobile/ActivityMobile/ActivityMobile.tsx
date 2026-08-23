@@ -18,10 +18,10 @@ export const ActivityMobile: React.FC = () => {
           variant="contained"
           className={styles.actionButton}
           sx={{
-            bgcolor: "var(--color-primary, #2f6f61)",
+            bgcolor: "var(--color-primary)",
             boxShadow: "var(--shadow-sm, 0 3px 12px rgba(16, 24, 40, 0.07))",
             "&:hover": {
-              bgcolor: "var(--color-primary-dark, #285e52)",
+              bgcolor: "var(--color-primary-dark)",
               boxShadow:
                 "var(--shadow-md, 0 12px 34px rgba(16, 24, 40, 0.1))",
             },

@@ -85,8 +85,8 @@ export const useStyles = makeStyles({
     profileAvatar: {
         width: 44,
         height: 44,
-        backgroundColor: "var(--color-primary-soft, #eaf4f1)",
-        color: "var(--color-primary, #2f6f61)",
+        backgroundColor: "var(--color-primary-soft)",
+        color: "var(--color-primary)",
         fontWeight: 800,
         fontFamily: "inherit",
     },
@@ -109,14 +109,14 @@ export const useStyles = makeStyles({
         width: 44,
         height: 44,
         flexShrink: 0,
-        color: "var(--color-primary, #2f6f61)",
+        color: "var(--color-primary)",
         backgroundColor: "var(--color-surface-elevated, rgba(255, 255, 255, 0.82))",
         border: "1px solid var(--color-border-subtle, #e9ebef)",
         boxShadow: "var(--shadow-sm, 0 3px 12px rgba(16, 24, 40, 0.07))",
         transition:
             "transform var(--transition-fast, 140ms ease), background-color var(--transition-fast, 140ms ease)",
         "&:hover": {
-            backgroundColor: "var(--color-primary-soft, #eaf4f1)",
+            backgroundColor: "var(--color-primary-soft)",
         },
         "&.Mui-disabled": {
             color: "var(--color-border, #dadde3)",

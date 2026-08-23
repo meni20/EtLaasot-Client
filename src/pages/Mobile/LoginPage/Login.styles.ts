@@ -99,11 +99,11 @@ export const useStyles = makeStyles({
       },
 
       "&.Mui-focused": {
-        boxShadow: "var(--shadow-focus, 0 0 0 3px rgba(47, 111, 97, 0.20))",
+        boxShadow: "var(--shadow-focus, 0 0 0 3px rgba(var(--color-primary-rgb), 0.20))",
       },
 
       "&.Mui-focused fieldset": {
-        borderColor: "var(--color-primary, #2f6f61)",
+        borderColor: "var(--color-primary)",
         borderWidth: 1.5,
       },
     },
@@ -121,7 +121,7 @@ export const useStyles = makeStyles({
     fontSize: 16,
     textTransform: "none" as const,
     fontFamily: "inherit",
-    background: "var(--color-primary, #2f6f61)",
+    background: "var(--color-primary)",
     boxShadow: "var(--shadow-sm, 0 3px 12px rgba(16, 24, 40, 0.07))",
     transition:
       "transform var(--transition-fast, 140ms ease), box-shadow var(--transition-fast, 140ms ease), background-color var(--transition-fast, 140ms ease)",
@@ -138,7 +138,7 @@ export const useStyles = makeStyles({
     },
 
     "&:hover": {
-      background: "var(--color-primary-dark, #285e52)",
+      background: "var(--color-primary-dark)",
       boxShadow: "var(--shadow-md, 0 12px 34px rgba(16, 24, 40, 0.1))",
     },
     "&:active": {

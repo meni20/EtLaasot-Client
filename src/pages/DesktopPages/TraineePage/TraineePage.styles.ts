@@ -1,5 +1,6 @@
 import { makeStyles } from "@mui/styles";
 import { alpha, type Theme } from "@mui/material/styles";
+import { theme } from "../../../theme/them";
 
 type TraineePageClassKey =
   | "container"
@@ -21,7 +22,7 @@ export const useTraineePageStyles = makeStyles<
   Theme,
   {},
   TraineePageClassKey
->((theme: Theme) => ({
+>({
   container: {
     "--people-surface": theme.palette.background.paper,
     "--people-muted": theme.palette.background.default,
@@ -331,4 +332,4 @@ export const useTraineePageStyles = makeStyles<
       WebkitBackdropFilter: "none",
     },
   },
-}) as any);
+} as any);

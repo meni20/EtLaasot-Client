@@ -24,8 +24,8 @@ export const useCardStyles = makeStyles({
       borderColor: "var(--color-border, #dadde3)",
     },
     "&:focus-within": {
-      borderColor: "var(--color-primary, #2f6f61)",
-      boxShadow: "0 0 0 3px rgba(47, 111, 97, 0.16)",
+      borderColor: "var(--color-primary)",
+      boxShadow: "0 0 0 3px rgba(var(--color-primary-rgb), 0.16)",
     },
   },
   cardWithImage: {
@@ -56,7 +56,7 @@ export const useCardStyles = makeStyles({
     },
     "& $typeChip": {
       backgroundColor: "rgba(255, 255, 255, 0.86)",
-      color: "var(--color-brand, #6f4e7c)",
+      color: "var(--color-brand)",
       borderColor: "rgba(255, 255, 255, 0.55)",
     },
     "& $statusChip": {
@@ -72,7 +72,7 @@ export const useCardStyles = makeStyles({
       backdropFilter: "blur(10px)",
       "&:hover": {
         color: "#fff",
-        backgroundColor: "rgba(47, 111, 97, 0.92)",
+        backgroundColor: "rgba(var(--color-primary-rgb), 0.92)",
         borderColor: "rgba(255, 255, 255, 0.72)",
       },
     },
@@ -81,7 +81,7 @@ export const useCardStyles = makeStyles({
     },
     "& $secondaryButton": {
       backgroundColor: "rgba(255, 255, 255, 0.9)",
-      color: "#5f2f55",
+      color: "var(--color-primary-dark)",
       borderColor: "rgba(255, 255, 255, 0.72)",
       "&:hover": {
         backgroundColor: "#fff",
@@ -132,15 +132,15 @@ export const useCardStyles = makeStyles({
     flexShrink: 0,
     width: 44,
     height: 44,
-    color: "var(--color-brand, #6f4e7c)",
-    backgroundColor: "var(--color-brand-soft, #f4eef6)",
+    color: "var(--color-brand)",
+    backgroundColor: "var(--color-brand-soft)",
     border: "1px solid var(--color-border-subtle, #e9ebef)",
     transition:
       "transform var(--transition-fast, 140ms ease), background-color var(--transition-fast, 140ms ease), color var(--transition-fast, 140ms ease)",
     "&:hover": {
       color: "#fff",
-      backgroundColor: "var(--color-brand, #6f4e7c)",
-      borderColor: "var(--color-brand, #6f4e7c)",
+      backgroundColor: "var(--color-brand)",
+      borderColor: "var(--color-brand)",
     },
     "&:active": {
       transform: "scale(0.94)",
@@ -150,15 +150,15 @@ export const useCardStyles = makeStyles({
     flexShrink: 0,
     width: 44,
     height: 44,
-    color: "var(--color-brand, #6f4e7c)",
-    backgroundColor: "var(--color-brand-soft, #f4eef6)",
+    color: "var(--color-brand)",
+    backgroundColor: "var(--color-brand-soft)",
     border: "1px solid var(--color-border-subtle, #e9ebef)",
     transition:
       "transform var(--transition-fast, 140ms ease), background-color var(--transition-fast, 140ms ease), color var(--transition-fast, 140ms ease)",
     "&:hover": {
       color: "#fff",
-      backgroundColor: "var(--color-brand, #6f4e7c)",
-      borderColor: "var(--color-brand, #6f4e7c)",
+      backgroundColor: "var(--color-brand)",
+      borderColor: "var(--color-brand)",
     },
     "&:active": {
       transform: "scale(0.94)",
@@ -168,11 +168,11 @@ export const useCardStyles = makeStyles({
     flexShrink: 0,
     height: 26,
     borderRadius: "var(--radius-sm, 10px)",
-    backgroundColor: "var(--color-brand-soft, #f4eef6)",
-    color: "var(--color-brand, #6f4e7c)",
+    backgroundColor: "var(--color-brand-soft)",
+    color: "var(--color-brand)",
     fontSize: 12,
     fontWeight: 700,
-    border: "1px solid rgba(111, 78, 124, 0.18)",
+    border: "1px solid rgba(var(--color-brand-rgb), 0.18)",
   },
   statusChip: {
     flexShrink: 0,
@@ -183,9 +183,9 @@ export const useCardStyles = makeStyles({
     border: "1px solid transparent",
   },
   statusUpcoming: {
-    color: "var(--color-primary-dark, #285e52)",
-    backgroundColor: "var(--color-primary-soft, #eaf4f1)",
-    borderColor: "rgba(47, 111, 97, 0.18)",
+    color: "var(--color-primary-dark)",
+    backgroundColor: "var(--color-primary-soft)",
+    borderColor: "rgba(var(--color-primary-rgb), 0.18)",
   },
   statusPast: {
     color: "var(--color-text-secondary, #51565c)",
@@ -203,7 +203,7 @@ export const useCardStyles = makeStyles({
     minHeight: 26,
   },
   detailIcon: {
-    color: "var(--color-brand, #6f4e7c)",
+    color: "var(--color-brand)",
     fontSize: 19,
   },
   detailValue: {
@@ -238,10 +238,14 @@ export const useCardStyles = makeStyles({
     fontWeight: 700,
     textTransform: "none" as const,
     fontSize: 12.5,
-    backgroundColor: "var(--color-primary, #2f6f61)",
-    color: "#fff",
+    backgroundColor: "var(--color-primary) !important",
+    color: "#fff !important",
     padding: "8px 12px",
-    boxShadow: "none",
+    opacity: "1 !important",
+    boxShadow:
+      "inset 0 0 0 1px rgba(var(--color-primary-rgb), 0.18), var(--shadow-sm)",
+    transition:
+      "transform var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast)",
     "& .MuiButton-startIcon": {
       marginLeft: 5,
       marginRight: 0,
@@ -250,11 +254,23 @@ export const useCardStyles = makeStyles({
       },
     },
     "&:hover": {
-      backgroundColor: "var(--color-primary-dark, #285e52)",
-      boxShadow: "0 6px 16px rgba(47, 111, 97, 0.18)",
+      backgroundColor: "var(--color-primary-dark) !important",
+      boxShadow:
+        "inset 0 0 0 1px rgba(var(--color-primary-rgb), 0.24), 0 6px 16px rgba(var(--color-primary-rgb), 0.22)",
     },
     "&:active": {
+      backgroundColor: "var(--color-primary-pressed) !important",
       transform: "scale(0.98)",
+      boxShadow: "inset 0 0 0 1px rgba(var(--color-primary-rgb), 0.28)",
+    },
+    "&:focus-visible": {
+      boxShadow: "var(--shadow-focus)",
+    },
+    "&.Mui-disabled": {
+      backgroundColor: "var(--color-surface-muted) !important",
+      color: "var(--color-text-muted) !important",
+      opacity: "1 !important",
+      boxShadow: "inset 0 0 0 1px var(--color-border)",
     },
   },
   secondaryButton: {
@@ -264,7 +280,7 @@ export const useCardStyles = makeStyles({
     textTransform: "none" as const,
     fontSize: 12.5,
     backgroundColor: "var(--color-surface, #fff)",
-    color: "var(--color-brand, #6f4e7c)",
+    color: "var(--color-brand)",
     border: "1px solid var(--color-border, #dadde3)",
     padding: "8px 12px",
     "& .MuiButton-startIcon": {
@@ -275,8 +291,8 @@ export const useCardStyles = makeStyles({
       },
     },
     "&:hover": {
-      backgroundColor: "var(--color-brand-soft, #f4eef6)",
-      borderColor: "var(--color-brand, #6f4e7c)",
+      backgroundColor: "var(--color-brand-soft)",
+      borderColor: "var(--color-brand)",
     },
     "&:active": {
       transform: "scale(0.98)",

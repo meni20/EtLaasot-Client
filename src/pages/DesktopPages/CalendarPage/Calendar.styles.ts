@@ -27,7 +27,7 @@ export const useCalendarStyles = makeStyles({
     },
     eventsButton: {
         minHeight: 44,
-        color: "var(--color-brand, #6f4e7c)",
+        color: "var(--color-brand)",
         borderColor: "var(--color-border, #dadde3)",
         backgroundColor: "var(--color-surface-elevated, rgba(255,255,255,0.82))",
         backdropFilter: "blur(18px) saturate(160%)",
@@ -42,8 +42,8 @@ export const useCalendarStyles = makeStyles({
             marginRight: 0,
         },
         "&:hover": {
-            borderColor: "var(--color-brand, #6f4e7c)",
-            backgroundColor: "var(--color-brand-soft, #f4eef6)",
+            borderColor: "var(--color-brand)",
+            backgroundColor: "var(--color-brand-soft)",
             boxShadow: "var(--shadow-sm, 0 3px 12px rgba(16,24,40,0.07))",
         },
         "&:active": {
@@ -130,7 +130,7 @@ export const useCalendarStyles = makeStyles({
         "& .fc-button-primary": {
             minHeight: "40px !important",
             background: "var(--color-surface, #fff)",
-            color: "var(--color-primary, #2f6f61)",
+            color: "var(--color-primary)",
             border: "1px solid var(--color-border, #dadde3)",
             borderRadius: "var(--radius-sm, 10px) !important",
             fontWeight: 800,
@@ -140,24 +140,24 @@ export const useCalendarStyles = makeStyles({
                 "transform var(--transition-fast, 140ms ease), background-color var(--transition-fast, 140ms ease), border-color var(--transition-fast, 140ms ease), box-shadow var(--transition-fast, 140ms ease)",
             boxShadow: "none",
             "&:hover": {
-                background: "var(--color-primary-soft, #eaf4f1)",
-                borderColor: "var(--color-primary, #2f6f61)",
+                background: "var(--color-primary-soft)",
+                borderColor: "var(--color-primary)",
                 boxShadow: "var(--shadow-sm, 0 3px 12px rgba(16,24,40,0.07))",
             },
             "&:active": {
                 transform: "scale(0.97)",
             },
             "&:focus": {
-                boxShadow: "0 0 0 3px rgba(47, 111, 97, 0.20)",
+                boxShadow: "0 0 0 3px rgba(var(--color-primary-rgb), 0.20)",
             },
             "&:disabled": {
                 opacity: 0.5,
             },
         },
         "& .fc-button-primary:not(:disabled).fc-button-active": {
-            background: "var(--color-primary, #2f6f61)",
+            background: "var(--color-primary)",
             color: "#fff",
-            borderColor: "var(--color-primary, #2f6f61)",
+            borderColor: "var(--color-primary)",
             boxShadow: "inset 0 1px 2px rgba(0,0,0,0.14)",
         },
         "& .fc-today-button": {
@@ -179,7 +179,7 @@ export const useCalendarStyles = makeStyles({
         "& .fc-daygrid-day": {
             transition: "background-color var(--transition-fast, 140ms ease)",
             "&:hover": {
-                backgroundColor: "rgba(47, 111, 97, 0.035)",
+                backgroundColor: "rgba(var(--color-primary-rgb), 0.035)",
             },
         },
         "& .fc-daygrid-day-number": {
@@ -189,7 +189,7 @@ export const useCalendarStyles = makeStyles({
             padding: "6px 10px 4px",
         },
         "& .fc-daygrid-day.fc-day-today": {
-            backgroundColor: "rgba(47, 111, 97, 0.07) !important",
+            backgroundColor: "rgba(var(--color-primary-rgb), 0.07) !important",
         },
         "& .fc-daygrid-day.fc-day-today .fc-daygrid-day-number": {
             background: "transparent",
@@ -200,7 +200,7 @@ export const useCalendarStyles = makeStyles({
             display: "block",
         },
         "& .fc-daygrid-day.fc-day-today $gregorianDate": {
-            background: "var(--color-primary, #2f6f61)",
+            background: "var(--color-primary)",
             color: "#fff",
             borderRadius: "50%",
             width: 28,
@@ -218,15 +218,15 @@ export const useCalendarStyles = makeStyles({
             transition: "transform var(--transition-fast, 140ms ease), box-shadow var(--transition-fast, 140ms ease)",
             border: "none !important",
             "&:hover": {
-                boxShadow: "0 5px 14px rgba(47,111,97,0.22)",
+                boxShadow: "0 5px 14px rgba(var(--color-primary-rgb),0.22)",
             },
         },
         "& .fc-daygrid-more-link": {
             fontWeight: 700,
-            color: "var(--color-brand, #6f4e7c)",
+            color: "var(--color-brand)",
             fontSize: 12,
             "&:hover": {
-                color: "var(--color-brand-hover, #5e426a)",
+                color: "var(--color-brand-hover)",
             },
         },
         "& .fc-daygrid-body td, & .fc-daygrid-body th, & .fc-scrollgrid td, & .fc-scrollgrid th":
@@ -293,11 +293,11 @@ export const useCalendarStyles = makeStyles({
             backdropFilter: "blur(2px)",
         },
         "& .fc-daygrid-day.fc-day-today": {
-            backgroundColor: "rgba(47,111,97,0.18) !important",
+            backgroundColor: "rgba(var(--color-primary-rgb),0.18) !important",
         },
         "& .fc-event, & .fc-daygrid-event": {
-            backgroundColor: "var(--color-primary, #2f6f61) !important",
-            borderColor: "var(--color-primary-dark, #285e52) !important",
+            backgroundColor: "var(--color-primary) !important",
+            borderColor: "var(--color-primary-dark) !important",
             opacity: "1 !important",
             color: "#fff !important",
         },

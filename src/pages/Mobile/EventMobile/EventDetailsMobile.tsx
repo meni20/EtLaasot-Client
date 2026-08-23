@@ -321,22 +321,22 @@ export const EventDetailsMobile: React.FC = () => {
                       disabled={attendanceIntentMutation.isPending}
                       sx={{
                         bgcolor: isSelected
-                          ? "var(--color-primary, #2f6f61)"
+                          ? "var(--color-primary)"
                           : "var(--color-surface, #fff)",
                         borderColor: isSelected
-                          ? "var(--color-primary, #2f6f61)"
+                          ? "var(--color-primary)"
                           : "var(--color-border, #dadde3)",
                         color: isSelected ? "#fff" : "var(--color-text, #1d1d1f)",
                         boxShadow: isSelected
-                          ? "0 6px 16px rgba(47, 111, 97, 0.22)"
+                          ? "0 6px 16px rgba(var(--color-primary-rgb), 0.22)"
                           : "none",
                         "&:hover": {
                           bgcolor: isSelected
-                            ? "var(--color-primary-dark, #285e52)"
-                            : "var(--color-primary-soft, #eaf4f1)",
-                          borderColor: "var(--color-primary, #2f6f61)",
+                            ? "var(--color-primary-dark)"
+                            : "var(--color-primary-soft)",
+                          borderColor: "var(--color-primary)",
                           boxShadow: isSelected
-                            ? "0 6px 16px rgba(47, 111, 97, 0.22)"
+                            ? "0 6px 16px rgba(var(--color-primary-rgb), 0.22)"
                             : "none",
                         },
                         "&.Mui-disabled": {
@@ -344,7 +344,7 @@ export const EventDetailsMobile: React.FC = () => {
                             ? "#fff"
                             : "var(--color-text-muted, #6e737a)",
                           borderColor: isSelected
-                            ? "var(--color-primary, #2f6f61)"
+                            ? "var(--color-primary)"
                             : "var(--color-border, #dadde3)",
                         },
                       }}

@@ -49,7 +49,7 @@ export const useStyles = makeStyles({
   },
   calendarButton: {
     minHeight: 44,
-    color: "var(--color-brand, #6f4e7c)",
+    color: "var(--color-brand)",
     borderColor: "var(--color-border, #dadde3)",
     fontWeight: 700,
     borderRadius: "var(--radius-md, 14px)",
@@ -64,8 +64,8 @@ export const useStyles = makeStyles({
       marginRight: 0,
     },
     "&:hover": {
-      borderColor: "var(--color-brand, #6f4e7c)",
-      backgroundColor: "var(--color-brand-soft, #f4eef6)",
+      borderColor: "var(--color-brand)",
+      backgroundColor: "var(--color-brand-soft)",
       boxShadow: "var(--shadow-sm, 0 3px 12px rgba(16,24,40,0.07))",
     },
     "&:active": {
@@ -74,7 +74,7 @@ export const useStyles = makeStyles({
   },
   createButton: {
     minHeight: 44,
-    background: "var(--color-primary, #2f6f61)",
+    background: "var(--color-primary)",
     color: "#fff",
     fontWeight: 800,
     borderRadius: "var(--radius-md, 14px)",
@@ -83,7 +83,7 @@ export const useStyles = makeStyles({
     transition:
       "transform var(--transition-fast, 140ms ease), background-color var(--transition-fast, 140ms ease), box-shadow var(--transition-fast, 140ms ease)",
     "&:hover": {
-      background: "var(--color-primary-dark, #285e52)",
+      background: "var(--color-primary-dark)",
       boxShadow: "var(--shadow-md, 0 12px 34px rgba(16,24,40,0.1))",
       transform: "translateY(-1px)",
     },

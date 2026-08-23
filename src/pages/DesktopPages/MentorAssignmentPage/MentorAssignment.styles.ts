@@ -1,5 +1,6 @@
 import { makeStyles } from "@mui/styles";
 import { alpha, type Theme } from "@mui/material/styles";
+import { theme } from "../../../theme/them";
 
 type MentorAssignmentClassKey =
   | "root"
@@ -32,7 +33,7 @@ export const useMentorAssignmentStyles = makeStyles<
   Theme,
   {},
   MentorAssignmentClassKey
->((theme: Theme) => ({
+>({
   root: {
     padding: "88px 24px 24px",
     direction: "rtl",
@@ -355,4 +356,4 @@ export const useMentorAssignmentStyles = makeStyles<
       WebkitBackdropFilter: "none",
     },
   },
-}) as any);
+} as any);

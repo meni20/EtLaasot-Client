@@ -204,12 +204,12 @@ export const PasswordChangePage: React.FC = () => {
             mt: 3,
             minHeight: 52,
             borderRadius: "var(--radius-md, 14px)",
-            bgcolor: "var(--color-primary, #2f6f61)",
+            bgcolor: "var(--color-primary)",
             fontWeight: 800,
             fontFamily: "inherit",
             boxShadow: "var(--shadow-sm, 0 3px 12px rgba(16, 24, 40, 0.07))",
             "&:hover": {
-              bgcolor: "var(--color-primary-dark, #285e52)",
+              bgcolor: "var(--color-primary-dark)",
               boxShadow: "var(--shadow-md, 0 12px 34px rgba(16, 24, 40, 0.1))",
             },
           }}

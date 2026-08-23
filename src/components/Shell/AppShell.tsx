@@ -54,13 +54,13 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
           width: isPersistentSideMenu
             ? `calc(100% - ${desktopSideMenuWidth}px)`
             : "100%",
-          marginInlineEnd: isPersistentSideMenu
+          marginInlineStart: isPersistentSideMenu
             ? `${desktopSideMenuWidth}px`
             : 0,
           overflowX: "clip",
           "@media (max-width: 767px)": {
             width: "100%",
-            marginInlineEnd: 0,
+            marginInlineStart: 0,
           },
         }}
       >

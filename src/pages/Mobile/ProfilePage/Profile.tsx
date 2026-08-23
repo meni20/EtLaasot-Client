@@ -459,13 +459,13 @@ export const ProfilePage: React.FC = () => {
           height: 48,
           mb: 1,
           fontWeight: 800,
-          color: "var(--color-primary, #2f6f61)",
+          color: "var(--color-primary)",
           borderColor: "var(--color-border, #dadde3)",
           bgcolor: "var(--color-surface, #fff)",
           fontFamily: "inherit",
           "&:hover": {
-            borderColor: "var(--color-primary, #2f6f61)",
-            bgcolor: "var(--color-primary-soft, #eaf4f1)",
+            borderColor: "var(--color-primary)",
+            bgcolor: "var(--color-primary-soft)",
           },
         }}
       >
@@ -902,12 +902,12 @@ const TraineeDetailsDialog: React.FC<{
             sx={{
               mt: 2,
               borderRadius: "14px",
-              bgcolor: "var(--color-primary, #2f6f61)",
+              bgcolor: "var(--color-primary)",
               fontWeight: 800,
               textTransform: "none",
               boxShadow:
                 "var(--shadow-sm, 0 3px 12px rgba(16, 24, 40, 0.07))",
-              "&:hover": { bgcolor: "var(--color-primary-dark, #285e52)" },
+              "&:hover": { bgcolor: "var(--color-primary-dark)" },
             }}
           >
             התקשר

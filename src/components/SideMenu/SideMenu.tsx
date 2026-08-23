@@ -51,7 +51,6 @@ export const SideMenu: React.FC<SideMenuProps> = ({
         className: `${classes.drawerPaper} ${
           collapsed ? classes.collapsedDrawerPaper : ""
         }`,
-        sx: { insetInlineEnd: 0, insetInlineStart: "auto" },
       }}
       SlideProps={{ direction: "left" }}
       ModalProps={{ keepMounted: true }}

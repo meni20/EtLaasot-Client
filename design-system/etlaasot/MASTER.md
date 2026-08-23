@@ -4,7 +4,7 @@ This file records the design decisions implemented on `dev`. Page-specific files
 
 ## Product character
 
-EtLaasot is a calm, confident Hebrew RTL operations product for nonprofit teams, volunteers, and trainees. Apple design principles guide clarity, agency, material depth, typography, direct feedback, and restrained motion. The interface is not a literal Apple clone and keeps the organization’s aubergine identity as a supporting accent.
+EtLaasot is a calm, confident Hebrew RTL operations product for nonprofit teams, volunteers, and trainees. Apple design principles guide clarity, agency, material depth, typography, direct feedback, and restrained motion. The interface is not a literal Apple clone. Its brand palette is derived from the organization logo: deep ink-purple for identity, accessible aubergine for primary actions, and the logo's magenta as a restrained secondary accent.
 
 ## Source of truth
 
@@ -23,15 +23,21 @@ EtLaasot is a calm, confident Hebrew RTL operations product for nonprofit teams,
 | Primary text | `#1D1D1F` | `--color-text` |
 | Secondary text | `#51565C` | `--color-text-secondary` |
 | Border | `#DADDE3` | `--color-border` |
-| Primary action | `#2F6F61` | `--color-primary` |
-| Primary soft | `#EAF4F1` | `--color-primary-soft` |
-| Brand accent | `#6F4E7C` | `--color-brand` |
-| Brand soft | `#F4EEF6` | `--color-brand-soft` |
+| Brand ink | `#303050` | `--color-brand-ink` |
+| Primary action | `#7A3E6B` | `--color-primary` |
+| Primary hover | `#6A345D` | `--color-primary-dark` |
+| Primary pressed | `#57294C` | `--color-primary-pressed` |
+| Primary soft | `#F7F1F5` | `--color-primary-soft` |
+| Selected state | `#EFE3EB` | `--color-primary-selected` |
+| Purple border | `#D9BFD2` | `--color-primary-border` |
+| Brand accent | `#B85090` | `--color-brand` |
+| Brand soft | `#FAEEF5` | `--color-brand-soft` |
 | Success | `#2E7D32` | `--color-success` |
+| Information | `#2563EB` | `--color-info` |
 | Warning | `#A8610A` | `--color-warning` |
 | Danger | `#B42318` | `--color-danger` |
 
-Use semantic tokens; do not add raw brand colors to components. Status must include text or an icon, never color alone.
+Use purple for identity, primary actions, focus, and selected navigation—not for every surface or status. Use semantic tokens; do not add raw brand colors to components. Status must include text or an icon, never color alone.
 
 ## Typography
 

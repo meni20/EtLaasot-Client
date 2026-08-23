@@ -37,14 +37,14 @@ export const useStyles = makeStyles({
             color: "#9CA3AF",
             transition: "background-color 160ms ease, color 160ms ease, transform 120ms ease",
             "&.Mui-selected": {
-                color: "#7B3F98",
-                backgroundColor: "rgba(243, 234, 247, 0.88)",
+                color: "var(--color-primary)",
+                backgroundColor: "var(--color-primary-selected)",
                 "& svg": {
                     transform: "translateY(-1px)",
                 },
             },
             "&:focus-visible": {
-                outline: "2px solid rgba(123, 63, 152, 0.35)",
+                outline: "2px solid rgba(var(--color-primary-rgb), 0.42)",
                 outlineOffset: 2,
             },
             "&:active": {

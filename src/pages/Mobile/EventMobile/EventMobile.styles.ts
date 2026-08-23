@@ -32,9 +32,9 @@ export const useStyles = makeStyles({
         fontSize: 11,
         height: 26,
         borderRadius: "var(--radius-sm, 10px)",
-        backgroundColor: "var(--color-brand-soft, #f4eef6)",
-        color: "var(--color-brand, #6f4e7c)",
-        border: "1px solid rgba(111, 78, 124, 0.18)",
+        backgroundColor: "var(--color-brand-soft)",
+        color: "var(--color-brand)",
+        border: "1px solid rgba(var(--color-brand-rgb), 0.18)",
     },
     rsvpRow: {
         display: "flex",
@@ -70,13 +70,13 @@ export const useStyles = makeStyles({
         flexShrink: 0,
         width: "44px !important",
         height: "44px !important",
-        color: "var(--color-brand, #6f4e7c) !important",
+        color: "var(--color-brand) !important",
         backgroundColor: "rgba(255, 255, 255, 0.94) !important",
         boxShadow: "0 6px 16px rgba(45, 35, 43, 0.16) !important",
         border: "1px solid rgba(228, 215, 235, 0.9) !important",
         "&:hover": {
             color: "#fff !important",
-            backgroundColor: "var(--color-brand, #6f4e7c) !important",
+            backgroundColor: "var(--color-brand) !important",
         },
     },
     rsvpOptionCard: {
@@ -109,7 +109,7 @@ export const useStyles = makeStyles({
         animation: "fadeIn 180ms var(--ease-out, ease-out)",
     },
     backButton: {
-        color: "var(--color-brand, #6f4e7c)",
+        color: "var(--color-brand)",
         fontWeight: 700,
         marginBottom: 8,
         textTransform: "none" as const,
@@ -123,24 +123,24 @@ export const useStyles = makeStyles({
     detailsBackButton: {
         width: 44,
         height: 44,
-        color: "var(--color-brand, #6f4e7c)",
+        color: "var(--color-brand)",
         backgroundColor: "var(--color-surface-elevated, rgba(255,255,255,0.82))",
         boxShadow: "var(--shadow-sm, 0 3px 12px rgba(16,24,40,0.07))",
         backdropFilter: "blur(16px) saturate(160%)",
         "&:hover": {
-            backgroundColor: "var(--color-brand-soft, #f4eef6)",
+            backgroundColor: "var(--color-brand-soft)",
         },
     },
     detailsImageButton: {
         justifySelf: "end",
         width: 44,
         height: 44,
-        color: "var(--color-brand, #6f4e7c)",
+        color: "var(--color-brand)",
         backgroundColor: "var(--color-surface-elevated, rgba(255,255,255,0.82))",
         boxShadow: "var(--shadow-sm, 0 3px 12px rgba(16,24,40,0.07))",
         backdropFilter: "blur(16px) saturate(160%)",
         "&:hover": {
-            backgroundColor: "var(--color-brand-soft, #f4eef6)",
+            backgroundColor: "var(--color-brand-soft)",
         },
     },
     detailsHeaderTitle: {
@@ -179,7 +179,7 @@ export const useStyles = makeStyles({
         },
         "& $typeChip": {
             backgroundColor: "rgba(255, 255, 255, 0.88)",
-            color: "var(--color-brand, #6f4e7c)",
+            color: "var(--color-brand)",
         },
         "& $saveCalendarIconButton": {
             color: "#fff !important",
@@ -240,8 +240,8 @@ export const useStyles = makeStyles({
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "var(--color-brand, #6f4e7c)",
-        backgroundColor: "var(--color-brand-soft, #f4eef6)",
+        color: "var(--color-brand)",
+        backgroundColor: "var(--color-brand-soft)",
         flexShrink: 0,
     },
     detailsMeta: {
@@ -350,11 +350,11 @@ export const useStyles = makeStyles({
     imageDownloadButton: {
         minHeight: "48px !important",
         borderRadius: "12px !important",
-        backgroundColor: "var(--color-primary, #2f6f61) !important",
+        backgroundColor: "var(--color-primary) !important",
         fontWeight: "700 !important",
         textTransform: "none !important" as const,
         "&:hover": {
-            backgroundColor: "var(--color-primary-dark, #285e52) !important",
+            backgroundColor: "var(--color-primary-dark) !important",
         },
     },
     imageDownloadHint: {

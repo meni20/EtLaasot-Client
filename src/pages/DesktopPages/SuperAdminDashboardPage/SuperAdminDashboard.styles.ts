@@ -47,7 +47,7 @@ export const useSuperAdminDashboardStyles = makeStyles({
     transition:
       "transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast)",
     "&:hover": {
-      borderColor: "rgba(47, 111, 97, 0.24)",
+      borderColor: "rgba(var(--color-primary-rgb), 0.24)",
       boxShadow: "var(--shadow-md)",
     },
     "@media (hover: hover) and (pointer: fine)": {
@@ -157,14 +157,14 @@ export const useSuperAdminDashboardStyles = makeStyles({
     transition:
       "transform var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast)",
     "&:hover": {
-      backgroundColor: "rgba(47, 111, 97, 0.1)",
+      backgroundColor: "rgba(var(--color-primary-rgb), 0.1)",
     },
     "&:active": {
       transform: "scale(0.98)",
     },
     "&:focus-visible": {
       outline: "none",
-      boxShadow: "0 0 0 3px rgba(47, 111, 97, 0.22)",
+      boxShadow: "0 0 0 3px rgba(var(--color-primary-rgb), 0.22)",
     },
   },
   branchButtonIcon: {

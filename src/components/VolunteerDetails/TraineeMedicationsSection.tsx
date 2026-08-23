@@ -310,7 +310,7 @@ export const TraineeMedicationsSection: React.FC<
               sx={{
                 width: 44,
                 height: 44,
-                color: "var(--people-primary, #6f3d64)",
+                color: "var(--people-primary)",
                 border: "1px solid var(--people-border, #e6e1e6)",
                 backgroundColor: "#fff",
                 "&:hover": {
@@ -331,7 +331,7 @@ export const TraineeMedicationsSection: React.FC<
           <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
             <CircularProgress
               size={28}
-              sx={{ color: "var(--people-primary, #6f3d64)" }}
+              sx={{ color: "var(--people-primary)" }}
             />
           </Box>
         ) : isError ? (
@@ -389,7 +389,7 @@ export const TraineeMedicationsSection: React.FC<
                         sx={{
                           width: 44,
                           height: 44,
-                          color: "var(--people-primary, #6f3d64)",
+                          color: "var(--people-primary)",
                           "&:hover": {
                             backgroundColor:
                               "var(--people-primary-soft, #efe5ed)",
@@ -456,7 +456,7 @@ export const TraineeMedicationsSection: React.FC<
           sx={{
             mt: 1,
             minHeight: 44,
-            color: "var(--people-primary, #6f3d64)",
+            color: "var(--people-primary)",
             fontFamily: "inherit",
             fontWeight: 800,
           }}

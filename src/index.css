@@ -27,15 +27,26 @@
   --color-text-muted: #6e737a;
   --color-border: #dadde3;
   --color-border-subtle: #e9ebef;
-  --color-primary: #2f6f61;
-  --color-primary-dark: #285e52;
-  --color-primary-soft: #eaf4f1;
-  --color-brand: #6f4e7c;
-  --color-brand-soft: #f4eef6;
-  --color-accent: #6f4e7c;
+  --color-brand-ink: #303050;
+  --color-primary: #7a3e6b;
+  --color-primary-rgb: 122, 62, 107;
+  --color-primary-dark: #6a345d;
+  --color-primary-pressed: #57294c;
+  --color-primary-soft: #f7f1f5;
+  --color-primary-selected: #efe3eb;
+  --color-primary-border: #d9bfd2;
+  --color-brand: #b85090;
+  --color-brand-rgb: 184, 80, 144;
+  --color-brand-hover: #9e417c;
+  --color-brand-soft: #faeef5;
+  --color-accent: var(--color-brand);
   --color-bg: var(--color-canvas);
+  --color-info: #2563eb;
+  --color-info-soft: #eff6ff;
   --color-success: #2e7d32;
+  --color-success-rgb: 46, 125, 50;
   --color-success-soft: #edf7ed;
+  --color-success-border: #cfe8d1;
   --color-warning: #a8610a;
   --color-warning-soft: #fff7e8;
   --color-danger: #b42318;
@@ -49,6 +60,7 @@
   --shadow-md: 0 3px 12px rgba(16, 24, 40, 0.07);
   --shadow-lg: 0 12px 34px rgba(16, 24, 40, 0.1);
   --shadow-xl: 0 24px 64px rgba(16, 24, 40, 0.15);
+  --shadow-focus: 0 0 0 3px rgba(var(--color-primary-rgb), 0.24);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
@@ -76,7 +88,7 @@ body {
   overflow-x: clip;
   direction: rtl;
   background:
-    radial-gradient(circle at 84% -8%, rgba(111, 78, 124, 0.07), transparent 32rem),
+    radial-gradient(circle at 84% -8%, rgba(var(--color-brand-rgb), 0.045), transparent 32rem),
     var(--color-canvas);
 }
 
@@ -104,7 +116,7 @@ a {
 }
 
 :focus-visible {
-  outline: 3px solid rgba(47, 111, 97, 0.4);
+  outline: 3px solid rgba(var(--color-primary-rgb), 0.42);
   outline-offset: 3px;
 }
 
@@ -167,6 +179,18 @@ a { color: var(--color-primary); text-decoration: none; }
   }
 
   body { background: var(--color-canvas); }
+}
+
+@media (display-mode: standalone) and (max-width: 1023px) {
+  html,
+  body,
+  #root {
+    min-height: 100dvh;
+  }
+
+  body {
+    overscroll-behavior-y: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

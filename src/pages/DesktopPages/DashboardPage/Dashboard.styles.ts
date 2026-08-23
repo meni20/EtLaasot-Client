@@ -57,7 +57,7 @@ export const useDashboardStyles = makeStyles({
     transition:
       "transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast)",
     "&:hover": {
-      borderColor: "rgba(47, 111, 97, 0.28)",
+      borderColor: "rgba(var(--color-primary-rgb), 0.28)",
       boxShadow: "var(--shadow-md)",
     },
     "&:active": {
@@ -65,7 +65,7 @@ export const useDashboardStyles = makeStyles({
     },
     "&:focus-visible": {
       outline: "none",
-      boxShadow: "var(--shadow-sm), 0 0 0 3px rgba(47, 111, 97, 0.22)",
+      boxShadow: "var(--shadow-sm), 0 0 0 3px rgba(var(--color-primary-rgb), 0.22)",
     },
     "@media (hover: hover) and (pointer: fine)": {
       "&:hover": {
@@ -141,7 +141,7 @@ export const useDashboardStyles = makeStyles({
     height: "44px !important",
     color: "var(--color-primary) !important",
     backgroundColor: "var(--color-primary-soft) !important",
-    border: "1px solid rgba(47, 111, 97, 0.18) !important",
+    border: "1px solid rgba(var(--color-primary-rgb), 0.18) !important",
     transition:
       "transform var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast)",
     "&:hover": {

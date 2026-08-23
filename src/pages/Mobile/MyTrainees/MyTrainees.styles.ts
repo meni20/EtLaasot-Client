@@ -74,8 +74,8 @@ export const useStyles = makeStyles({
     avatar: {
         width: 44,
         height: 44,
-        backgroundColor: "var(--color-primary-soft, #eaf4f1)",
-        color: "var(--color-primary, #2f6f61)",
+        backgroundColor: "var(--color-primary-soft)",
+        color: "var(--color-primary)",
         fontWeight: 800,
         fontSize: 16,
         fontFamily: "inherit",
@@ -87,7 +87,7 @@ export const useStyles = makeStyles({
         height: 44,
         borderRadius: "var(--radius-md, 14px)",
         padding: 0,
-        backgroundColor: "var(--color-primary-soft, #eaf4f1)",
+        backgroundColor: "var(--color-primary-soft)",
         transition:
             "transform var(--transition-fast, 140ms ease), background-color var(--transition-fast, 140ms ease)",
         "&:hover": {

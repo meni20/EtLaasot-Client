@@ -56,7 +56,7 @@ export const useStyles = makeStyles({
         animation: "fadeInUp 220ms var(--ease-out, ease-out) both",
         "&:focus-visible": {
             outline: "none",
-            boxShadow: "var(--shadow-focus, 0 0 0 3px rgba(47, 111, 97, 0.20))",
+            boxShadow: "var(--shadow-focus, 0 0 0 3px rgba(var(--color-primary-rgb), 0.20))",
         },
         "&:active": { transform: "scale(0.98)" },
         "@media (prefers-reduced-motion: reduce)": {
@@ -81,10 +81,10 @@ export const useStyles = makeStyles({
         lineHeight: 1.35,
     },
     checkedIn: {
-        backgroundColor: "var(--color-success-soft, #edf7ed)",
-        boxShadow: "0 8px 22px rgba(46, 125, 50, 0.12)",
-        borderColor: "rgba(46, 125, 50, 0.22)",
-        borderRight: "4px solid var(--color-success, #2e7d32)",
+        backgroundColor: "var(--color-success-soft)",
+        boxShadow: "0 8px 22px rgba(var(--color-success-rgb), 0.12)",
+        borderColor: "rgba(var(--color-success-rgb), 0.22)",
+        borderRight: "4px solid var(--color-success)",
     },
     saveButton: {
         borderRadius: "var(--radius-md, 14px)",
@@ -115,7 +115,7 @@ export const useStyles = makeStyles({
             borderRadius: 14,
             transition: "box-shadow var(--transition-fast, 140ms ease)",
             "&.Mui-focused": {
-                boxShadow: "var(--shadow-focus, 0 0 0 3px rgba(47, 111, 97, 0.20))",
+                boxShadow: "var(--shadow-focus, 0 0 0 3px rgba(var(--color-primary-rgb), 0.20))",
             },
         },
     },
@@ -130,11 +130,11 @@ export const useStyles = makeStyles({
         textTransform: "none" as const,
         fontWeight: 750,
         fontFamily: "inherit",
-        color: "var(--color-primary, #2f6f61)",
+        color: "var(--color-primary)",
         borderRadius: "var(--radius-md, 14px)",
         transition:
             "transform var(--transition-fast, 140ms ease), background-color var(--transition-fast, 140ms ease)",
-        "&:hover": { backgroundColor: "var(--color-primary-soft, #eaf4f1)" },
+        "&:hover": { backgroundColor: "var(--color-primary-soft)" },
         "&:active": { transform: "scale(0.98)" },
         "@media (prefers-reduced-motion: reduce)": {
             transition: "background-color 1ms linear",

@@ -15,17 +15,16 @@ export const useSideMenuStyles = makeStyles({
     boxShadow: "-18px 0 36px rgba(45, 35, 43, 0.16)",
     direction: "rtl" as const,
     overflow: "hidden",
-    borderInlineStart: "1px solid rgba(122, 62, 107, 0.14)",
-    right: "auto !important",
+    borderInlineEnd: "1px solid rgba(var(--color-primary-rgb), 0.14)",
+    right: "0 !important",
     left: "auto !important",
-    insetInlineEnd: "0 !important",
-    insetInlineStart: "auto !important",
     transformOrigin: "right center",
     transition:
       "box-shadow var(--transition-normal, 180ms ease), background-color var(--transition-normal, 180ms ease)",
     "@media (min-width: 1024px)": {
-      top: "calc(env(safe-area-inset-top, 0px) + 64px)",
-      height: "calc(100% - env(safe-area-inset-top, 0px) - 64px)",
+      top: "calc(env(safe-area-inset-top, 0px) + var(--shell-top-inset, 68px)) !important",
+      bottom: "0 !important",
+      height: "auto !important",
       borderRadius: "0 0 0 18px",
       boxShadow: "-10px 0 28px rgba(45, 35, 43, 0.12)",
     },
@@ -56,27 +55,27 @@ export const useSideMenuStyles = makeStyles({
     transition:
       "background-color var(--transition-normal, 180ms ease), color var(--transition-normal, 180ms ease), transform var(--transition-fast, 140ms ease)",
     "&:focus-visible": {
-      outline: "2px solid rgba(122, 62, 107, 0.42)",
+      outline: "2px solid rgba(var(--color-primary-rgb), 0.42)",
       outlineOffset: 2,
     },
     "&:active": {
       transform: "scale(0.98)",
     },
     "&.Mui-selected": {
-      backgroundColor: "rgba(243, 232, 240, 0.92)",
-      color: "#6d3860",
+      backgroundColor: "var(--color-primary-selected)",
+      color: "var(--color-primary-dark)",
     },
     "@media (hover: hover) and (pointer: fine)": {
       "&:hover": {
-        backgroundColor: "rgba(243, 232, 240, 0.9)",
-        color: "#6d3860",
+        backgroundColor: "var(--color-primary-soft)",
+        color: "var(--color-primary-dark)",
         transform: "translateX(-2px)",
         "& .MuiListItemIcon-root": {
-          color: "#7a3e6b",
+          color: "var(--color-primary)",
         },
       },
       "&.Mui-selected:hover": {
-        backgroundColor: "rgba(237, 221, 236, 0.95)",
+        backgroundColor: "var(--color-primary-selected)",
       },
     },
   },
@@ -92,7 +91,7 @@ export const useSideMenuStyles = makeStyles({
     },
   },
   activeListItem: {
-    boxShadow: "inset -4px 0 0 #9a5188",
+    boxShadow: "inset -4px 0 0 var(--color-brand)",
     fontWeight: 800,
   },
   listItemText: {
@@ -115,7 +114,7 @@ export const useSideMenuStyles = makeStyles({
   },
   listItemIcon: {
     minWidth: 40,
-    color: "#7a3e6b",
+    color: "var(--color-primary)",
     transition: "color var(--transition-fast, 140ms ease)",
     justifyContent: "center",
     "& svg": {

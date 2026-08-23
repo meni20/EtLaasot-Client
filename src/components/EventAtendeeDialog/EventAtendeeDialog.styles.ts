@@ -45,7 +45,7 @@ export const useStyles = makeStyles({
     top: 14,
     color: color.primary,
     backgroundColor: color.primarySoft,
-    border: `1px solid rgba(47, 111, 97, 0.20)`,
+    border: `1px solid rgba(var(--color-primary-rgb), 0.20)`,
     transition: `transform ${motion.fast} ${motion.easeOut}, background-color ${motion.fast} ease`,
     "&:hover": {
       backgroundColor: color.primarySoft,
@@ -61,7 +61,7 @@ export const useStyles = makeStyles({
   sendAssignmentsButton: {
     color: color.brand,
     backgroundColor: color.brandSoft,
-    border: `1px solid rgba(111, 78, 124, 0.20)`,
+    border: `1px solid rgba(var(--color-brand-rgb), 0.20)`,
     transition: `transform ${motion.fast} ${motion.easeOut}, background-color ${motion.fast} ease`,
     "&:hover": {
       backgroundColor: color.brandSoft,
@@ -102,7 +102,7 @@ export const useStyles = makeStyles({
       width: 6,
     },
     "&::-webkit-scrollbar-thumb": {
-      backgroundColor: "rgba(47, 111, 97, 0.22)",
+      backgroundColor: "rgba(var(--color-primary-rgb), 0.22)",
       borderRadius: 3,
     },
   },
@@ -168,7 +168,7 @@ export const useStyles = makeStyles({
       width: 6,
     },
     "&::-webkit-scrollbar-thumb": {
-      backgroundColor: "rgba(47, 111, 97, 0.18)",
+      backgroundColor: "rgba(var(--color-primary-rgb), 0.18)",
       borderRadius: 3,
     },
   },
@@ -241,7 +241,7 @@ export const useStyles = makeStyles({
     cursor: "pointer",
     borderColor: color.primary,
     backgroundColor: color.primarySoft,
-    boxShadow: "0 0 0 2px rgba(47, 111, 97, 0.10)",
+    boxShadow: "0 0 0 2px rgba(var(--color-primary-rgb), 0.10)",
     "&:hover": {
       borderColor: color.primaryHover,
       backgroundColor: color.primarySoft,
@@ -324,7 +324,7 @@ export const useStyles = makeStyles({
   selectedItem: {
     backgroundColor: `${color.primarySoft} !important`,
     borderColor: `${color.primary} !important`,
-    boxShadow: "0 0 0 2px rgba(47, 111, 97, 0.14)",
+    boxShadow: "0 0 0 2px rgba(var(--color-primary-rgb), 0.14)",
   },
   attendeeRow: {
     display: "grid",

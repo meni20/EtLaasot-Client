@@ -242,7 +242,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
               sx={{
                 width: 44,
                 height: 44,
-                color: "#6f3d64",
+                color: "var(--color-primary)",
                 border: "1px solid #e6e1e6",
                 backgroundColor: "rgba(255,255,255,0.82)",
                 "&:hover": { backgroundColor: "#efe5ed" },
@@ -292,7 +292,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
                   borderRadius: 3,
                   fontWeight: 800,
                   fontFamily: "inherit",
-                  color: "#6f3d64",
+                  color: "var(--color-primary)",
                   borderColor: "#d6c8d3",
                   backgroundColor: "#fff",
                 }}
@@ -303,7 +303,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
           ) : (
             <Stack spacing={2.5}>
               <Box>
-                <Typography sx={{ fontWeight: 900, color: "#6f3d64", mb: 1 }}>
+                <Typography sx={{ fontWeight: 900, color: "var(--color-primary)", mb: 1 }}>
                   פרטי זיהוי
                 </Typography>
                 <Box
@@ -376,7 +376,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
               </Box>
 
               <Box>
-                <Typography sx={{ fontWeight: 900, color: "#6f3d64", mb: 1 }}>
+                <Typography sx={{ fontWeight: 900, color: "var(--color-primary)", mb: 1 }}>
                   פרטי קשר
                 </Typography>
                 <Box
@@ -430,7 +430,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
               </Box>
 
               <Box>
-                <Typography sx={{ fontWeight: 900, color: "#6f3d64", mb: 1 }}>
+                <Typography sx={{ fontWeight: 900, color: "var(--color-primary)", mb: 1 }}>
                   פרטים נוספים
                 </Typography>
                 <Box
@@ -512,7 +512,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
                 fontWeight: 800,
                 textTransform: "none",
                 fontFamily: "inherit",
-                background: "linear-gradient(135deg, #805174 0%, #6f3d64 100%)",
+                background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)",
               }}
             >
               סגירה
@@ -536,11 +536,11 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
                 fontSize: 15,
                 textTransform: "none",
                 fontFamily: "inherit",
-                background: "linear-gradient(135deg, #805174 0%, #6f3d64 100%)",
-                boxShadow: "0 10px 24px rgba(111, 61, 100, 0.22)",
+                background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)",
+                boxShadow: "0 10px 24px rgba(var(--color-primary-rgb), 0.22)",
                 "&:hover": {
                   background:
-                    "linear-gradient(135deg, #552f4f 0%, #6f3d64 100%)",
+                    "linear-gradient(135deg, var(--color-primary-pressed) 0%, var(--color-primary-dark) 100%)",
                 },
                 "&:active": { transform: "scale(0.985)" },
                 "@media (prefers-reduced-motion: reduce)": {

@@ -105,7 +105,7 @@ export const useActivityAdminStyles = makeStyles({
       outline: "none !important",
     },
     "& .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus-within": {
-      outline: "2px solid rgba(47, 111, 97, 0.36) !important",
+      outline: "2px solid rgba(var(--color-primary-rgb), 0.36) !important",
       outlineOffset: -2,
     },
     "& .MuiTablePagination-root": {
@@ -132,7 +132,7 @@ export const useActivityAdminStyles = makeStyles({
     justifyContent: "center",
     color: "var(--color-success) !important",
     backgroundColor: "var(--color-success-soft) !important",
-    border: "1px solid rgba(46, 125, 50, 0.18)",
+    border: "1px solid rgba(var(--color-success-rgb), 0.18)",
     fontFamily: "inherit !important",
     fontWeight: "700 !important",
   },

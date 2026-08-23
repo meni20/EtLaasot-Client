@@ -161,10 +161,10 @@ export const LineChart = ({
                     outline: "none",
                     "&:hover .line-chart-bar, &:focus-visible .line-chart-bar": {
                       transform: "translateY(-2px)",
-                      boxShadow: "0 10px 22px rgba(47, 111, 97, 0.2)",
+                      boxShadow: "0 10px 22px rgba(var(--color-primary-rgb), 0.2)",
                     },
                     "&:focus-visible": {
-                      boxShadow: "0 0 0 3px rgba(47, 111, 97, 0.22)",
+                      boxShadow: "0 0 0 3px rgba(var(--color-primary-rgb), 0.22)",
                     },
                   }}
                 >
@@ -178,7 +178,7 @@ export const LineChart = ({
                       borderRadius: "10px 10px 3px 3px",
                       background:
                         "linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)",
-                      boxShadow: "0 8px 18px rgba(47, 111, 97, 0.16)",
+                      boxShadow: "0 8px 18px rgba(var(--color-primary-rgb), 0.16)",
                       transition:
                         "height var(--transition-normal), transform var(--transition-fast), box-shadow var(--transition-fast)",
                     }}

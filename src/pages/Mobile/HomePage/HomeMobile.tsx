@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Avatar,
@@ -333,7 +333,7 @@ export const HomeMobile: React.FC = () => {
             <Box sx={{ mt: 1.5 }}>
               <CircularProgress
                 size={22}
-                sx={{ color: "var(--color-primary, #2f6f61)" }}
+                sx={{ color: "var(--color-primary)" }}
               />
             </Box>
           ) : activeActivity ? (
@@ -408,7 +408,7 @@ export const HomeMobile: React.FC = () => {
                 onClick={() => setIsActivityPanelOpen((open) => !open)}
                 sx={{
                   mt: 1.5,
-                  bgcolor: "var(--color-primary, #2f6f61)",
+                  bgcolor: "var(--color-primary)",
                   color: "#fff",
                   fontWeight: 700,
                   borderRadius: "14px",
@@ -416,7 +416,7 @@ export const HomeMobile: React.FC = () => {
                   boxShadow: "var(--shadow-sm, 0 3px 12px rgba(16, 24, 40, 0.07))",
                   transition: "transform 0.18s ease, box-shadow 0.18s ease",
                   "&:hover": {
-                    bgcolor: "var(--color-primary-dark, #285e52)",
+                    bgcolor: "var(--color-primary-dark)",
                     boxShadow:
                       "var(--shadow-md, 0 12px 34px rgba(16, 24, 40, 0.1))",
                   },
@@ -492,7 +492,7 @@ export const HomeMobile: React.FC = () => {
                     variant="contained"
                     sx={{
                       mt: 2,
-                      bgcolor: "var(--color-primary, #2f6f61)",
+                      bgcolor: "var(--color-primary)",
                       color: "#fff",
                       fontWeight: 700,
                       borderRadius: "14px",
@@ -501,7 +501,7 @@ export const HomeMobile: React.FC = () => {
                         "var(--shadow-sm, 0 3px 12px rgba(16, 24, 40, 0.07))",
                       transition: "transform 0.18s ease, box-shadow 0.18s ease",
                       "&:hover": {
-                        bgcolor: "var(--color-primary-dark, #285e52)",
+                        bgcolor: "var(--color-primary-dark)",
                         boxShadow:
                           "var(--shadow-md, 0 12px 34px rgba(16, 24, 40, 0.1))",
                       },

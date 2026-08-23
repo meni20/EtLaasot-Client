@@ -26,7 +26,7 @@ export const useStyles = makeStyles({
     backButton: {
         justifySelf: "start",
         minHeight: 44,
-        color: "var(--color-primary, #2f6f61)",
+        color: "var(--color-primary)",
         fontWeight: 750,
         fontSize: 13,
         textTransform: "none" as const,
@@ -37,7 +37,7 @@ export const useStyles = makeStyles({
         transition:
             "transform var(--transition-fast, 140ms ease), background-color var(--transition-fast, 140ms ease)",
         "&:hover": {
-            backgroundColor: "var(--color-primary-soft, #eaf4f1)",
+            backgroundColor: "var(--color-primary-soft)",
         },
         "&:active": {
             transform: "scale(0.98)",
@@ -85,12 +85,12 @@ export const useStyles = makeStyles({
     avatar: {
         width: 96,
         height: 96,
-        backgroundColor: "var(--color-primary, #2f6f61)",
+        backgroundColor: "var(--color-primary)",
         color: "#FFFFFF",
         fontSize: 38,
         fontWeight: 800,
         fontFamily: "inherit",
-        boxShadow: "0 12px 30px rgba(47, 111, 97, 0.22)",
+        boxShadow: "0 12px 30px rgba(var(--color-primary-rgb), 0.22)",
         marginBottom: 14,
     },
     name: {
@@ -116,8 +116,8 @@ export const useStyles = makeStyles({
         marginTop: 12,
         padding: "7px 12px",
         borderRadius: 999,
-        color: "var(--color-primary, #2f6f61)",
-        backgroundColor: "var(--color-primary-soft, #eaf4f1)",
+        color: "var(--color-primary)",
+        backgroundColor: "var(--color-primary-soft)",
         fontWeight: 700,
         fontSize: 12,
         fontFamily: "inherit",
@@ -195,8 +195,8 @@ export const useStyles = makeStyles({
         alignItems: "center",
         justifyContent: "center",
         flexShrink: 0,
-        color: "var(--color-primary, #2f6f61)",
-        backgroundColor: "var(--color-primary-soft, #eaf4f1)",
+        color: "var(--color-primary)",
+        backgroundColor: "var(--color-primary-soft)",
     },
     infoLabel: {
         fontSize: 13,
@@ -249,7 +249,7 @@ export const useStyles = makeStyles({
             "background-color var(--transition-fast, 140ms ease), transform var(--transition-fast, 140ms ease)",
         "&:focus-visible": {
             outline: "none",
-            boxShadow: "var(--shadow-focus, 0 0 0 3px rgba(47, 111, 97, 0.20))",
+            boxShadow: "var(--shadow-focus, 0 0 0 3px rgba(var(--color-primary-rgb), 0.20))",
             borderRadius: "var(--radius-md, 14px)",
         },
         "&:hover": {
@@ -311,10 +311,10 @@ export const useStyles = makeStyles({
             minHeight: 44,
         },
         "& .MuiButton-contained": {
-            backgroundColor: "var(--color-primary, #2f6f61)",
+            backgroundColor: "var(--color-primary)",
             boxShadow: "var(--shadow-sm, 0 3px 12px rgba(16, 24, 40, 0.07))",
             "&:hover": {
-                backgroundColor: "var(--color-primary-dark, #285e52)",
+                backgroundColor: "var(--color-primary-dark)",
             },
         },
     },
@@ -327,8 +327,8 @@ export const useStyles = makeStyles({
     dialogAvatar: {
         width: 68,
         height: 68,
-        backgroundColor: "var(--color-primary-soft, #eaf4f1)",
-        color: "var(--color-primary, #2f6f61)",
+        backgroundColor: "var(--color-primary-soft)",
+        color: "var(--color-primary)",
         fontSize: 26,
         fontWeight: 800,
         fontFamily: "inherit",

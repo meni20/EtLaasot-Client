@@ -88,7 +88,7 @@ export const AttendanceCheckinPage: React.FC = () => {
         <Box className={styles.loading}>
           <CircularProgress
             size={28}
-            sx={{ color: "var(--color-primary, #2f6f61)" }}
+            sx={{ color: "var(--color-primary)" }}
           />
         </Box>
       ) : (
@@ -119,9 +119,9 @@ export const AttendanceCheckinPage: React.FC = () => {
                   <Checkbox
                     checked={isChecked}
                     sx={{
-                      color: "var(--color-primary, #2f6f61)",
+                      color: "var(--color-primary)",
                       "&.Mui-checked": {
-                        color: "var(--color-success, #2e7d32)",
+                        color: "var(--color-success)",
                       },
                       p: 0,
                     }}
@@ -144,8 +144,8 @@ export const AttendanceCheckinPage: React.FC = () => {
           onClick={handleSave}
           disabled={saving || checkedIds.size === 0}
           sx={{
-            bgcolor: "var(--color-primary, #2f6f61)",
-            "&:hover": { bgcolor: "var(--color-primary-dark, #285e52)" },
+            bgcolor: "var(--color-primary)",
+            "&:hover": { bgcolor: "var(--color-primary-dark)" },
           }}
         >
           {saving ? (

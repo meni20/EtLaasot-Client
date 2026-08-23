@@ -39,9 +39,9 @@ export const useStyles = makeStyles({
     borderRadius: "var(--radius-sm, 10px)",
     fontWeight: 800,
     fontSize: 13,
-    background: "var(--color-brand-soft, #f4eef6)",
-    color: "var(--color-brand, #6f4e7c)",
-    border: "1px solid rgba(111, 78, 124, 0.18)",
+    background: "var(--color-brand-soft)",
+    color: "var(--color-brand)",
+    border: "1px solid rgba(var(--color-brand-rgb), 0.18)",
   },
   closeButton: {
     position: "absolute" as const,
@@ -86,7 +86,7 @@ export const useStyles = makeStyles({
     fontSize: 13,
   },
   valuePrimary: {
-    color: "var(--color-primary-dark, #285e52)",
+    color: "var(--color-primary-dark)",
     fontWeight: 800,
     overflowWrap: "anywhere" as const,
   },

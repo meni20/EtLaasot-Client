@@ -96,7 +96,7 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
           ? {
               outline: "none",
               boxShadow:
-                "0 0 0 3px rgba(47, 111, 97, 0.24), var(--shadow-sm, 0 3px 12px rgba(16,24,40,0.07))",
+                "0 0 0 3px rgba(var(--color-primary-rgb), 0.24), var(--shadow-sm, 0 3px 12px rgba(16,24,40,0.07))",
             }
           : undefined,
       }}
@@ -117,11 +117,11 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
                 borderRadius: "999px",
                 backgroundColor: hasImageBackground
                   ? "rgba(255, 255, 255, 0.92)"
-                  : "var(--color-brand-soft, #f4eef6)",
+                  : "var(--color-brand-soft)",
                 color: hasImageBackground
-                  ? "var(--color-brand, #6f4e7c)"
-                  : "var(--color-brand, #6f4e7c)",
-                border: "1px solid rgba(111, 78, 124, 0.18)",
+                  ? "var(--color-brand)"
+                  : "var(--color-brand)",
+                border: "1px solid rgba(var(--color-brand-rgb), 0.18)",
                 fontSize: 11,
                 fontWeight: 800,
               }}
@@ -184,14 +184,14 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
               gap: 0.75,
               mt: 1.25,
               color: isRegistered
-                ? "var(--color-success, #2e7d32)"
+                ? "var(--color-success)"
                 : "var(--color-text-muted, #6e737a)",
               backgroundColor: isRegistered
-                ? "var(--color-success-soft, #edf7ed)"
+                ? "var(--color-success-soft)"
                 : "var(--color-surface-muted, #f0f2f4)",
               border: "1px solid",
               borderColor: isRegistered
-                ? "rgba(46, 125, 50, 0.18)"
+                ? "rgba(var(--color-success-rgb), 0.18)"
                 : "var(--color-border-subtle, #e9ebef)",
               borderRadius: "var(--radius-sm, 10px)",
               px: 1.1,
