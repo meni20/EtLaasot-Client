@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useEffect, type ReactNode } from "react";
 import authService from "../services/auth.service";
-import { AuthContext } from "./useAuth";
-import type { IAuthContext } from "./useAuth";
+import { AuthContext, type IAuthContext } from "./useAuth";
 import {
   clearToken,
   getToken,

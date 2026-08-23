@@ -2,7 +2,7 @@ import type { GridColDef } from "@mui/x-data-grid";
 
 export const COLUMNS: GridColDef[] = [
   { field: "nationalIdMasked", headerName: "ת.ז", width: 150 },
-  { field: "name", headerName: "שם", flex: 1 },
+  { field: "name", headerName: "שם", flex: 1.1, minWidth: 190 },
   {
     field: "age",
     headerName: "גיל",
@@ -11,12 +11,12 @@ export const COLUMNS: GridColDef[] = [
   },
   {
     field: "gender",
-    headerName: "Gender",
+    headerName: "מגדר",
     width: 110,
     renderCell: (params) => params.value || "-",
   },
   { field: "shirtSizeDisplay", headerName: "מידת חולצה", width: 120 },
-  { field: "phoneNumber", headerName: "טלפון", flex: 1 },
+  { field: "phoneNumber", headerName: "טלפון", flex: 1, minWidth: 140 },
   {
     field: "parentName",
     headerName: "שם הורה",
@@ -24,5 +24,5 @@ export const COLUMNS: GridColDef[] = [
     minWidth: 150,
     renderCell: (params) => params.value || "-",
   },
-  { field: "address", headerName: "כתובת", flex: 1 },
+  { field: "address", headerName: "כתובת", flex: 1, minWidth: 170 },
 ];

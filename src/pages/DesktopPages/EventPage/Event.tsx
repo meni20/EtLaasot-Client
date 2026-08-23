@@ -14,7 +14,7 @@ export const EventPage: React.FC = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [selectedEvent, setSelectedEvent] = useState<IEvent | null>(null);
   const { events } = useDataContext();
-  const allEvents = events ?? [];
+  const allEvents = useMemo(() => events ?? [], [events]);
 
   const { upcomingEvents, pastEvents } = useMemo(() => {
     const now = Date.now();

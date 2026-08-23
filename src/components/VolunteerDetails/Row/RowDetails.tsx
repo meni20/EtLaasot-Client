@@ -17,23 +17,26 @@ export const Row = ({
     alignItems="center"
     spacing={1.5}
     sx={{
-      minHeight: 54,
+      minHeight: 58,
       py: 1,
-      px: 0.5,
+      px: 1,
       borderRadius: 2,
-      transition: "background-color 0.18s ease",
+      transition: "background-color 140ms ease",
       "&:hover": {
-        backgroundColor: "rgba(154, 81, 136, 0.035)",
+        backgroundColor: "rgba(var(--color-primary-rgb), 0.045)",
+      },
+      "@media (prefers-reduced-motion: reduce)": {
+        transition: "none",
       },
     }}
   >
     <Box
       sx={{
-        width: 34,
-        height: 34,
-        borderRadius: "10px",
-        color: "#7a3e6b",
-        backgroundColor: "#fbf7fa",
+        width: 40,
+        height: 40,
+        borderRadius: "12px",
+        color: "var(--people-primary)",
+        backgroundColor: "var(--people-primary-soft, #efe5ed)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -46,9 +49,9 @@ export const Row = ({
       <Typography
         variant="caption"
         sx={{
-          color: "#7a7078",
-          fontFamily: "Rubik",
-          fontWeight: 600,
+          color: "var(--people-text-muted, #6d6670)",
+          fontFamily: "inherit",
+          fontWeight: 700,
           lineHeight: 1.25,
         }}
       >
@@ -58,10 +61,10 @@ export const Row = ({
         variant="body1"
         sx={{
           mt: 0.25,
-          color: "#2f2930",
+          color: "var(--people-text, #1f1f23)",
           fontWeight: 800,
           wordBreak: "break-word",
-          fontFamily: "Rubik",
+          fontFamily: "inherit",
           lineHeight: 1.35,
           fontSize: "0.95rem",
         }}
@@ -76,16 +79,27 @@ export const Row = ({
         onClick={onCopy}
         aria-label={`העתקת ${label}`}
         sx={{
-          width: 34,
-          height: 34,
-          color: "#7a3e6b",
+          width: 44,
+          height: 44,
+          color: "var(--people-primary)",
           backgroundColor: "#fff",
-          border: "1px solid #ead8e5",
+          border: "1px solid var(--people-border, #e6e1e6)",
           flexShrink: 0,
           "&:hover": {
             color: "#fff",
-            backgroundColor: "#9a5188",
-            borderColor: "#9a5188",
+            backgroundColor: "var(--people-primary)",
+            borderColor: "var(--people-primary)",
+          },
+          "&:active": {
+            transform: "scale(0.96)",
+          },
+          "&.Mui-focusVisible": {
+            boxShadow: "0 0 0 4px var(--people-focus)",
+          },
+          "@media (prefers-reduced-motion: reduce)": {
+            "&:active": {
+              transform: "none",
+            },
           },
         }}
       >

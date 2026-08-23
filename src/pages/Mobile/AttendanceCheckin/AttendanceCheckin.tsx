@@ -12,7 +12,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import eventService from "../../../services/event.service";
 import attendeeService from "../../../services/attendee.service";
-import { BottomNav } from "../../../components/BottomNav/BottomNav";
 import { useStyles } from "./AttendanceCheckin.styles";
 import { decodeUnicodeEscapes } from "../../../utils/text.util";
 import type { IAttendees } from "../../../interfaces/event.interface";
@@ -87,7 +86,10 @@ export const AttendanceCheckinPage: React.FC = () => {
 
       {isLoading ? (
         <Box className={styles.loading}>
-          <CircularProgress size={28} sx={{ color: "#7B3F98" }} />
+          <CircularProgress
+            size={28}
+            sx={{ color: "var(--color-primary)" }}
+          />
         </Box>
       ) : (
         <Stack spacing={1}>
@@ -99,14 +101,28 @@ export const AttendanceCheckinPage: React.FC = () => {
                 key={attendee.id ?? attendee.userId}
                 className={`${styles.attendeeRow} ${isChecked ? styles.checkedIn : ""}`}
                 onClick={() => attendee.id && toggleChecked(attendee.id)}
+                role="button"
+                tabIndex={0}
+                aria-pressed={isChecked}
+                aria-label={`סימון נוכחות עבור ${
+                  decodeUnicodeEscapes(user?.name) || attendee.userId
+                }`}
+                onKeyDown={(event) => {
+                  if ((event.key === "Enter" || event.key === " ") && attendee.id) {
+                    event.preventDefault();
+                    toggleChecked(attendee.id);
+                  }
+                }}
                 sx={{ cursor: "pointer" }}
               >
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <Checkbox
                     checked={isChecked}
                     sx={{
-                      color: "#7B3F98",
-                      "&.Mui-checked": { color: "#2F7D32" },
+                      color: "var(--color-primary)",
+                      "&.Mui-checked": {
+                        color: "var(--color-success)",
+                      },
                       p: 0,
                     }}
                   />
@@ -128,8 +144,8 @@ export const AttendanceCheckinPage: React.FC = () => {
           onClick={handleSave}
           disabled={saving || checkedIds.size === 0}
           sx={{
-            bgcolor: "#7B3F98",
-            "&:hover": { bgcolor: "#6D3588" },
+            bgcolor: "var(--color-primary)",
+            "&:hover": { bgcolor: "var(--color-primary-dark)" },
           }}
         >
           {saving ? (
@@ -139,8 +155,6 @@ export const AttendanceCheckinPage: React.FC = () => {
           )}
         </Button>
       )}
-
-      <BottomNav />
     </Box>
   );
 };

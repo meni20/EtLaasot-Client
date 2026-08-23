@@ -12,7 +12,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Divider,
   IconButton,
   InputAdornment,
   Stack,
@@ -66,7 +65,7 @@ const ROLE_LABELS: Record<number, string> = {
   [AUTH_ROLES.TRAINEE.id]: AUTH_ROLES.TRAINEE.name,
 };
 
-const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
+const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title, menuOpen }) => {
   const classes = useNavbarStyles();
   const navigate = useNavigate();
   const { user, logout, changePassword } = useAuth();
@@ -187,12 +186,21 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
 
   return (
     <>
-      <AppBar position="fixed" className={classes.appBar}>
-        <Toolbar className={classes.toolbar}>
+      <AppBar position="fixed" className={classes.appBar} component="header">
+        <Toolbar className={classes.toolbar} aria-label="סרגל ניווט עליון">
           <Box className={classes.navActions}>
-            <Box className={classes.menuIconBox} onClick={onMenuClick}>
-              <SideMenuIcon />
-            </Box>
+            <Tooltip title={menuOpen ? "צמצום תפריט" : "פתיחת תפריט"}>
+              <IconButton
+                className={classes.menuIconBox}
+                onClick={onMenuClick}
+                aria-label={menuOpen ? "צמצום תפריט" : "פתיחת תפריט"}
+                aria-controls="app-side-menu"
+                aria-expanded={menuOpen ?? false}
+                size="small"
+              >
+                <SideMenuIcon />
+              </IconButton>
+            </Tooltip>
             <Tooltip title="חזרה לבית">
               <IconButton
                 className={classes.homeButton}
@@ -217,13 +225,13 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
               className={classes.userInfo}
               onClick={() => setIsProfileDialogOpen(true)}
               aria-label="פתיחת הפרטים שלי"
+              aria-haspopup="dialog"
+              aria-expanded={isProfileDialogOpen}
             >
+              <Box className={classes.userAvatar} aria-hidden="true">
+                {user?.name?.[0]?.toUpperCase() ?? "?"}
+              </Box>
               <Typography className={classes.userName}>{user?.name}</Typography>
-              {user?.nationalIdMasked && (
-                <Typography className={classes.userTz}>
-                  ת.ז. {user.nationalIdMasked}
-                </Typography>
-              )}
             </ButtonBase>
           </Tooltip>
         </Toolbar>
@@ -232,31 +240,35 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
       <Dialog
         open={isProfileDialogOpen}
         onClose={() => setIsProfileDialogOpen(false)}
+        aria-labelledby="profile-dialog-title"
         fullWidth
-        maxWidth="sm"
-        PaperProps={{ sx: { direction: "rtl", borderRadius: 3 } }}
+        maxWidth="xs"
+        PaperProps={{ className: classes.profileDialogPaper }}
       >
-        <DialogTitle className={classes.profileDialogTitle}>
+        <DialogTitle
+          id="profile-dialog-title"
+          className={classes.profileTitle}
+        >
           הפרטים שלי
           <IconButton
             aria-label="סגירת הפרטים שלי"
             onClick={() => setIsProfileDialogOpen(false)}
-            className={classes.profileDialogClose}
+            className={classes.profileClose}
           >
             <CloseIcon fontSize="small" />
           </IconButton>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent className={classes.profileContent}>
           {isProfileLoading ? (
             <Box className={classes.profileLoading}>
-              <CircularProgress size={28} sx={{ color: "#9a5188" }} />
+              <CircularProgress size={28} sx={{ color: "var(--color-brand)" }} />
             </Box>
           ) : isProfileError ? (
             <Alert severity="warning" sx={{ borderRadius: 2 }}>
               לא הצלחנו לטעון את פרטי המשתמש המלאים.
             </Alert>
           ) : (
-            <Stack spacing={1.5}>
+            <Stack className={classes.profileBody}>
               <Box className={classes.profileHero}>
                 <Box className={classes.profileAvatar}>
                   {(currentProfile?.name ?? user?.name)?.[0]?.toUpperCase() ??
@@ -274,27 +286,43 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
                 </Box>
               </Box>
 
-              <Divider />
-
-              <ProfileInfoRow label="תעודת זהות" value={nationalId} />
-              <ProfileInfoRow label="סניף פעיל" value={branchName || "-"} />
-              <ProfileInfoRow
-                label="טלפון"
-                value={decodeUnicodeEscapes(currentProfile?.phoneNumber) || "-"}
-              />
-              <ProfileInfoRow
-                label="אימייל"
-                value={decodeUnicodeEscapes(currentProfile?.email) || "-"}
-              />
-              <ProfileInfoRow
-                label="כתובת"
-                value={decodeUnicodeEscapes(currentProfile?.address) || "-"}
-              />
-              <ProfileInfoRow label="תאריך לידה" value={dateOfBirth || "-"} />
-              <ProfileInfoRow
-                label="גיל"
-                value={age === null || age === undefined ? "-" : `${age}`}
-              />
+              <Box className={classes.profileInfoList}>
+                <ProfileInfoRow
+                  label="תעודת זהות"
+                  value={nationalId}
+                  classes={classes}
+                />
+                <ProfileInfoRow
+                  label="סניף פעיל"
+                  value={branchName || "-"}
+                  classes={classes}
+                />
+                <ProfileInfoRow
+                  label="טלפון"
+                  value={decodeUnicodeEscapes(currentProfile?.phoneNumber) || "-"}
+                  classes={classes}
+                />
+                <ProfileInfoRow
+                  label="אימייל"
+                  value={decodeUnicodeEscapes(currentProfile?.email) || "-"}
+                  classes={classes}
+                />
+                <ProfileInfoRow
+                  label="כתובת"
+                  value={decodeUnicodeEscapes(currentProfile?.address) || "-"}
+                  classes={classes}
+                />
+                <ProfileInfoRow
+                  label="תאריך לידה"
+                  value={dateOfBirth || "-"}
+                  classes={classes}
+                />
+                <ProfileInfoRow
+                  label="גיל"
+                  value={age === null || age === undefined ? "-" : `${age}`}
+                  classes={classes}
+                />
+              </Box>
             </Stack>
           )}
         </DialogContent>
@@ -307,7 +335,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
           </Box>
           <Box className={classes.profileAccountActions}>
             <Button
-              variant="outlined"
+              variant="contained"
               startIcon={<LockResetRoundedIcon />}
               onClick={openPasswordDialog}
               className={classes.profileActionButton}
@@ -330,11 +358,15 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
       <Dialog
         open={isPasswordDialogOpen}
         onClose={closePasswordDialog}
+        aria-labelledby="password-dialog-title"
         fullWidth
         maxWidth="xs"
         PaperProps={{ sx: { direction: "rtl", borderRadius: 3 } }}
       >
-        <DialogTitle className={classes.profileDialogTitle}>
+        <DialogTitle
+          id="password-dialog-title"
+          className={classes.profileDialogTitle}
+        >
           שינוי סיסמה
           <IconButton
             aria-label="סגירת חלון שינוי סיסמה"
@@ -391,38 +423,20 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title }) => {
   );
 };
 
-const ProfileInfoRow: React.FC<{ label: string; value: string }> = ({
-  label,
-  value,
-}) => (
-  <Box
-    sx={{
-      display: "flex",
-      justifyContent: "space-between",
-      gap: 2,
-      alignItems: "center",
-      py: 0.75,
-    }}
-  >
-    <Typography
-      sx={{
-        color: "#6b6068",
-        fontFamily: "Rubik, sans-serif",
-        fontSize: "0.86rem",
-      }}
-    >
+const ProfileInfoRow: React.FC<{
+  label: string;
+  value: string;
+  classes: {
+    profileInfoRow: string;
+    profileInfoLabel: string;
+    profileInfoValue: string;
+  };
+}> = ({ label, value, classes }) => (
+  <Box className={classes.profileInfoRow}>
+    <Typography className={classes.profileInfoLabel}>
       {label}
     </Typography>
-    <Typography
-      sx={{
-        color: "#2f2930",
-        fontFamily: "Rubik, sans-serif",
-        fontWeight: 700,
-        textAlign: "left",
-        minWidth: 0,
-        overflowWrap: "anywhere",
-      }}
-    >
+    <Typography className={classes.profileInfoValue}>
       {value}
     </Typography>
   </Box>
@@ -457,7 +471,8 @@ const PasswordField: React.FC<{
       endAdornment: (
         <InputAdornment position="end">
           <IconButton
-            aria-label={visible ? "Hide password" : "Show password"}
+            aria-label={visible ? "הסתרת סיסמה" : "הצגת סיסמה"}
+            aria-pressed={visible}
             edge="end"
             size="small"
             onClick={onToggleVisible}

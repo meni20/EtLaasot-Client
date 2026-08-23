@@ -57,7 +57,13 @@ export const ActivitiesPage: React.FC = () => {
   const selectedBranchId =
     (normalizedFilters.branchId as string | undefined) ?? activeBranch ?? undefined;
 
-  const { data: activities = [], isLoading, isFetching } = useQuery<
+  const {
+    data: activities = [],
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+  } = useQuery<
     IVolunteerActivity[]
   >({
     queryKey: ["activities", "admin", normalizedFilters],
@@ -99,14 +105,45 @@ export const ActivitiesPage: React.FC = () => {
 
   const columns = useMemo<GridColDef[]>(
     () => [
-      { field: "volunteerName", headerName: "מתנדב", flex: 1 },
-      { field: "traineeName", headerName: "חניך", flex: 1 },
-      { field: "eventName", headerName: "אירוע", flex: 1.1 },
-      { field: "branchName", headerName: "סניף", flex: 1 },
+      {
+        field: "volunteerName",
+        headerName: "מתנדב",
+        flex: 1,
+        minWidth: 130,
+        align: "right",
+        headerAlign: "right",
+      },
+      {
+        field: "traineeName",
+        headerName: "חניך",
+        flex: 1,
+        minWidth: 130,
+        align: "right",
+        headerAlign: "right",
+      },
+      {
+        field: "eventName",
+        headerName: "אירוע",
+        flex: 1.1,
+        minWidth: 150,
+        align: "right",
+        headerAlign: "right",
+      },
+      {
+        field: "branchName",
+        headerName: "סניף",
+        flex: 1,
+        minWidth: 120,
+        align: "right",
+        headerAlign: "right",
+      },
       {
         field: "startTime",
         headerName: "התחלה",
         flex: 1.2,
+        minWidth: 160,
+        align: "right",
+        headerAlign: "right",
         renderCell: (params) =>
           formatDateTime(params.row.startTime, params.row.timezone),
       },
@@ -114,31 +151,56 @@ export const ActivitiesPage: React.FC = () => {
         field: "endTime",
         headerName: "סיום",
         flex: 1.2,
+        minWidth: 160,
+        align: "right",
+        headerAlign: "right",
         renderCell: (params) =>
           params.row.endTime
             ? formatDateTime(params.row.endTime, params.row.timezone)
             : "-",
       },
-      { field: "duration", headerName: "משך", flex: 0.9 },
+      {
+        field: "duration",
+        headerName: "משך",
+        flex: 0.9,
+        minWidth: 100,
+        align: "right",
+        headerAlign: "right",
+      },
       {
         field: "status",
         headerName: "סטטוס",
         flex: 0.9,
+        minWidth: 120,
+        align: "right",
+        headerAlign: "right",
         renderCell: (params) => (
           <Chip
             size="small"
             color={params.value === "ACTIVE" ? "warning" : "success"}
-            label={params.value}
+            className={
+              params.value === "ACTIVE"
+                ? styles.statusActive
+                : styles.statusCompleted
+            }
+            label={params.value === "ACTIVE" ? "פעיל" : "הושלם"}
           />
         ),
       },
-      { field: "notes", headerName: "הערות", flex: 1.4 },
+      {
+        field: "notes",
+        headerName: "הערות",
+        flex: 1.4,
+        minWidth: 180,
+        align: "right",
+        headerAlign: "right",
+      },
     ],
-    [],
+    [styles.statusActive, styles.statusCompleted],
   );
 
   return (
-    <Box className={styles.container}>
+    <Box className={styles.root}>
       <Box className={styles.header}>
         <Typography className={styles.pageTitle}>ניהול פעילויות מתנדבים</Typography>
         <Typography className={styles.subtitle}>
@@ -297,6 +359,7 @@ export const ActivitiesPage: React.FC = () => {
         <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
           <Button
             variant="outlined"
+            className={styles.resetButton}
             onClick={() =>
               setFilters({
                 branchId: activeBranch ?? "",
@@ -314,28 +377,44 @@ export const ActivitiesPage: React.FC = () => {
         </Stack>
       </Box>
 
-      <Box className={styles.dataGridBox}>
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          loading={isLoading || isFetching}
-          disableRowSelectionOnClick
-          pageSizeOptions={[10, 25, 50]}
-          initialState={{
-            pagination: { paginationModel: { pageSize: 10, page: 0 } },
-          }}
-        />
-      </Box>
+      {isError ? (
+        <Box className={styles.stateCard} role="alert">
+          <Typography className={styles.stateText}>
+            לא הצלחנו לטעון את הפעילויות.
+          </Typography>
+          <Button
+            variant="outlined"
+            className={styles.resetButton}
+            onClick={() => refetch()}
+          >
+            ניסיון נוסף
+          </Button>
+        </Box>
+      ) : (
+        <Box className={styles.dataGridBox}>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            loading={isLoading || isFetching}
+            disableRowSelectionOnClick
+            pageSizeOptions={[10, 25, 50]}
+            aria-label="טבלת פעילויות מתנדבים"
+            initialState={{
+              pagination: { paginationModel: { pageSize: 10, page: 0 } },
+            }}
+          />
+        </Box>
+      )}
 
-      {!isLoading && !isFetching && rows.length === 0 && (
+      {!isError && !isLoading && !isFetching && rows.length === 0 && (
         <Typography className={styles.emptyState}>
           לא נמצאו פעילויות למסננים שנבחרו.
         </Typography>
       )}
 
-      {(isLoading || isFetching) && rows.length === 0 && (
+      {!isError && (isLoading || isFetching) && rows.length === 0 && (
         <Stack direction="row" justifyContent="center" sx={{ mt: 2 }}>
-          <CircularProgress size={26} sx={{ color: "#9a5188" }} />
+          <CircularProgress size={26} sx={{ color: "var(--color-primary)" }} />
         </Stack>
       )}
     </Box>

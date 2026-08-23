@@ -2,95 +2,147 @@ import { makeStyles } from "@mui/styles";
 
 export const useStyles = makeStyles({
   container: {
-    width: "100vw",
-    minHeight: "100vh",
+    width: "100%",
+    maxWidth: "100dvw",
+    minHeight: "100dvh",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    background: "#F7F7F8",
-    padding: 16,
-    animation: "fadeIn 0.5s ease-out",
+    overflowX: "clip",
+    direction: "rtl",
+    background:
+      "linear-gradient(180deg, var(--color-canvas-warm, #faf9fb) 0%, var(--color-canvas, #f5f6f8) 100%)",
+    padding:
+      "calc(env(safe-area-inset-top, 0px) + 20px) 18px calc(env(safe-area-inset-bottom, 0px) + 20px)",
+    animation: "fadeIn 220ms var(--ease-out, ease-out)",
+    fontFamily:
+      '"Noto Sans Hebrew", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    "@media (prefers-reduced-motion: reduce)": {
+      animation: "fadeIn 1ms linear",
+    },
   },
 
   card: {
-    width: "100%",
-    maxWidth: 420,
-    backgroundColor: "#ffffff",
-    borderRadius: 24,
+    width: "calc(100vw - 72px) !important",
+    maxWidth: "420px !important",
+    minWidth: 0,
+    backgroundColor: "var(--color-surface-elevated, rgba(255, 255, 255, 0.82))",
+    border: "1px solid rgba(255, 255, 255, 0.72)",
+    borderRadius: "var(--radius-sheet, 26px)",
     display: "flex",
     flexDirection: "column" as const,
-    gap: 18,
-    padding: "42px 32px 40px",
-    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.08)",
-    animation: "scaleIn 0.6s cubic-bezier(0.4,0,0.2,1)",
+    gap: 16,
+    padding: "42px clamp(22px, 7vw, 32px) 36px",
+    boxShadow: "var(--shadow-lg, 0 24px 64px rgba(16, 24, 40, 0.15))",
+    backdropFilter: "blur(24px) saturate(180%)",
+    WebkitBackdropFilter: "blur(24px) saturate(180%)",
+    animation: "scaleIn 240ms var(--ease-out, ease-out)",
+    "@media (prefers-reduced-motion: reduce)": {
+      animation: "fadeIn 1ms linear",
+    },
+    "@media (prefers-reduced-transparency: reduce)": {
+      backgroundColor: "var(--color-surface, #fff)",
+      backdropFilter: "none",
+      WebkitBackdropFilter: "none",
+      borderColor: "var(--color-border, #dadde3)",
+    },
   },
 
   logo: {
-    width: "clamp(96px, 28vw, 132px)",
+    width: "clamp(96px, 28vw, 124px)",
     height: "auto",
     alignSelf: "center",
     display: "block",
-    marginBottom: 2,
+    marginBottom: 0,
     objectFit: "contain" as const,
-    animation: "fadeInDown 0.6s 0.2s ease-out both",
+    animation: "fadeInDown 260ms var(--ease-out, ease-out) both",
+    "@media (prefers-reduced-motion: reduce)": {
+      animation: "none",
+    },
   },
 
   subtitle: {
-    fontSize: 14,
-    color: "#6B7280",
+    fontSize: 15,
+    color: "var(--color-text-secondary, #51565c)",
     textAlign: "center" as const,
-    marginBottom: 6,
-    fontFamily: "Rubik, sans-serif",
-    animation: "fadeInUp 0.5s 0.4s ease-out both",
+    marginBottom: 8,
+    lineHeight: 1.55,
+    fontWeight: 600,
+    fontFamily: "inherit",
+    animation: "fadeInUp 220ms var(--ease-out, ease-out) both",
+    "@media (prefers-reduced-motion: reduce)": {
+      animation: "none",
+    },
   },
 
   input: {
-    animation: "fadeInUp 0.5s 0.5s ease-out both",
+    minWidth: 0,
+    animation: "fadeInUp 220ms var(--ease-out, ease-out) both",
+    "@media (prefers-reduced-motion: reduce)": {
+      animation: "none",
+    },
     "& .MuiOutlinedInput-root": {
-      borderRadius: 14,
-      backgroundColor: "#FFFFFF",
-      fontFamily: "Rubik, sans-serif",
-      transition: "all 0.3s ease",
+      minWidth: 0,
+      minHeight: 52,
+      borderRadius: "var(--radius-md, 14px)",
+      backgroundColor: "var(--color-surface, #fff)",
+      fontFamily: "inherit",
+      transition:
+        "box-shadow var(--transition-fast, 140ms ease), background-color var(--transition-fast, 140ms ease), border-color var(--transition-fast, 140ms ease)",
 
       "& fieldset": {
-        borderColor: "transparent",
+        borderColor: "var(--color-border-subtle, #e9ebef)",
       },
 
       "&:hover fieldset": {
-        borderColor: "#D8C4E3",
+        borderColor: "var(--color-border, #dadde3)",
       },
 
       "&.Mui-focused": {
-        boxShadow: "0 0 0 3px rgba(123, 63, 152, 0.12)",
+        boxShadow: "var(--shadow-focus, 0 0 0 3px rgba(var(--color-primary-rgb), 0.20))",
       },
 
       "&.Mui-focused fieldset": {
-        borderColor: "#7B3F98",
-        borderWidth: 2,
+        borderColor: "var(--color-primary)",
+        borderWidth: 1.5,
       },
+    },
+    "& .MuiFormHelperText-root": {
+      marginInline: 0,
+      fontWeight: 600,
     },
   },
 
   button: {
-    borderRadius: 14,
-    height: 52,
-    marginTop: 2,
-    fontWeight: 700,
+    borderRadius: "var(--radius-md, 14px)",
+    minHeight: 52,
+    marginTop: 4,
+    fontWeight: 800,
     fontSize: 16,
     textTransform: "none" as const,
-    fontFamily: "Rubik, sans-serif",
-    background: "#7B3F98",
-    boxShadow: "0 4px 12px rgba(123, 63, 152, 0.22)",
-    transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
-    animation: "fadeInUp 0.5s 0.6s ease-out both",
+    fontFamily: "inherit",
+    background: "var(--color-primary)",
+    boxShadow: "var(--shadow-sm, 0 3px 12px rgba(16, 24, 40, 0.07))",
+    transition:
+      "transform var(--transition-fast, 140ms ease), box-shadow var(--transition-fast, 140ms ease), background-color var(--transition-fast, 140ms ease)",
+    animation: "fadeInUp 220ms var(--ease-out, ease-out) both",
+    "@media (prefers-reduced-motion: reduce)": {
+      animation: "none",
+      transition: "background-color 1ms linear, box-shadow 1ms linear",
+      "&:hover": {
+        transform: "none",
+      },
+      "&:active": {
+        transform: "none",
+      },
+    },
 
     "&:hover": {
-      background: "#6D3588",
-      boxShadow: "0 6px 16px rgba(123, 63, 152, 0.26)",
-      transform: "translateY(-2px)",
+      background: "var(--color-primary-dark)",
+      boxShadow: "var(--shadow-md, 0 12px 34px rgba(16, 24, 40, 0.1))",
     },
     "&:active": {
-      transform: "translateY(0) scale(0.98)",
+      transform: "scale(0.97)",
     },
   },
 });

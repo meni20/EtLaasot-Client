@@ -93,6 +93,92 @@ const formatEventTime = (date: Date | string | null | undefined) => {
   ).padStart(2, "0")}`;
 };
 
+const formatGender = (gender: UserGender | "" | null | undefined) => {
+  if (gender === "male") return "זכר";
+  if (gender === "female") return "נקבה";
+  return "-";
+};
+
+const detailsDialogPaperSx = {
+  direction: "rtl",
+  width: { xs: "100%", sm: "auto" },
+  minWidth: { xs: "100%", sm: 420 },
+  maxWidth: { xs: "100%", sm: 560 },
+  maxHeight: { xs: "92dvh", sm: "calc(100dvh - 64px)" },
+  m: { xs: "auto 0 0", sm: 3 },
+  borderRadius: { xs: "22px 22px 0 0", sm: 4 },
+  fontFamily: "inherit",
+  backgroundColor: "rgba(255,255,255,0.92)",
+  backdropFilter: "blur(22px) saturate(170%)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  boxShadow: "0 22px 70px rgba(31,31,35,0.2)",
+  "@media (prefers-reduced-transparency: reduce), (prefers-contrast: more)": {
+    backgroundColor: "#fff",
+    backdropFilter: "none",
+    borderColor: "var(--people-border-strong, #d6c8d3)",
+  },
+};
+
+const detailsDialogTitleSx = {
+  fontFamily: "inherit",
+  fontWeight: 900,
+  color: "var(--people-text, #1f1f23)",
+  borderBottom: "1px solid var(--people-border, #e6e1e6)",
+  pb: 1.5,
+};
+
+const detailsDialogActionsSx = {
+  px: 3,
+  pb: 2,
+  pt: 1.5,
+  borderTop: "1px solid var(--people-border, #e6e1e6)",
+};
+
+const editFormSx = {
+  pt: 1.5,
+  direction: "rtl",
+  textAlign: "right",
+  "& .MuiInputBase-root": {
+    direction: "rtl",
+    borderRadius: 3,
+    minHeight: 44,
+    backgroundColor: "#fff",
+  },
+  "& .MuiInputBase-input, & .MuiSelect-select": {
+    textAlign: "right",
+  },
+  "& .MuiInputLabel-root": {
+    right: 14,
+    left: "auto",
+    transformOrigin: "top right",
+  },
+  "& fieldset.MuiOutlinedInput-notchedOutline": {
+    textAlign: "right",
+  },
+  "& .MuiFormHelperText-root": {
+    mr: 0,
+    ml: 0,
+    textAlign: "right",
+  },
+  "& .MuiSelect-icon": {
+    right: "auto",
+    left: 9,
+  },
+};
+
+const selectMenuProps = {
+  PaperProps: { sx: { direction: "rtl", textAlign: "right" } },
+  MenuListProps: {
+    sx: {
+      direction: "rtl",
+      "& .MuiMenuItem-root": {
+        justifyContent: "flex-start",
+        minHeight: 44,
+      },
+    },
+  },
+};
+
 export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
   open,
   onClose,
@@ -762,8 +848,8 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               icon={
                 <WcRoundedIcon className={classes.rowIcon} fontSize="small" />
               }
-              label="Gender"
-              value={selectedUser?.gender || "-"}
+              label="מגדר"
+              value={formatGender(selectedUser?.gender)}
             />
             <Divider />
             <Row
@@ -1010,21 +1096,12 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
         onClose={closeRegisteredEventsDialog}
         maxWidth="sm"
         fullWidth
-        PaperProps={{
-          sx: {
-            direction: "rtl",
-            borderRadius: 3,
-            fontFamily: "Rubik, sans-serif",
-          },
-        }}
+        PaperProps={{ sx: detailsDialogPaperSx }}
+        aria-labelledby="registered-events-title"
       >
         <DialogTitle
-          sx={{
-            fontFamily: "Rubik, sans-serif",
-            fontWeight: 900,
-            color: "#2f2930",
-            pb: 1,
-          }}
+          id="registered-events-title"
+          sx={detailsDialogTitleSx}
         >
           אירועים שנרשם אליהם
         </DialogTitle>
@@ -1033,7 +1110,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
             {isRegisteredEventsLoading && (
               <Stack alignItems="center" spacing={1.2} sx={{ py: 4 }}>
                 <CircularProgress size={28} />
-                <Typography sx={{ fontFamily: "Rubik, sans-serif" }}>
+                <Typography sx={{ fontFamily: "inherit" }}>
                   טוען אירועים...
                 </Typography>
               </Stack>
@@ -1112,7 +1189,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               })}
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions sx={detailsDialogActionsSx}>
           <Button
             variant="contained"
             onClick={closeRegisteredEventsDialog}
@@ -1126,16 +1203,10 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
       <Dialog
         open={!!passwordResetInfo}
         onClose={handleClosePasswordReset}
-        PaperProps={{
-          sx: {
-            direction: "rtl",
-            minWidth: 380,
-            borderRadius: 3,
-            fontFamily: "Rubik, sans-serif",
-          },
-        }}
+        PaperProps={{ sx: detailsDialogPaperSx }}
+        aria-labelledby="password-reset-title"
       >
-        <DialogTitle sx={{ fontFamily: "Rubik, sans-serif", fontWeight: 800 }}>
+        <DialogTitle id="password-reset-title" sx={detailsDialogTitleSx}>
           סיסמה זמנית חדשה
         </DialogTitle>
         <DialogContent>
@@ -1148,6 +1219,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               label="סיסמה זמנית"
               value={passwordResetInfo?.temporaryPassword ?? ""}
               InputProps={{ readOnly: true }}
+              sx={editFormSx}
             />
             <Button
               variant="outlined"
@@ -1159,7 +1231,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
             </Button>
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions sx={detailsDialogActionsSx}>
           <Button
             variant="contained"
             onClick={handleClosePasswordReset}
@@ -1173,16 +1245,10 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
       <Dialog
         open={isArchiveDialogOpen}
         onClose={closeArchiveDialog}
-        PaperProps={{
-          sx: {
-            direction: "rtl",
-            maxWidth: 460,
-            borderRadius: 3,
-            fontFamily: "Rubik, sans-serif",
-          },
-        }}
+        PaperProps={{ sx: { ...detailsDialogPaperSx, maxWidth: 460 } }}
+        aria-labelledby="archive-user-title"
       >
-        <DialogTitle sx={{ fontFamily: "Rubik, sans-serif", fontWeight: 800 }}>
+        <DialogTitle id="archive-user-title" sx={detailsDialogTitleSx}>
           הסרת משתמש מהמערכת
         </DialogTitle>
         <DialogContent>
@@ -1190,19 +1256,24 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
             {archiveSuccess ? (
               <Alert severity="success">{archiveSuccess}</Alert>
             ) : (
-              <Typography sx={{ fontFamily: "Rubik, sans-serif" }}>
+              <Typography sx={{ fontFamily: "inherit" }}>
                 המשתמש לא יוכל להתחבר או להשתמש במערכת. הרשומות ההיסטוריות שלו
                 באירועים, שיוכים ודוחות יישמרו. האם אתה בטוח שברצונך להסיר את
                 המשתמש מהמערכת?
               </Typography>
             )}
-            {archiveError && <Alert severity="error">{archiveError}</Alert>}
+            {archiveError && (
+              <Alert severity="error" sx={{ borderRadius: 3 }}>
+                {archiveError}
+              </Alert>
+            )}
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions sx={detailsDialogActionsSx}>
           <Button
             onClick={closeArchiveDialog}
             disabled={archiveUserMutation.isPending}
+            sx={{ minHeight: 44, borderRadius: 3 }}
           >
             {archiveSuccess ? "סגירה" : "ביטול"}
           </Button>
@@ -1212,8 +1283,16 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               color="error"
               onClick={handleArchiveUser}
               disabled={archiveUserMutation.isPending}
+              sx={{ minHeight: 44, borderRadius: 3, fontWeight: 800 }}
             >
-              {archiveUserMutation.isPending ? "מסיר..." : "הסר משתמש"}
+              {archiveUserMutation.isPending ? (
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <CircularProgress size={18} color="inherit" />
+                  <span>מסיר...</span>
+                </Stack>
+              ) : (
+                "הסר משתמש"
+              )}
             </Button>
           )}
         </DialogActions>
@@ -1222,16 +1301,10 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
       <Dialog
         open={isRestoreDialogOpen}
         onClose={closeRestoreDialog}
-        PaperProps={{
-          sx: {
-            direction: "rtl",
-            maxWidth: 460,
-            borderRadius: 3,
-            fontFamily: "Rubik, sans-serif",
-          },
-        }}
+        PaperProps={{ sx: { ...detailsDialogPaperSx, maxWidth: 460 } }}
+        aria-labelledby="restore-user-title"
       >
-        <DialogTitle sx={{ fontFamily: "Rubik, sans-serif", fontWeight: 800 }}>
+        <DialogTitle id="restore-user-title" sx={detailsDialogTitleSx}>
           החזרת משתמש לפעילות
         </DialogTitle>
         <DialogContent>
@@ -1239,18 +1312,23 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
             {restoreSuccess ? (
               <Alert severity="success">{restoreSuccess}</Alert>
             ) : (
-              <Typography sx={{ fontFamily: "Rubik, sans-serif" }}>
+              <Typography sx={{ fontFamily: "inherit" }}>
                 המשתמש יחזור לרשימות הפעילות ויוכל להתחבר למערכת מחדש. האם אתה
                 בטוח שברצונך להחזיר אותו לפעילות?
               </Typography>
             )}
-            {restoreError && <Alert severity="error">{restoreError}</Alert>}
+            {restoreError && (
+              <Alert severity="error" sx={{ borderRadius: 3 }}>
+                {restoreError}
+              </Alert>
+            )}
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions sx={detailsDialogActionsSx}>
           <Button
             onClick={closeRestoreDialog}
             disabled={restoreUserMutation.isPending}
+            sx={{ minHeight: 44, borderRadius: 3 }}
           >
             {restoreSuccess ? "סגירה" : "ביטול"}
           </Button>
@@ -1261,9 +1339,14 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               disabled={restoreUserMutation.isPending}
               className={classes.buttonContained}
             >
-              {restoreUserMutation.isPending
-                ? "מחזיר..."
-                : "החזר לפעילות"}
+              {restoreUserMutation.isPending ? (
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <CircularProgress size={18} color="inherit" />
+                  <span>מחזיר...</span>
+                </Stack>
+              ) : (
+                "החזר לפעילות"
+              )}
             </Button>
           )}
         </DialogActions>
@@ -1272,55 +1355,61 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
       <Dialog
         open={isEditOpen}
         onClose={closeEditDialog}
-        PaperProps={{
-          sx: {
-            direction: "rtl",
-            minWidth: 420,
-            borderRadius: 3,
-            fontFamily: "Rubik, sans-serif",
-          },
-        }}
+        PaperProps={{ sx: { ...detailsDialogPaperSx, maxWidth: 640 } }}
+        aria-labelledby="edit-user-title"
       >
-        <DialogTitle sx={{ fontFamily: "Rubik, sans-serif", fontWeight: 800 }}>
+        <DialogTitle id="edit-user-title" sx={detailsDialogTitleSx}>
           עריכת פרטי {entityLabel}
         </DialogTitle>
         <DialogContent>
-          <Stack spacing={2} sx={{ pt: 1 }}>
-            {formError && <Alert severity="error">{formError}</Alert>}
+          <Stack spacing={2} sx={editFormSx}>
+            {formError && (
+              <Alert severity="error" sx={{ borderRadius: 3 }}>
+                {formError}
+              </Alert>
+            )}
             <TextField
               fullWidth
               label="שם"
+              autoComplete="name"
               value={form.name}
               onChange={handleFormChange("name")}
+              helperText="שדה חובה"
             />
             {showParentName && (
               <TextField
                 fullWidth
                 label="שם הורה"
+                autoComplete="name"
                 value={form.parentName}
                 onChange={handleFormChange("parentName")}
                 inputProps={{ maxLength: 100 }}
+                helperText="עד 100 תווים"
               />
             )}
             <TextField
               fullWidth
               label="תאריך לידה"
               type="date"
+              autoComplete="bday"
               value={form.dateOfBirth}
               onChange={handleFormChange("dateOfBirth")}
               InputLabelProps={{ shrink: true }}
               inputProps={{ max: getTodayDateInputValue() }}
+              helperText="לא ניתן לבחור תאריך עתידי"
             />
             <TextField
               select
               fullWidth
-              label="Gender"
+              label="מגדר"
               value={form.gender}
               onChange={handleFormChange("gender")}
+              helperText="אופציונלי"
+              SelectProps={{ MenuProps: selectMenuProps }}
             >
               <MenuItem value="">-</MenuItem>
-              <MenuItem value="male">male</MenuItem>
-              <MenuItem value="female">female</MenuItem>
+              <MenuItem value="male">זכר</MenuItem>
+              <MenuItem value="female">נקבה</MenuItem>
             </TextField>
             <TextField
               select
@@ -1328,6 +1417,8 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               label="מידת חולצה"
               value={form.shirtSize}
               onChange={handleFormChange("shirtSize")}
+              helperText="אופציונלי"
+              SelectProps={{ MenuProps: selectMenuProps }}
             >
               <MenuItem value="">-</MenuItem>
               {SHIRT_SIZE_OPTIONS.map((option) => (
@@ -1343,6 +1434,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
                 value={form.customShirtSize}
                 onChange={handleFormChange("customShirtSize")}
                 inputProps={{ maxLength: 50 }}
+                helperText="עד 50 תווים"
               />
             )}
             <TextField
@@ -1353,6 +1445,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               multiline
               minRows={2}
               inputProps={{ maxLength: 1000 }}
+              helperText="מידע רפואי חשוב, עד 1000 תווים"
             />
             <TextField
               fullWidth
@@ -1362,30 +1455,39 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               multiline
               minRows={4}
               inputProps={{ maxLength: 2000 }}
+              helperText="מידע פנימי לצוות, עד 2000 תווים"
             />
             <TextField
               fullWidth
               label="טלפון"
+              type="tel"
+              autoComplete="tel"
+              inputProps={{ inputMode: "tel" }}
               value={form.phoneNumber}
               onChange={handleFormChange("phoneNumber")}
+              helperText="שדה חובה, מספר ישראלי תקין"
             />
             <TextField
               fullWidth
               label="אימייל"
               type="email"
+              autoComplete="email"
               value={form.email}
               onChange={handleFormChange("email")}
+              helperText="אופציונלי"
             />
             <TextField
               fullWidth
               label="כתובת"
+              autoComplete="street-address"
               value={form.address}
               onChange={handleFormChange("address")}
+              helperText="אופציונלי"
             />
           </Stack>
         </DialogContent>
         <DialogActions
-          sx={{ px: 3, pb: 2, justifyContent: "space-between" }}
+          sx={{ ...detailsDialogActionsSx, justifyContent: "space-between" }}
         >
           <Box>
             {canArchiveUser && (
@@ -1407,6 +1509,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
             <Button
               onClick={closeEditDialog}
               disabled={updateUserMutation.isPending}
+              sx={{ minHeight: 44, borderRadius: 3 }}
             >
               ביטול
             </Button>
@@ -1416,7 +1519,14 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               disabled={updateUserMutation.isPending}
               className={classes.buttonContained}
             >
-              {updateUserMutation.isPending ? "שומר..." : "שמירה"}
+              {updateUserMutation.isPending ? (
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <CircularProgress size={18} color="inherit" />
+                  <span>שומר...</span>
+                </Stack>
+              ) : (
+                "שמירה"
+              )}
             </Button>
           </Stack>
         </DialogActions>

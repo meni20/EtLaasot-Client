@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { PwaInstallButton } from "../../../components/PwaInstallButton/PwaInstallButton";
 
 export const LoginPage: React.FC = () => {
   const styles = useStyles();
@@ -24,17 +25,17 @@ export const LoginPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!identifyId) {
-      setError("ID is required");
+      setError("יש להזין תעודת זהות");
       return;
     }
 
     if (!isValidIsraeliId(identifyId)) {
-      setError("Invalid Israeli ID");
+      setError("תעודת הזהות אינה תקינה");
       return;
     }
 
     if (!password.trim()) {
-      setError("Password is required");
+      setError("יש להזין סיסמה");
       return;
     }
 
@@ -44,7 +45,7 @@ export const LoginPage: React.FC = () => {
     try {
       await login(identifyId, password);
     } catch {
-      setError("Login failed");
+      setError("לא הצלחנו להתחבר. בדקו את הפרטים ונסו שוב.");
     } finally {
       setLoading(false);
     }
@@ -70,6 +71,10 @@ export const LoginPage: React.FC = () => {
           label="תעודת זהות"
           placeholder="תעודת זהות"
           autoComplete="username"
+          inputProps={{
+            inputMode: "numeric",
+            pattern: "[0-9]*",
+          }}
           value={identifyId}
           onChange={(e) => {
             setIdentifyId(e.target.value.replace(/\D/g, "")); // numbers only
@@ -95,7 +100,7 @@ export const LoginPage: React.FC = () => {
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? "הסתרת סיסמה" : "הצגת סיסמה"}
                   onClick={() => setShowPassword((show) => !show)}
                   edge="end"
                   size="small"
@@ -117,6 +122,7 @@ export const LoginPage: React.FC = () => {
         >
           {loading ? "מתחבר..." : "התחבר"}
         </Button>
+        <PwaInstallButton />
       </Box>
     </Box>
   );

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import {
+  Avatar,
   Box,
   Typography,
   Button,
@@ -13,9 +14,12 @@ import {
   InputLabel,
   CircularProgress,
   IconButton,
+  Tooltip,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import mentorAssignmentService from "../../../services/mentorAssignment.service";
 import userService from "../../../services/user.service";
@@ -23,6 +27,8 @@ import { useBranch } from "../../../contexts/useBranch";
 import { useMentorAssignmentStyles } from "./MentorAssignment.styles";
 import type { IMentorAssignment } from "../../../interfaces/event.interface";
 import type { IUser } from "../../../interfaces/user.interface";
+
+const avatarLetter = (name?: string) => name?.trim()?.[0]?.toUpperCase() || "?";
 
 export const MentorAssignmentPage: React.FC = () => {
   const classes = useMentorAssignmentStyles();
@@ -101,7 +107,7 @@ export const MentorAssignmentPage: React.FC = () => {
         justifyContent="center"
         alignItems="center"
       >
-        <CircularProgress sx={{ color: "#9a5188" }} />
+        <CircularProgress color="primary" />
       </Box>
     );
   }
@@ -124,23 +130,36 @@ export const MentorAssignmentPage: React.FC = () => {
 
       {/* Unassigned trainees alert */}
       {unassigned.length > 0 && (
-        <Box className={classes.unassignedCard}>
-          ⚠️ {unassigned.length} חניכים ללא חונך מוקצה:{" "}
-          {unassigned.map((u) => u.name).join(", ")}
+        <Box className={classes.unassignedCard} role="status">
+          <WarningAmberRoundedIcon className={classes.statusIcon} />
+          <Typography className={classes.unassignedText}>
+            {unassigned.length} חניכים ללא חונך מוקצה:{" "}
+            {unassigned.map((u) => u.name).join(", ")}
+          </Typography>
         </Box>
       )}
 
       {/* Assignments table */}
       <Box className={classes.card}>
-        <Typography className={classes.sectionTitle}>הקצאות נוכחיות</Typography>
+        <Box className={classes.sectionHeader}>
+          <Typography className={classes.sectionTitle}>הקצאות נוכחיות</Typography>
+          <Typography className={classes.assignmentCount}>
+            {assignments.length} הקצאות
+          </Typography>
+        </Box>
         {grouped.map((group) => (
           <Box
             key={group.mentor?.id ?? "unknown"}
             className={classes.mentorRow}
           >
-            <Typography className={classes.mentorName}>
-              {group.mentor?.name ?? "חונך לא ידוע"}
-            </Typography>
+            <Box className={classes.mentorIdentity}>
+              <Avatar className={classes.mentorAvatar}>
+                {avatarLetter(group.mentor?.name)}
+              </Avatar>
+              <Typography className={classes.mentorName}>
+                {group.mentor?.name ?? "חונך לא ידוע"}
+              </Typography>
+            </Box>
             <Box className={classes.traineesChips}>
               {group.assignments.map((a) => (
                 <Box
@@ -148,41 +167,57 @@ export const MentorAssignmentPage: React.FC = () => {
                   className={`${classes.chip} ${group.assignments.length > 5 ? classes.overloadChip : ""}`}
                 >
                   {a.trainee?.name ?? a.traineeId}
-                  <IconButton
-                    size="small"
-                    onClick={() => removeMutation.mutate(a.id)}
-                    sx={{ padding: "2px", marginRight: "4px" }}
-                  >
-                    <DeleteIcon sx={{ fontSize: 14 }} />
-                  </IconButton>
+                  <Tooltip title="הסרת הקצאה">
+                    <IconButton
+                      size="small"
+                      aria-label={`הסרת ההקצאה של ${a.trainee?.name ?? a.traineeId}`}
+                      disabled={removeMutation.isPending}
+                      onClick={() => removeMutation.mutate(a.id)}
+                      className={classes.removeButton}
+                    >
+                      <DeleteIcon sx={{ fontSize: 15 }} />
+                    </IconButton>
+                  </Tooltip>
                 </Box>
               ))}
             </Box>
             <Typography
-              sx={{ marginRight: "auto", fontSize: "0.85rem", color: "#666" }}
+              className={`${classes.loadStatus} ${group.assignments.length > 5 ? classes.loadStatusWarning : ""}`}
             >
+              {group.assignments.length > 5 ? (
+                <WarningAmberRoundedIcon fontSize="small" />
+              ) : (
+                <CheckCircleRoundedIcon fontSize="small" />
+              )}
               {group.assignments.length > 5
-                ? `⚠️ ${group.assignments.length} חניכים (עומס יתר)`
-                : `✅ ${group.assignments.length} חניכים`}
+                ? `${group.assignments.length} חניכים (עומס יתר)`
+                : `${group.assignments.length} חניכים`}
             </Typography>
           </Box>
         ))}
         {grouped.length === 0 && (
-          <Typography sx={{ color: "#999", fontFamily: "Rubik" }}>
+          <Typography className={classes.emptyState}>
             אין הקצאות עדיין
           </Typography>
         )}
       </Box>
 
       {/* Assign Dialog */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-        <DialogTitle sx={{ fontFamily: "Rubik", direction: "rtl" }}>
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        fullWidth
+        maxWidth="xs"
+        PaperProps={{ sx: { direction: "rtl" } }}
+      >
+        <DialogTitle>
           הקצאת חניך לחונך
         </DialogTitle>
         <DialogContent className={classes.dialogContent}>
-          <FormControl className={classes.selectField} sx={{ mt: 1 }}>
-            <InputLabel>חונך</InputLabel>
+          <FormControl className={classes.selectField} sx={{ mt: 1 }} fullWidth>
+            <InputLabel id="mentor-assignment-mentor-label">חונך</InputLabel>
             <Select
+              labelId="mentor-assignment-mentor-label"
               value={selectedMentor}
               onChange={(e) => setSelectedMentor(e.target.value as string)}
               label="חונך"
@@ -194,9 +229,10 @@ export const MentorAssignmentPage: React.FC = () => {
               ))}
             </Select>
           </FormControl>
-          <FormControl className={classes.selectField}>
-            <InputLabel>חניך</InputLabel>
+          <FormControl className={classes.selectField} fullWidth>
+            <InputLabel id="mentor-assignment-trainee-label">חניך</InputLabel>
             <Select
+              labelId="mentor-assignment-trainee-label"
               value={selectedTrainee}
               onChange={(e) => setSelectedTrainee(e.target.value as string)}
               label="חניך"
@@ -209,12 +245,12 @@ export const MentorAssignmentPage: React.FC = () => {
             </Select>
           </FormControl>
         </DialogContent>
-        <DialogActions sx={{ direction: "rtl", px: 3, pb: 2 }}>
+        <DialogActions className={classes.dialogActions}>
           <Button onClick={() => setDialogOpen(false)}>ביטול</Button>
           <Button
             variant="contained"
             className={classes.addButton}
-            disabled={!selectedMentor || !selectedTrainee}
+            disabled={!selectedMentor || !selectedTrainee || assignMutation.isPending}
             onClick={() =>
               assignMutation.mutate({
                 mentorId: selectedMentor,

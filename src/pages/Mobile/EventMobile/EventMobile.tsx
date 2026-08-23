@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/useAuth";
 import { useMobileEvents } from "../../../hooks/mobile/useMobileEvents";
 import { EventSummaryCard } from "../../../components/mobile/EventSummaryCard";
-import { BottomNav } from "../../../components/BottomNav/BottomNav";
 import { useStyles } from "./EventMobile.styles";
 import type { AttendanceIntent, IEvent } from "../../../interfaces/event.interface";
 
@@ -65,8 +64,6 @@ export const EventMobile: React.FC = () => {
           </Stack>
         </Box>
       ))}
-
-      <BottomNav />
     </Box>
   );
 };

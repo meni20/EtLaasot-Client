@@ -7,22 +7,26 @@ import {
 export const useSideMenuStyles = makeStyles({
   drawerPaper: {
     width: DRAWER_WIDTH,
-    maxWidth: "min(250px, calc(100vw - 20px))",
-    borderRadius: "0 0 0 18px",
-    background: "#fbf8fb",
-    boxShadow: "-8px 0 24px rgba(45,35,43,0.12)",
+    maxWidth: "min(250px, calc(100vw - 16px))",
+    borderRadius: "0 0 0 20px",
+    background: "rgba(251, 248, 251, 0.82)",
+    backdropFilter: "blur(24px) saturate(170%)",
+    WebkitBackdropFilter: "blur(24px) saturate(170%)",
+    boxShadow: "-18px 0 36px rgba(45, 35, 43, 0.16)",
     direction: "rtl" as const,
     overflow: "hidden",
-    borderLeft: "1px solid rgba(122,62,107,0.12)",
+    borderInlineEnd: "1px solid rgba(var(--color-primary-rgb), 0.14)",
     right: "0 !important",
     left: "auto !important",
     transformOrigin: "right center",
     transition:
-      "width 240ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 240ms ease",
-    "@media (min-width: 900px)": {
-      top: 64,
-      height: "calc(100% - 64px)",
-      borderRadius: "0 0 0 16px",
+      "box-shadow var(--transition-normal, 180ms ease), background-color var(--transition-normal, 180ms ease)",
+    "@media (min-width: 1024px)": {
+      top: "calc(env(safe-area-inset-top, 0px) + var(--shell-top-inset, 68px)) !important",
+      bottom: "0 !important",
+      height: "auto !important",
+      borderRadius: "0 0 0 18px",
+      boxShadow: "-10px 0 28px rgba(45, 35, 43, 0.12)",
     },
   },
   collapsedDrawerPaper: {
@@ -32,12 +36,12 @@ export const useSideMenuStyles = makeStyles({
     display: "flex",
     flexDirection: "column" as const,
     gap: 8,
-    padding: "18px 12px 16px",
+    padding: "18px 12px calc(env(safe-area-inset-bottom, 0px) + 16px)",
     overflowY: "auto" as const,
-    transition: "padding 240ms cubic-bezier(0.4, 0, 0.2, 1)",
+    overscrollBehavior: "contain" as const,
   },
   collapsedList: {
-    padding: "16px 8px",
+    padding: "16px 8px calc(env(safe-area-inset-bottom, 0px) + 16px)",
     alignItems: "center",
   },
   listItemButton: {
@@ -48,20 +52,30 @@ export const useSideMenuStyles = makeStyles({
     color: "#342b33",
     justifyContent: "flex-start",
     textAlign: "right" as const,
-    transition: "background-color 0.2s ease, color 0.2s ease, transform 0.2s ease",
-    "&:hover": {
-      backgroundColor: "#f3e8f0",
-      color: "#6d3860",
-      transform: "translateX(-2px)",
-      "& .MuiListItemIcon-root": {
-        color: "#7a3e6b",
-      },
+    transition:
+      "background-color var(--transition-normal, 180ms ease), color var(--transition-normal, 180ms ease), transform var(--transition-fast, 140ms ease)",
+    "&:focus-visible": {
+      outline: "2px solid rgba(var(--color-primary-rgb), 0.42)",
+      outlineOffset: 2,
+    },
+    "&:active": {
+      transform: "scale(0.98)",
     },
     "&.Mui-selected": {
-      backgroundColor: "#f3e8f0",
-      color: "#6d3860",
+      backgroundColor: "var(--color-primary-selected)",
+      color: "var(--color-primary-dark)",
+    },
+    "@media (hover: hover) and (pointer: fine)": {
       "&:hover": {
-        backgroundColor: "#edddec",
+        backgroundColor: "var(--color-primary-soft)",
+        color: "var(--color-primary-dark)",
+        transform: "translateX(-2px)",
+        "& .MuiListItemIcon-root": {
+          color: "var(--color-primary)",
+        },
+      },
+      "&.Mui-selected:hover": {
+        backgroundColor: "var(--color-primary-selected)",
       },
     },
   },
@@ -72,21 +86,22 @@ export const useSideMenuStyles = makeStyles({
     padding: "0 !important",
     justifyContent: "center",
     borderRadius: "14px !important",
-    "&:hover": {
-      transform: "none",
+    "&:active": {
+      transform: "scale(0.96)",
     },
   },
   activeListItem: {
-    boxShadow: "inset -4px 0 0 #9a5188",
+    boxShadow: "inset -4px 0 0 var(--color-brand)",
     fontWeight: 800,
   },
   listItemText: {
     margin: 0,
     textAlign: "right" as const,
     "& .MuiListItemText-primary": {
-      fontFamily: "Rubik, sans-serif",
+      fontFamily: "inherit",
       fontWeight: 700,
       fontSize: "0.95rem",
+      letterSpacing: 0,
     },
   },
   collapsedListItemText: {
@@ -95,12 +110,12 @@ export const useSideMenuStyles = makeStyles({
     overflow: "hidden",
     margin: "0 !important",
     pointerEvents: "none" as const,
-    transition: "opacity 120ms ease, width 180ms ease",
+    transition: "opacity var(--transition-fast, 140ms ease)",
   },
   listItemIcon: {
     minWidth: 40,
-    color: "#7a3e6b",
-    transition: "color 0.2s ease",
+    color: "var(--color-primary)",
+    transition: "color var(--transition-fast, 140ms ease)",
     justifyContent: "center",
     "& svg": {
       fontSize: "1.25rem",
@@ -112,5 +127,45 @@ export const useSideMenuStyles = makeStyles({
     height: 48,
     alignItems: "center",
     justifyContent: "center",
+  },
+  "@media (max-width: 767px)": {
+    drawerPaper: {
+      width: "min(86vw, 320px)",
+      maxWidth: "calc(100vw - 16px)",
+      borderRadius: "0 0 0 22px",
+    },
+    listItemButton: {
+      minHeight: 56,
+    },
+  },
+  "@media (prefers-reduced-motion: reduce)": {
+    drawerPaper: {
+      transition: "none",
+    },
+    list: {
+      transition: "none",
+    },
+    listItemButton: {
+      transition: "background-color 120ms ease, color 120ms ease",
+      "&:hover": {
+        transform: "none",
+      },
+      "&:active": {
+        transform: "none",
+      },
+    },
+    collapsedListItemText: {
+      transition: "none",
+    },
+    listItemIcon: {
+      transition: "none",
+    },
+  },
+  "@media (prefers-reduced-transparency: reduce)": {
+    drawerPaper: {
+      background: "#fbf8fb",
+      backdropFilter: "none",
+      WebkitBackdropFilter: "none",
+    },
   },
 });

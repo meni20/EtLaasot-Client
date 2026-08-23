@@ -99,52 +99,70 @@ export const PasswordChangePage: React.FC = () => {
     <Box
       sx={{
         direction: "rtl",
-        minHeight: "100vh",
+        minHeight: "100dvh",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        px: 2,
-        py: 4,
-        backgroundColor: "#F7F7F8",
-        fontFamily: "Rubik, sans-serif",
+        px: { xs: 2, sm: 3 },
+        py: "calc(env(safe-area-inset-top, 0px) + 24px)",
+        pb: "calc(env(safe-area-inset-bottom, 0px) + 24px)",
+        background:
+          "linear-gradient(180deg, var(--color-canvas-warm, #faf9fb) 0%, var(--color-canvas, #f5f6f8) 100%)",
+        fontFamily:
+          '"Noto Sans Hebrew", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
       }}
     >
       <Box
         sx={{
           width: "100%",
           maxWidth: 420,
-          borderRadius: 4,
-          bgcolor: "#fff",
-          boxShadow: "0 8px 24px rgba(0, 0, 0, 0.08)",
-          p: 3,
+          borderRadius: "var(--radius-sheet, 26px)",
+          bgcolor: "var(--color-surface-elevated, rgba(255, 255, 255, 0.82))",
+          border: "1px solid rgba(255, 255, 255, 0.72)",
+          boxShadow: "var(--shadow-lg, 0 24px 64px rgba(16, 24, 40, 0.15))",
+          backdropFilter: "blur(24px) saturate(180%)",
+          WebkitBackdropFilter: "blur(24px) saturate(180%)",
+          p: { xs: 3, sm: 4 },
+          animation: "scaleIn 240ms var(--ease-out, ease-out)",
+          "@media (prefers-reduced-motion: reduce)": {
+            animation: "fadeIn 1ms linear",
+          },
+          "@media (prefers-reduced-transparency: reduce)": {
+            bgcolor: "var(--color-surface, #fff)",
+            backdropFilter: "none",
+            WebkitBackdropFilter: "none",
+            borderColor: "var(--color-border, #dadde3)",
+          },
         }}
       >
         <Typography
           component="h1"
           sx={{
-            fontSize: 24,
-            fontWeight: 900,
-            color: "#1F1F1F",
+            fontSize: 26,
+            fontWeight: 800,
+            color: "var(--color-text, #1d1d1f)",
             mb: 1,
-            fontFamily: "Rubik, sans-serif",
+            fontFamily: "inherit",
+            lineHeight: 1.2,
           }}
         >
           החלפת סיסמה
         </Typography>
         <Typography
           sx={{
-            color: "#6B7280",
-            fontSize: 14,
+            color: "var(--color-text-secondary, #51565c)",
+            fontSize: 15,
             lineHeight: 1.6,
             mb: 2.5,
-            fontFamily: "Rubik, sans-serif",
+            fontWeight: 600,
+            fontFamily: "inherit",
           }}
         >
           יש להגדיר סיסמה אישית לפני המשך השימוש במערכת.
         </Typography>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
+          <Alert severity="error" sx={{ mb: 2, borderRadius: "var(--radius-md, 14px)" }}>
             {error}
           </Alert>
         )}
@@ -184,12 +202,16 @@ export const PasswordChangePage: React.FC = () => {
           disabled={loading}
           sx={{
             mt: 3,
-            height: 48,
-            borderRadius: 2,
-            bgcolor: "#7B3F98",
-            fontWeight: 900,
-            fontFamily: "Rubik, sans-serif",
-            "&:hover": { bgcolor: "#6D3588" },
+            minHeight: 52,
+            borderRadius: "var(--radius-md, 14px)",
+            bgcolor: "var(--color-primary)",
+            fontWeight: 800,
+            fontFamily: "inherit",
+            boxShadow: "var(--shadow-sm, 0 3px 12px rgba(16, 24, 40, 0.07))",
+            "&:hover": {
+              bgcolor: "var(--color-primary-dark)",
+              boxShadow: "var(--shadow-md, 0 12px 34px rgba(16, 24, 40, 0.1))",
+            },
           }}
         >
           {loading ? "מעדכן..." : "עדכון סיסמה"}
@@ -202,9 +224,10 @@ export const PasswordChangePage: React.FC = () => {
           disabled={loading}
           sx={{
             mt: 1,
-            color: "#6B7280",
+            minHeight: 48,
+            color: "var(--color-text-secondary, #51565c)",
             fontWeight: 800,
-            fontFamily: "Rubik, sans-serif",
+            fontFamily: "inherit",
           }}
         >
           התנתקות
@@ -243,7 +266,7 @@ const PasswordField: React.FC<{
       endAdornment: (
         <InputAdornment position="end">
           <IconButton
-            aria-label={visible ? "Hide password" : "Show password"}
+            aria-label={visible ? "הסתרת סיסמה" : "הצגת סיסמה"}
             edge="end"
             size="small"
             onClick={onToggleVisible}

@@ -1,171 +1,274 @@
 import { makeStyles } from "@mui/styles";
 
+const surface =
+  "linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.78))";
+
 export const useDashboardStyles = makeStyles({
+  root: {
+    minHeight: "100dvh",
+    direction: "rtl",
+    padding: "88px 24px 28px",
+    background:
+      "linear-gradient(180deg, var(--color-canvas-warm) 0%, var(--color-canvas) 48%)",
+  },
+  header: {
+    maxWidth: 1480,
+    margin: "0 auto 18px",
+  },
+  title: {
+    margin: "0 !important",
+    color: "var(--color-text)",
+    fontFamily: "inherit !important",
+    fontSize: "1.55rem !important",
+    fontWeight: "700 !important",
+    lineHeight: "1.22 !important",
+  },
+  subtitle: {
+    marginTop: "6px !important",
+    color: "var(--color-text-secondary)",
+    fontFamily: "inherit !important",
+    fontSize: "0.92rem !important",
+    lineHeight: "1.5 !important",
+  },
+  summaryGrid: {
+    maxWidth: 1480,
+    margin: "0 auto 18px",
+    display: "grid",
+    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+    gap: 12,
+  },
+  summaryCard: {
+    minWidth: 0,
+    minHeight: 118,
+    width: "100%",
+    display: "grid !important",
+    gridTemplateColumns: "48px minmax(0, 1fr)",
+    gridTemplateRows: "1fr auto",
+    alignItems: "center",
+    justifyItems: "start",
+    gap: "4px 12px",
+    padding: "18px",
+    borderRadius: "var(--radius-md) !important",
+    border: "1px solid var(--color-border-subtle)",
+    background: surface,
+    boxShadow: "var(--shadow-sm)",
+    textAlign: "right" as const,
+    cursor: "pointer",
+    transition:
+      "transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast)",
+    "&:hover": {
+      borderColor: "rgba(var(--color-primary-rgb), 0.28)",
+      boxShadow: "var(--shadow-md)",
+    },
+    "&:active": {
+      transform: "scale(0.99)",
+    },
+    "&:focus-visible": {
+      outline: "none",
+      boxShadow: "var(--shadow-sm), 0 0 0 3px rgba(var(--color-primary-rgb), 0.22)",
+    },
+    "@media (hover: hover) and (pointer: fine)": {
+      "&:hover": {
+        transform: "translateY(-1px)",
+      },
+    },
+  },
+  summaryCardAttention: {
+    borderInlineStart: "4px solid var(--color-warning)",
+    background:
+      "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 247, 232, 0.7))",
+  },
+  summaryIcon: {
+    gridRow: "1 / span 2",
+    width: 48,
+    height: 48,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: "var(--radius-sm)",
+    color: "var(--color-primary)",
+    backgroundColor: "var(--color-primary-soft)",
+    fontSize: "1.45rem",
+  },
+  summaryValue: {
+    color: "var(--color-text)",
+    fontFamily: "inherit",
+    fontSize: "1.75rem",
+    fontWeight: 700,
+    lineHeight: 1,
+    fontVariantNumeric: "tabular-nums",
+  },
+  summaryLabel: {
+    color: "var(--color-text-secondary)",
+    fontFamily: "inherit",
+    fontSize: "0.86rem",
+    fontWeight: 600,
+    lineHeight: 1.35,
+  },
+  chartCard: {
+    maxWidth: 1480,
+    margin: "0 auto",
+    padding: "18px 18px 14px",
+    borderRadius: "var(--radius-lg)",
+    border: "1px solid var(--color-border-subtle)",
+    background: "var(--color-surface)",
+    boxShadow: "var(--shadow-sm)",
+  },
+  upcomingSection: {
+    maxWidth: 1480,
+    margin: "0 auto 18px",
+    padding: "18px",
+    borderRadius: "var(--radius-lg)",
+    border: "1px solid var(--color-border-subtle)",
+    background: "var(--color-surface)",
+    boxShadow: "var(--shadow-sm)",
+  },
+  carouselHeader: {
+    minHeight: 44,
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 12,
+  },
+  carouselControls: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  },
+  carouselButton: {
+    width: "44px !important",
+    height: "44px !important",
+    color: "var(--color-primary) !important",
+    backgroundColor: "var(--color-primary-soft) !important",
+    border: "1px solid rgba(var(--color-primary-rgb), 0.18) !important",
+    transition:
+      "transform var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast)",
+    "&:hover": {
+      color: "var(--color-surface) !important",
+      backgroundColor: "var(--color-primary) !important",
+    },
+    "&:active": {
+      transform: "scale(0.94)",
+    },
+    "&.Mui-disabled": {
+      color: "var(--color-text-muted) !important",
+      backgroundColor: "var(--color-surface-muted) !important",
+      borderColor: "var(--color-border-subtle) !important",
+      opacity: 0.72,
+    },
+  },
+  eventsCarouselViewport: {
+    overflow: "hidden",
+  },
+  eventsCarouselTrack: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    gap: 12,
+    alignItems: "stretch",
+  },
+  carouselCard: {
+    minWidth: 0,
+  },
+  chartTitle: {
+    margin: "0 0 12px !important",
+    color: "var(--color-text)",
+    fontFamily: "inherit !important",
+    fontSize: "1rem !important",
+    fontWeight: "700 !important",
+    lineHeight: "1.35 !important",
+  },
+  chartFallback: {
+    minHeight: 160,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyPanel: {
+    minHeight: 136,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 18,
+    borderRadius: "var(--radius-md)",
+    border: "1px dashed var(--color-border)",
+    backgroundColor: "var(--color-surface-muted)",
+    color: "var(--color-text-secondary)",
+    fontFamily: "inherit",
+    fontSize: "0.92rem",
+    fontWeight: 600,
+    textAlign: "center" as const,
+  },
+  stateCard: {
+    width: "min(100%, 420px)",
+    minHeight: 180,
+    margin: "96px auto 0",
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 14,
+    padding: 24,
+    borderRadius: "var(--radius-lg)",
+    border: "1px solid var(--color-border-subtle)",
+    background: "var(--color-surface)",
+    boxShadow: "var(--shadow-sm)",
+    textAlign: "center" as const,
+  },
+  stateText: {
+    color: "var(--color-text-secondary)",
+    fontFamily: "inherit !important",
+    fontSize: "0.96rem !important",
+    fontWeight: "600 !important",
+    lineHeight: "1.5 !important",
+  },
+  "@media (max-width: 1024px)": {
     root: {
-        padding: "76px 20px 20px",
-        direction: "rtl",
-        minHeight: "100vh",
-        backgroundColor: "#f9f9f9",
-        animation: "fadeIn 0.4s ease-out",
-    },
-    header: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 14,
-        animation: "fadeInDown 0.5s ease-out",
-    },
-    title: {
-        fontFamily: "Rubik, sans-serif",
-        fontWeight: 700,
-        color: "#333",
-        fontSize: "1.7rem",
+      padding: "76px 16px 22px",
     },
     summaryGrid: {
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-        gap: 12,
-        marginBottom: 16,
-    },
-    summaryCard: {
-        background: "#fff",
-        borderRadius: 14,
-        padding: "14px 16px",
-        textAlign: "center",
-        boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-        border: "1px solid #f0ecef",
-        transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
-        animation: "fadeInUp 0.5s ease-out both",
-        cursor: "pointer",
-        "&:hover": {
-            transform: "translateY(-3px)",
-            boxShadow: "0 8px 22px rgba(154, 81, 136, 0.14)",
-            borderColor: "rgba(154, 81, 136, 0.2)",
-        },
-    },
-    summaryIcon: {
-        fontSize: "1.55rem",
-        marginBottom: 2,
-        transition: "transform 0.3s ease",
-        "$summaryCard:hover &": {
-            transform: "scale(1.15)",
-        },
-    },
-    summaryValue: {
-        fontSize: "1.45rem",
-        fontWeight: 700,
-        color: "#9a5188",
-        fontFamily: "Rubik, sans-serif",
-        transition: "color 0.2s ease",
-    },
-    summaryLabel: {
-        fontSize: "0.78rem",
-        color: "#666",
-        fontFamily: "Rubik, sans-serif",
-    },
-    chartsGrid: {
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: 24,
-        marginBottom: 32,
-    },
-    chartCard: {
-        background: "#fff",
-        borderRadius: 14,
-        padding: "14px 16px 10px",
-        boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-        border: "1px solid #f0ecef",
-        transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s ease",
-        animation: "fadeInUp 0.6s ease-out both",
-        "&:hover": {
-            transform: "translateY(-3px)",
-            boxShadow: "0 8px 28px rgba(154, 81, 136, 0.1)",
-        },
-    },
-    upcomingSection: {
-        background: "#fff",
-        borderRadius: 14,
-        padding: "14px 16px 16px",
-        boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-        border: "1px solid #f0ecef",
-        marginBottom: 16,
-        animation: "fadeInUp 0.55s ease-out both",
-    },
-    carouselHeader: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: 12,
-        marginBottom: 10,
-    },
-    carouselControls: {
-        display: "flex",
-        alignItems: "center",
-        gap: 6,
-    },
-    carouselButton: {
-        width: 30,
-        height: 30,
-        color: "#7a3e6b",
-        backgroundColor: "#fbf7fa",
-        border: "1px solid #ead8e5",
-        "&:hover": {
-            color: "#fff",
-            backgroundColor: "#9a5188",
-            borderColor: "#9a5188",
-        },
-        "&.Mui-disabled": {
-            color: "#c9b8c5",
-            backgroundColor: "#f8f4f7",
-            borderColor: "#f0e8ee",
-        },
+      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
     },
     eventsCarouselViewport: {
-        overflow: "hidden",
+      overflowX: "auto" as const,
+      paddingBottom: 4,
+      scrollbarWidth: "thin" as const,
     },
     eventsCarouselTrack: {
-        display: "grid",
-        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-        gap: 12,
-        alignItems: "stretch",
+      gridTemplateColumns: "repeat(3, minmax(260px, 1fr))",
     },
-    carouselCard: {
-        minWidth: 0,
+  },
+  "@media (max-width: 600px)": {
+    root: {
+      padding: "72px 12px 18px",
     },
-    chartTitle: {
-        fontFamily: "Rubik, sans-serif",
-        fontWeight: 600,
-        color: "#333",
-        marginBottom: 8,
-        fontSize: "0.95rem",
+    title: {
+      fontSize: "1.32rem !important",
     },
-    "@media (max-width: 900px)": {
-        root: {
-            padding: "72px 12px 16px",
-            overflowX: "hidden",
-        },
-        header: {
-            alignItems: "flex-start",
-            flexDirection: "column" as const,
-            gap: 8,
-        },
-        title: {
-            fontSize: "1.35rem",
-        },
-        summaryGrid: {
-            gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
-            gap: 10,
-        },
-        chartsGrid: {
-            gridTemplateColumns: "1fr",
-            gap: 14,
-        },
-        eventsCarouselViewport: {
-            overflowX: "auto" as const,
-            paddingBottom: 4,
-        },
-        eventsCarouselTrack: {
-            gridTemplateColumns: "repeat(3, minmax(240px, 1fr))",
-        },
+    summaryGrid: {
+      gridTemplateColumns: "1fr",
+      gap: 10,
     },
+    summaryCard: {
+      minHeight: 104,
+      padding: "16px",
+    },
+    upcomingSection: {
+      padding: 14,
+    },
+    chartCard: {
+      padding: "16px 14px 12px",
+    },
+    eventsCarouselTrack: {
+      gridTemplateColumns: "repeat(3, minmax(245px, 1fr))",
+    },
+  },
+  "@media (prefers-reduced-motion: reduce)": {
+    summaryCard: {
+      transform: "none !important",
+    },
+    carouselButton: {
+      transform: "none !important",
+    },
+  },
 });

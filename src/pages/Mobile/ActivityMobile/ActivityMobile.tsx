@@ -1,6 +1,5 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { BottomNav } from "../../../components/BottomNav/BottomNav";
 import { useStyles } from "./ActivityMobile.styles";
 
 export const ActivityMobile: React.FC = () => {
@@ -19,17 +18,19 @@ export const ActivityMobile: React.FC = () => {
           variant="contained"
           className={styles.actionButton}
           sx={{
-            bgcolor: "#7B3F98",
-            boxShadow: "0 4px 12px rgba(123, 63, 152, 0.22)",
-            "&:hover": { bgcolor: "#6D3588" },
+            bgcolor: "var(--color-primary)",
+            boxShadow: "var(--shadow-sm, 0 3px 12px rgba(16, 24, 40, 0.07))",
+            "&:hover": {
+              bgcolor: "var(--color-primary-dark)",
+              boxShadow:
+                "var(--shadow-md, 0 12px 34px rgba(16, 24, 40, 0.1))",
+            },
           }}
           onClick={() => navigate("/home")}
         >
           חזרה למסך הבית
         </Button>
       </Box>
-
-      <BottomNav />
     </Box>
   );
 };

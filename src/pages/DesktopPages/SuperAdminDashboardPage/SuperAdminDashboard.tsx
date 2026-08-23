@@ -85,7 +85,7 @@ export const SuperAdminDashboardPage: React.FC = () => {
     return (
       <Box className={classes.root}>
         <Box className={classes.state}>
-          <CircularProgress size={34} sx={{ color: "#9a5188" }} />
+          <CircularProgress size={34} sx={{ color: "var(--color-primary)" }} />
           <Typography>טוען נתונים ארגוניים...</Typography>
         </Box>
       </Box>
@@ -134,7 +134,7 @@ export const SuperAdminDashboardPage: React.FC = () => {
         ))}
       </Box>
 
-      <Paper className={classes.tableSection}>
+      <Paper className={classes.tableSection} elevation={0}>
         <Box className={classes.tableHeader}>
           <Typography component="h2" className={classes.sectionTitle}>
             השוואה בין סניפים
@@ -166,7 +166,11 @@ export const SuperAdminDashboardPage: React.FC = () => {
               </TableHead>
               <TableBody>
                 {data.branches.map((branch) => (
-                  <TableRow hover key={branch.branchId}>
+                  <TableRow
+                    hover
+                    key={branch.branchId}
+                    className={classes.tableRow}
+                  >
                     <TableCell className={classes.bodyCell}>
                       <Tooltip title="מעבר לדשבורד הסניף">
                         <ButtonBase

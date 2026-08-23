@@ -1,5 +1,6 @@
 import * as React from "react";
 import {
+  Alert,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -11,9 +12,12 @@ import {
   InputAdornment,
   ListItemText,
   IconButton,
+  CircularProgress,
+  Snackbar,
   TextField,
   Typography,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import type { IAddAttendeeDialogProps } from "./AddAttendeeDialog.interface";
 import AddIcon from "@mui/icons-material/Add";
@@ -37,6 +41,11 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
   const queryClient = useQueryClient();
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [pendingUserId, setPendingUserId] = React.useState<string | null>(null);
+  const [notice, setNotice] = React.useState<{
+    severity: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const filteredUsers = React.useMemo(() => {
     const normalizedSearch = normalizeSearchValue(searchTerm);
@@ -53,11 +62,14 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
   React.useEffect(() => {
     if (!open) {
       setSearchTerm("");
+      setPendingUserId(null);
+      setNotice(null);
     }
   }, [open]);
 
   const handleAddAttendee = async (userId: string) => {
     try {
+      setPendingUserId(userId);
       await eventService.addAttendeeToEvent(userId, eventId);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["users"] }),
@@ -68,8 +80,15 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
         queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
         queryClient.invalidateQueries({ queryKey: ["upcomingEvents"] }),
       ]);
+      setNotice({ severity: "success", message: "המשתתף נוסף לאירוע" });
     } catch (error) {
       console.error("Error adding attendee to event:", error);
+      setNotice({
+        severity: "error",
+        message: "לא הצלחנו להוסיף את המשתתף. נסו שוב.",
+      });
+    } finally {
+      setPendingUserId(null);
     }
   };
 
@@ -93,190 +112,209 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      PaperProps={{
-        sx: {
-          width: 380,
-          borderRadius: 4,
-          overflow: "hidden",
-          direction: "rtl",
-          fontFamily: "Rubik, sans-serif",
-        },
-      }}
-    >
-      <DialogTitle
-        sx={{
-          fontWeight: 700,
-          fontSize: 18,
-          textAlign: "center",
-          background: "linear-gradient(135deg, #9a5188 0%, #7a3e6b 100%)",
-          color: "#fff",
-          padding: "14px 0",
-          fontFamily: "Rubik, sans-serif",
+    <>
+      <Dialog
+        open={open}
+        onClose={onClose}
+        PaperProps={{
+          sx: {
+            width: { xs: "calc(100vw - 24px)", sm: 420 },
+            maxWidth: "calc(100vw - 24px)",
+            borderRadius: 5,
+            overflow: "hidden",
+            direction: "rtl",
+            fontFamily: (theme) => theme.typography.fontFamily,
+            backgroundColor: "background.default",
+          },
         }}
       >
-        הוספת משתתפים לאירוע
-      </DialogTitle>
-
-      <DialogContent
-        sx={{
-          pt: 1,
-          pb: 2,
-          maxHeight: 340,
-          overflowY: "auto",
-          backgroundColor: "#faf8f9",
-        }}
-      >
-        <Box
+        <DialogTitle
           sx={{
-            position: "sticky",
-            top: 0,
-            zIndex: 1,
-            pt: 1,
-            pb: 1.25,
-            backgroundColor: "#faf8f9",
+            px: 5,
+            pt: 5,
+            pb: 2,
+            fontWeight: 800,
+            fontSize: 21,
+            color: "text.primary",
           }}
         >
-          <TextField
-            inputRef={searchInputRef}
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="חיפוש לפי שם"
-            fullWidth
-            size="small"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <IconButton
-                    edge="start"
-                    size="small"
-                    aria-label="חיפוש משתתף"
-                    onClick={() => searchInputRef.current?.focus()}
-                    sx={{ color: "#9a5188" }}
-                  >
-                    <SearchIcon fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              ),
-              endAdornment: searchTerm ? (
-                <InputAdornment position="end">
-                  <IconButton
-                    edge="end"
-                    size="small"
-                    aria-label="ניקוי חיפוש"
-                    onClick={() => {
-                      setSearchTerm("");
-                      searchInputRef.current?.focus();
-                    }}
-                    sx={{ color: "#7a6d75" }}
-                  >
-                    <ClearIcon fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              ) : null,
-            }}
+          הוספת משתתפים
+          <Typography
+            component="span"
             sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 3,
-                backgroundColor: "#fff",
-                fontFamily: "Rubik, sans-serif",
-              },
-              "& input": {
-                textAlign: "right",
-                fontFamily: "Rubik, sans-serif",
-              },
+              display: "block",
+              mt: 0.75,
+              fontSize: 13,
+              fontWeight: 500,
+              color: "text.secondary",
             }}
-          />
-        </Box>
-        <List disablePadding>
-          {filteredUsers.length === 0 ? (
-            <Typography
-              sx={{
-                px: 2,
-                py: 4,
-                textAlign: "center",
-                color: "#8a7f89",
-                fontFamily: "Rubik, sans-serif",
-                fontWeight: 700,
+          >
+            חיפוש מהיר לפי שם או אימייל
+          </Typography>
+        </DialogTitle>
+
+        <DialogContent
+          sx={{
+            pt: 0,
+            pb: 4,
+            maxHeight: { xs: "min(68dvh, 540px)", sm: 430 },
+            overflowY: "auto",
+            backgroundColor: "transparent",
+          }}
+        >
+          <Box
+            sx={{
+              position: "sticky",
+              top: 0,
+              zIndex: 1,
+              pt: 1,
+              pb: 2,
+              backgroundColor: (theme) => alpha(theme.palette.background.default, 0.86),
+              backdropFilter: "blur(16px)",
+              WebkitBackdropFilter: "blur(16px)",
+            }}
+          >
+            <TextField
+              inputRef={searchInputRef}
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="חיפוש לפי שם או אימייל"
+              fullWidth
+              autoFocus
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <IconButton
+                      edge="start"
+                      aria-label="חיפוש משתתף"
+                      onClick={() => searchInputRef.current?.focus()}
+                      sx={{ color: "primary.main" }}
+                    >
+                      <SearchIcon fontSize="small" />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+                endAdornment: searchTerm ? (
+                  <InputAdornment position="end">
+                    <IconButton
+                      edge="end"
+                      aria-label="ניקוי חיפוש"
+                      onClick={() => {
+                        setSearchTerm("");
+                        searchInputRef.current?.focus();
+                      }}
+                      sx={{ color: "text.secondary" }}
+                    >
+                      <ClearIcon fontSize="small" />
+                    </IconButton>
+                  </InputAdornment>
+                ) : null,
               }}
-            >
-              לא נמצאו משתתפים
-            </Typography>
-          ) : (
-            filteredUsers.map((user, index) => {
-            const prevRole = filteredUsers[index - 1]?.role;
-            const isFirstOfRole = index === 0 || user.role !== prevRole;
-            const isAssigned = isUserAssignedToEvent(user.id);
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 3,
+                  backgroundColor: "background.paper",
+                },
+                "& input": {
+                  textAlign: "right",
+                },
+              }}
+            />
+          </Box>
+          <List disablePadding>
+            {filteredUsers.length === 0 ? (
+              <Typography
+                sx={{
+                  px: 2,
+                  py: 6,
+                  textAlign: "center",
+                  color: "text.secondary",
+                  fontWeight: 700,
+                }}
+              >
+                לא נמצאו משתתפים
+              </Typography>
+            ) : (
+              filteredUsers.map((user, index) => {
+                const prevRole = filteredUsers[index - 1]?.role;
+                const isFirstOfRole = index === 0 || user.role !== prevRole;
+                const isAssigned = isUserAssignedToEvent(user.id);
+                const isPending = pendingUserId === user.id;
 
-            return (
-              <React.Fragment key={user.id}>
-                {isFirstOfRole && (
-                  <Typography
+                return (
+                  <React.Fragment key={user.id}>
+                    {isFirstOfRole && (
+                      <Typography
+                        sx={{
+                          px: 2,
+                          py: 1,
+                          fontWeight: 800,
+                          fontSize: 12,
+                          color: "primary.main",
+                          textAlign: "right",
+                        }}
+                      >
+                        {getRoleTitle(user.role!)}
+                      </Typography>
+                    )}
+
+                    <ListItem
                     sx={{
-                      px: 2,
+                      px: 1.5,
                       py: 1,
-                      fontWeight: 700,
-                      fontSize: 13,
-                      color: "#9a5188",
-                      textAlign: "right",
-                      fontFamily: "Rubik, sans-serif",
-                    }}
-                  >
-                    {getRoleTitle(user.role!)}
-                  </Typography>
-                )}
-
-                <ListItem
-                  sx={{
-                    px: 1.5,
-                    py: 1,
-                    gap: 1.5,
-                    borderRadius: 3,
-                    marginBottom: 0.75,
-                    backgroundColor: isAssigned ? "#f0fdf4" : "#fff",
-                    border: "1px solid",
-                    borderColor: isAssigned ? "#bbf7d0" : "#f0ecef",
-                    transition: "all 0.15s ease",
-                    "&:hover": {
-                      backgroundColor: isAssigned ? "#f0fdf4" : "#f8f4f9",
-                    },
-                  }}
-                >
-                  <IconButton
-                    edge="end"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      handleAddAttendee(user.id);
-                    }}
-                    disabled={isAssigned}
-                    aria-label={`הוסף ${user.name} לאירוע`}
-                    sx={{
-                      width: 34,
-                      height: 34,
-                      flexShrink: 0,
-                      color: isAssigned ? "#22c55e" : "#9a5188",
-                      backgroundColor: isAssigned ? "#f0fdf4" : "#fbf7fa",
+                      gap: 1.5,
+                      borderRadius: 4,
+                      marginBottom: 1,
+                      backgroundColor: isAssigned ? "success.light" : "background.paper",
                       border: "1px solid",
-                      borderColor: isAssigned ? "#bbf7d0" : "#ead8e5",
+                      borderColor: isAssigned ? "success.main" : "divider",
+                      transition: (theme) =>
+                        `transform 140ms ${theme.transitions.easing.easeOut}, background-color 140ms ease, border-color 140ms ease`,
                       "&:hover": {
-                        backgroundColor: isAssigned ? "#f0fdf4" : "#f3e8f0",
-                        borderColor: isAssigned ? "#bbf7d0" : "#d8b8cf",
+                        backgroundColor: isAssigned ? "success.light" : "primary.light",
+                        transform: "translateY(-1px)",
                       },
                     }}
                   >
-                    <AddIcon fontSize="small" />
-                  </IconButton>
+                    <IconButton
+                      edge="end"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleAddAttendee(user.id);
+                      }}
+                      disabled={isAssigned || Boolean(pendingUserId)}
+                      aria-label={`הוסף ${user.name} לאירוע`}
+                      sx={{
+                        flexShrink: 0,
+                        color: isAssigned ? "success.main" : "primary.main",
+                        backgroundColor: "background.paper",
+                        border: "1px solid",
+                        borderColor: isAssigned ? "success.main" : "divider",
+                      }}
+                    >
+                      {isPending ? (
+                        <CircularProgress size={18} />
+                      ) : (
+                        <AddIcon fontSize="small" />
+                      )}
+                    </IconButton>
 
                   <ListItemText
                     primary={user.name}
+                    secondary={user.email}
                     primaryTypographyProps={{
                       sx: {
                         fontSize: 14,
-                        fontWeight: 500,
+                        fontWeight: 700,
                         textAlign: "right",
-                        fontFamily: "Rubik, sans-serif",
+                      },
+                    }}
+                    secondaryTypographyProps={{
+                      sx: {
+                        textAlign: "right",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
                       },
                     }}
                   />
@@ -288,23 +326,40 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
                         height: 36,
                         bgcolor:
                           user.role === AUTH_ROLES.TRAINEE.id
-                            ? "#e8e8e8"
-                            : "#dc87b8",
+                            ? "primary.light"
+                            : "secondary.light",
                         color:
-                          user.role === AUTH_ROLES.TRAINEE.id ? "#888" : "#fff",
+                          user.role === AUTH_ROLES.TRAINEE.id
+                            ? "primary.main"
+                            : "secondary.main",
                         fontSize: 14,
+                        fontWeight: 800,
                       }}
                     >
                       <PersonOutlineIcon fontSize="small" />
                     </Avatar>
                   </ListItemAvatar>
-                </ListItem>
-              </React.Fragment>
-            );
-            })
-          )}
-        </List>
-      </DialogContent>
-    </Dialog>
+                  </ListItem>
+                  </React.Fragment>
+                );
+              })
+            )}
+          </List>
+        </DialogContent>
+      </Dialog>
+      <Snackbar
+        open={Boolean(notice)}
+        autoHideDuration={3000}
+        onClose={() => setNotice(null)}
+      >
+        <Alert
+          severity={notice?.severity ?? "success"}
+          onClose={() => setNotice(null)}
+          sx={{ width: "100%" }}
+        >
+          {notice?.message}
+        </Alert>
+      </Snackbar>
+    </>
   );
 };

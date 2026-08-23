@@ -1,53 +1,86 @@
 import { makeStyles } from "@mui/styles";
+import { alpha, type Theme } from "@mui/material/styles";
+import { theme } from "../../../theme/them";
 
-export const useVolunteerPageStyles = makeStyles({
+type VolunteerPageClassKey =
+  | "container"
+  | "header"
+  | "pageTitle"
+  | "pageSubtitle"
+  | "createButton"
+  | "toolbarCard"
+  | "searchField"
+  | "archiveModeButton"
+  | "resultCount"
+  | "contentLayout"
+  | "dataGridBox"
+  | "stateBox"
+  | "stateTitle"
+  | "stateText";
+
+export const useVolunteerPageStyles = makeStyles<
+  Theme,
+  {},
+  VolunteerPageClassKey
+>({
   container: {
+    "--people-surface": theme.palette.background.paper,
+    "--people-muted": theme.palette.background.default,
+    "--people-text": theme.palette.text.primary,
+    "--people-secondary": theme.palette.text.secondary,
+    "--people-primary": theme.palette.primary.main,
     padding: "88px 24px 24px",
     direction: "rtl",
-    minHeight: "100vh",
-    backgroundColor: "#f9f9f9",
-    animation: "fadeIn 0.4s ease-out",
-    "@media (max-width: 900px)": {
-      padding: "72px 12px 16px",
-      overflowX: "hidden",
-    },
+    minHeight: "100dvh",
+    background:
+      "linear-gradient(180deg, var(--people-muted) 0%, rgba(255,255,255,0.92) 100%)",
+    color: "var(--people-text)",
+    animation: "fadeIn 180ms var(--ease-out, ease-out)",
   },
   header: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "flex-start",
     gap: 16,
-    marginBottom: 16,
-    animation: "fadeInDown 0.5s ease-out",
+    maxWidth: 1480,
+    margin: "0 auto 16px",
   },
   pageTitle: {
-    fontFamily: "Rubik, sans-serif",
-    fontWeight: 700,
-    color: "#333",
-    fontSize: "1.5rem",
+    fontFamily: theme.typography.fontFamily,
+    fontWeight: 750,
+    color: "var(--people-text)",
+    fontSize: "1.55rem",
+    lineHeight: 1.18,
+    letterSpacing: 0,
   },
   pageSubtitle: {
-    fontFamily: "Rubik, sans-serif",
-    color: "#6c626b",
-    fontSize: "0.92rem",
-    marginTop: 4,
+    fontFamily: theme.typography.fontFamily,
+    color: "var(--people-secondary)",
+    fontSize: "0.94rem",
+    lineHeight: 1.55,
+    marginTop: 5,
   },
   createButton: {
-    background: "linear-gradient(135deg, #9a5188 0%, #7a3e6b 100%)",
-    color: "#fff",
-    fontWeight: 600,
-    fontFamily: "Rubik, sans-serif",
-    borderRadius: 14,
-    padding: "10px 24px",
-    boxShadow: "0 4px 16px rgba(154, 81, 136, 0.25)",
-    transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
+    minHeight: "44px !important",
+    borderRadius: "12px !important",
+    padding: "0 18px !important",
+    backgroundColor: "var(--people-primary) !important",
+    color: `${theme.palette.primary.contrastText} !important`,
+    fontFamily: `${theme.typography.fontFamily} !important`,
+    fontWeight: "700 !important" as const,
+    boxShadow: `${theme.shadows[1]} !important`,
+    transition:
+      "transform 140ms var(--ease-out, ease-out), background-color 140ms ease, box-shadow 140ms ease !important",
     "&:hover": {
-      background: "linear-gradient(135deg, #7a3e6b 0%, #5a2d51 100%)",
-      boxShadow: "0 8px 28px rgba(154, 81, 136, 0.4)",
-      transform: "translateY(-2px)",
+      backgroundColor: `${theme.palette.primary.dark} !important`,
+      boxShadow: `${theme.shadows[3]} !important`,
+      transform: "translateY(-1px)",
     },
     "&:active": {
-      transform: "translateY(0) scale(0.98)",
+      transform: "scale(0.97)",
+    },
+    "&:focus-visible": {
+      boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.22)} !important`,
     },
     "& .MuiButton-startIcon": {
       marginLeft: 6,
@@ -55,46 +88,55 @@ export const useVolunteerPageStyles = makeStyles({
     },
   },
   toolbarCard: {
-    display: "flex",
-    justifyContent: "space-between",
+    display: "grid",
+    gridTemplateColumns: "minmax(280px, 1fr) auto auto",
     alignItems: "center",
-    gap: 16,
-    background: "#fff",
-    borderRadius: 18,
-    padding: "14px 16px",
-    marginBottom: 14,
-    boxShadow: "0 3px 16px rgba(0,0,0,0.05)",
-    border: "1px solid #f0ecef",
-    animation: "fadeInUp 0.45s ease-out",
+    gap: 12,
+    maxWidth: 1480,
+    margin: "0 auto 14px",
+    backgroundColor: alpha(theme.palette.background.paper, 0.84),
+    backdropFilter: "blur(18px) saturate(1.35)",
+    WebkitBackdropFilter: "blur(18px) saturate(1.35)",
+    borderRadius: 16,
+    padding: 12,
+    boxShadow: theme.shadows[1],
+    border: `1px solid ${alpha(theme.palette.divider, 0.82)}`,
   },
   searchField: {
-    width: "min(520px, 100%)",
+    width: "100%",
     "& .MuiOutlinedInput-root": {
-      borderRadius: 14,
-      backgroundColor: "#fbf8fa",
-      fontFamily: "Rubik, sans-serif",
+      minHeight: 44,
+      borderRadius: 12,
+      backgroundColor: theme.palette.background.paper,
+      fontFamily: theme.typography.fontFamily,
+      transition:
+        "box-shadow 140ms ease, border-color 140ms ease, background-color 140ms ease",
     },
     "& input": {
       textAlign: "right" as const,
-      fontFamily: "Rubik, sans-serif",
+      fontFamily: theme.typography.fontFamily,
+      paddingBlock: 10.5,
     },
     "& .MuiInputAdornment-root": {
-      color: "#9a5188",
+      color: "var(--people-primary)",
     },
   },
   archiveModeButton: {
     flexShrink: 0,
-    minHeight: 38,
+    minHeight: "44px !important",
     borderRadius: "12px !important",
-    borderColor: "#d9bfd2 !important",
-    color: "#7a3e6b !important",
-    backgroundColor: "#fff",
-    fontFamily: "Rubik, sans-serif !important",
-    fontWeight: "800 !important" as const,
-    padding: "6px 16px !important",
+    borderColor: `${theme.palette.divider} !important`,
+    color: `${theme.palette.text.primary} !important`,
+    backgroundColor: `${alpha(theme.palette.background.paper, 0.72)} !important`,
+    fontFamily: `${theme.typography.fontFamily} !important`,
+    fontWeight: "700 !important" as const,
+    padding: "0 16px !important",
     "&:hover": {
-      backgroundColor: "#f8f1f6",
-      borderColor: "#9a5188 !important",
+      backgroundColor: `${theme.palette.primary.light} !important`,
+      borderColor: `${theme.palette.primary.main} !important`,
+    },
+    "&:focus-visible": {
+      boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.22)} !important`,
     },
     "& .MuiButton-startIcon": {
       marginLeft: 6,
@@ -103,75 +145,96 @@ export const useVolunteerPageStyles = makeStyles({
   },
   resultCount: {
     flexShrink: 0,
-    color: "#7a3e6b",
-    fontFamily: "Rubik, sans-serif",
+    color: "var(--people-secondary)",
+    fontFamily: theme.typography.fontFamily,
     fontWeight: 700,
     fontSize: "0.86rem",
+    minHeight: 44,
+    display: "inline-flex",
+    alignItems: "center",
+    paddingInline: 6,
+    whiteSpace: "nowrap" as const,
   },
   contentLayout: {
     display: "flex",
     alignItems: "stretch",
     gap: 16,
     minWidth: 0,
+    maxWidth: 1480,
+    margin: "0 auto",
   },
   dataGridBox: {
     flex: 1,
     minWidth: 0,
-    height: "calc(100vh - 250px)",
-    minHeight: 420,
-    background: "#fff",
-    borderRadius: 18,
+    height: "calc(100dvh - 246px)",
+    minHeight: 430,
+    backgroundColor: "var(--people-surface)",
+    borderRadius: 16,
     overflow: "hidden",
-    boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
-    border: "1px solid #f0ecef",
-    animation: "fadeInUp 0.6s ease-out",
-    transition: "box-shadow 0.3s ease",
+    boxShadow: theme.shadows[2],
+    border: `1px solid ${alpha(theme.palette.divider, 0.82)}`,
+    transition: "box-shadow 180ms ease, border-color 180ms ease",
     "&:hover": {
-      boxShadow: "0 8px 28px rgba(0,0,0,0.08)",
+      boxShadow: theme.shadows[3],
+    },
+    "& .MuiDataGrid-root": {
+      border: 0,
+      fontFamily: theme.typography.fontFamily,
+      color: "var(--people-text)",
+      direction: "rtl",
+    },
+    "& .MuiDataGrid-main": {
+      overflow: "auto",
     },
     "& .MuiDataGrid-columnHeaders": {
-      backgroundColor: "#f8f4f9",
-      fontWeight: 700,
-      color: "#7a3e6b",
-      fontFamily: "Rubik, sans-serif",
+      backgroundColor: alpha(theme.palette.background.default, 0.9),
+      color: "var(--people-secondary)",
+      borderBottom: `1px solid ${theme.palette.divider}`,
+      minHeight: "48px !important",
+    },
+    "& .MuiDataGrid-columnHeader": {
+      minHeight: "48px !important",
     },
     "& .MuiDataGrid-columnHeaderTitle": {
-      fontWeight: 800,
-      fontFamily: "Rubik, sans-serif",
+      fontWeight: 750,
+      fontFamily: theme.typography.fontFamily,
     },
     "& .MuiDataGrid-row": {
-      fontFamily: "Rubik, sans-serif",
       cursor: "pointer",
-      transition: "background 0.25s ease, transform 0.15s ease",
-      minHeight: "58px !important",
+      minHeight: "60px !important",
+      transition:
+        "background-color 140ms ease, box-shadow 140ms ease, transform 140ms var(--ease-out, ease-out)",
       "&:hover": {
-        backgroundColor: "rgba(154,81,136,0.06)",
+        backgroundColor: alpha(theme.palette.primary.main, 0.055),
+      },
+      "&.Mui-selected, &.Mui-selected:hover": {
+        backgroundColor: alpha(theme.palette.primary.main, 0.09),
       },
     },
     "& .MuiDataGrid-cell": {
+      minHeight: "60px !important",
       fontSize: 13.5,
-      borderColor: "#f5f0f3",
+      borderColor: theme.palette.divider,
       display: "flex",
       alignItems: "center",
-      outline: "none !important",
+      outline: "none",
     },
+    "& .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus-within":
+      {
+        outline: `2px solid ${alpha(theme.palette.primary.main, 0.42)}`,
+        outlineOffset: -2,
+      },
     "& .MuiDataGrid-footerContainer": {
-      backgroundColor: "#faf8fa",
-      borderTop: "1px solid #f0ecef",
-      fontFamily: "Rubik, sans-serif",
+      minHeight: 48,
+      backgroundColor: alpha(theme.palette.background.default, 0.72),
+      borderTop: `1px solid ${theme.palette.divider}`,
+      fontFamily: theme.typography.fontFamily,
     },
     "& .MuiDataGrid-overlay": {
-      fontFamily: "Rubik, sans-serif",
-      color: "#7a3e6b",
+      fontFamily: theme.typography.fontFamily,
+      color: "var(--people-secondary)",
       fontWeight: 700,
     },
-  },
-  loaderOverlay: {
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    height: "100%",
   },
   stateBox: {
     height: "100%",
@@ -184,46 +247,89 @@ export const useVolunteerPageStyles = makeStyles({
     textAlign: "center" as const,
   },
   stateTitle: {
-    color: "#7a3e6b",
-    fontFamily: "Rubik, sans-serif",
-    fontWeight: 800,
+    color: "var(--people-text)",
+    fontFamily: theme.typography.fontFamily,
+    fontWeight: 750,
     fontSize: "1.05rem",
   },
   stateText: {
-    color: "#746974",
-    fontFamily: "Rubik, sans-serif",
+    color: "var(--people-secondary)",
+    fontFamily: theme.typography.fontFamily,
     fontSize: "0.92rem",
   },
   "@media (max-width: 900px)": {
+    container: {
+      padding: "72px 12px 16px",
+      overflowX: "hidden",
+    },
     header: {
       flexDirection: "column" as const,
       alignItems: "stretch",
+      marginBottom: 12,
     },
     createButton: {
       alignSelf: "stretch",
-      minHeight: 44,
     },
     toolbarCard: {
-      flexDirection: "column" as const,
+      gridTemplateColumns: "1fr",
       alignItems: "stretch",
+      gap: 10,
     },
     resultCount: {
-      textAlign: "right" as const,
+      justifyContent: "flex-start",
+      minHeight: 28,
+      paddingInline: 2,
     },
     archiveModeButton: {
-      alignSelf: "flex-start",
-      minHeight: 44,
+      width: "100%",
     },
     dataGridBox: {
-      height: "calc(100vh - 310px)",
+      height: "calc(100dvh - 326px)",
       minHeight: 360,
       overflowX: "auto" as const,
       "& .MuiDataGrid-root": {
-        minWidth: 720,
+        minWidth: 860,
       },
     },
     contentLayout: {
       flexDirection: "column" as const,
     },
   },
-});
+  "@media (max-width: 480px)": {
+    pageTitle: {
+      fontSize: "1.35rem",
+    },
+    toolbarCard: {
+      borderRadius: 14,
+      padding: 10,
+    },
+    dataGridBox: {
+      height: "calc(100dvh - 348px)",
+      minHeight: 340,
+    },
+  },
+  "@media (prefers-reduced-motion: reduce)": {
+    container: {
+      animation: "fadeIn 1ms linear",
+    },
+    createButton: {
+      transition: "background-color 1ms linear !important",
+      "&:hover, &:active": {
+        transform: "none",
+      },
+    },
+    dataGridBox: {
+      transition: "none",
+      "& .MuiDataGrid-row": {
+        transition: "background-color 1ms linear",
+      },
+    },
+  },
+  "@media (prefers-reduced-transparency: reduce)": {
+    toolbarCard: {
+      backgroundColor: theme.palette.background.paper,
+      backdropFilter: "none",
+      WebkitBackdropFilter: "none",
+    },
+  },
+} as any);

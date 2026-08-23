@@ -16,7 +16,7 @@ export const CustomLoadingOverlay = () => {
         <CircularProgress color="secondary" size={50} />
         <Typography
           variant="subtitle1"
-          sx={{ mt: 2, fontWeight: 600, color: "#7a3e6b" }}
+          sx={{ mt: 2, fontWeight: 600, color: "var(--color-primary)" }}
         >
           טוען מתנדבים...
         </Typography>

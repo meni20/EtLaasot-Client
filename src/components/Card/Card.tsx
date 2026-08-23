@@ -115,6 +115,8 @@ export const BasicCard: React.FC<ICardProps> = ({
     ? formatDate(start)
     : `${formatDate(start)} - ${formatDate(end)}`;
   const hasImageBackground = Boolean(imageUrl);
+  const isPastEvent = end ? end.getTime() < Date.now() : false;
+  const statusLabel = isPastEvent ? "הסתיים" : "אירוע קרוב";
 
   return (
     <Box className={classes.cardContainer}>
@@ -134,13 +136,23 @@ export const BasicCard: React.FC<ICardProps> = ({
               <Typography variant="h6" className={classes.eventName}>
                 {eventName}
               </Typography>
-              {eventTypeLabel && (
+              <Box className={classes.chipRow}>
+                {eventTypeLabel && (
+                  <Chip
+                    className={classes.typeChip}
+                    label={eventTypeLabel}
+                    size="small"
+                  />
+                )}
                 <Chip
-                  className={classes.typeChip}
-                  label={eventTypeLabel}
+                  className={`${classes.statusChip} ${
+                    isPastEvent ? classes.statusPast : classes.statusUpcoming
+                  }`}
+                  label={statusLabel}
                   size="small"
+                  aria-label={`סטטוס אירוע: ${statusLabel}`}
                 />
-              )}
+              </Box>
             </Box>
 
             <Box className={classes.headerActions}>

@@ -44,6 +44,9 @@ export const LineChart = ({
     1,
   );
   const axisValues = [maxParticipants, Math.round(maxParticipants / 2), 0];
+  const chartSummary = visibleEvents
+    .map((event) => `${event.name}: ${event.participantCount}`)
+    .join(", ");
 
   if (visibleEvents.length === 0) {
     return (
@@ -53,9 +56,21 @@ export const LineChart = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          borderRadius: "var(--radius-md)",
+          border: "1px dashed var(--color-border)",
+          backgroundColor: "var(--color-surface-muted)",
+          px: 2,
+          textAlign: "center",
         }}
       >
-        <Typography sx={{ color: "#999", fontFamily: "Rubik, sans-serif" }}>
+        <Typography
+          sx={{
+            color: "var(--color-text-secondary)",
+            fontFamily: "inherit",
+            fontSize: "0.92rem",
+            fontWeight: 600,
+          }}
+        >
           אין אירועים להצגה בגרף.
         </Typography>
       </Box>
@@ -64,16 +79,17 @@ export const LineChart = ({
 
   return (
     <Box
-      role="img"
-      aria-label="משתתפים לפי אירוע"
+      role="group"
+      aria-label={`משתתפים לפי אירוע. ${chartSummary}`}
       sx={{
         height,
         width: "100%",
         minHeight: 180,
         display: "grid",
-        gridTemplateColumns: "34px minmax(0, 1fr)",
-        gap: 1.5,
+        gridTemplateColumns: "42px minmax(0, 1fr)",
+        gap: 1.75,
         direction: "ltr",
+        overflow: "hidden",
       }}
     >
       <Box
@@ -84,10 +100,11 @@ export const LineChart = ({
           justifyContent: "space-between",
           pt: 1,
           pb: 7.2,
-          color: "#6B7280",
-          fontFamily: "Rubik, sans-serif",
+          color: "var(--color-text-muted)",
+          fontFamily: "inherit",
           fontSize: 11,
           textAlign: "right",
+          fontVariantNumeric: "tabular-nums",
         }}
       >
         {axisValues.map((value, index) => (
@@ -100,14 +117,15 @@ export const LineChart = ({
           minWidth: 0,
           display: "grid",
           gridTemplateRows: "minmax(0, 1fr) 58px",
-          borderBottom: "1px solid #E5E0E7",
+          borderBottom: "1px solid var(--color-border)",
           backgroundImage:
-            "linear-gradient(to bottom, #F2EEF4 1px, transparent 1px)",
+            "linear-gradient(to bottom, var(--color-border-subtle) 1px, transparent 1px)",
           backgroundSize: "100% calc((100% - 58px) / 2)",
           backgroundRepeat: "repeat-y",
         }}
       >
         <Box
+          role="list"
           sx={{
             display: "grid",
             gridTemplateColumns: `repeat(${visibleEvents.length}, minmax(52px, 1fr))`,
@@ -115,6 +133,7 @@ export const LineChart = ({
             gap: 1.5,
             px: 0.5,
             pt: 1,
+            overflow: "hidden",
           }}
         >
           {visibleEvents.map((event) => {
@@ -129,28 +148,39 @@ export const LineChart = ({
             return (
               <Tooltip key={event.id ?? event.name} title={tooltip} arrow>
                 <Box
+                  role="listitem"
+                  tabIndex={0}
+                  aria-label={tooltip}
                   sx={{
                     height: "100%",
                     minWidth: 0,
                     display: "flex",
                     alignItems: "end",
                     justifyContent: "center",
+                    borderRadius: "var(--radius-sm)",
+                    outline: "none",
+                    "&:hover .line-chart-bar, &:focus-visible .line-chart-bar": {
+                      transform: "translateY(-2px)",
+                      boxShadow: "0 10px 22px rgba(var(--color-primary-rgb), 0.2)",
+                    },
+                    "&:focus-visible": {
+                      boxShadow: "0 0 0 3px rgba(var(--color-primary-rgb), 0.22)",
+                    },
                   }}
                 >
                   <Box
+                    className="line-chart-bar"
                     sx={{
                       width: "100%",
                       maxWidth: 46,
                       height: `${heightPercent}%`,
                       minHeight: 4,
-                      borderRadius: "8px 8px 2px 2px",
+                      borderRadius: "10px 10px 3px 3px",
                       background:
-                        "linear-gradient(180deg, #b76aa5 0%, #9a5188 100%)",
-                      boxShadow: "0 6px 14px rgba(154, 81, 136, 0.18)",
-                      transition: "height 0.2s ease, transform 0.2s ease",
-                      "&:hover": {
-                        transform: "translateY(-2px)",
-                      },
+                        "linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)",
+                      boxShadow: "0 8px 18px rgba(var(--color-primary-rgb), 0.16)",
+                      transition:
+                        "height var(--transition-normal), transform var(--transition-fast), box-shadow var(--transition-fast)",
                     }}
                   />
                 </Box>
@@ -178,8 +208,8 @@ export const LineChart = ({
               <Box
                 sx={{
                   minWidth: 0,
-                  color: "#4B5563",
-                  fontFamily: "Rubik, sans-serif",
+                  color: "var(--color-text-secondary)",
+                  fontFamily: "inherit",
                   fontSize: 11,
                   lineHeight: 1.25,
                   textAlign: "center",

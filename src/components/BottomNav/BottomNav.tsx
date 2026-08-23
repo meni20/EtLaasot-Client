@@ -1,19 +1,16 @@
-import { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { BottomNavigation, BottomNavigationAction } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import EventIcon from "@mui/icons-material/Event";
 import { useStyles } from "./BottomNav.styles";
-import { useAuth } from "../../contexts/useAuth";
 
 interface NavItem {
   label: string;
   icon: React.ReactNode;
   path: string;
-  allowedRoles?: number[];
 }
 
-const allNavItems: NavItem[] = [
+const navItems: NavItem[] = [
   { label: "בית", icon: <HomeIcon />, path: "/home" },
   { label: "אירועים", icon: <EventIcon />, path: "/events" },
 ];
@@ -22,41 +19,41 @@ export const BottomNav: React.FC = () => {
   const styles = useStyles();
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
-
-  const userRoleIds = useMemo(
-    () => user?.roles?.map((role) => role.roleId) ?? [],
-    [user?.roles],
-  );
-
-  const navItems = useMemo(
-    () =>
-      allNavItems.filter(
-        (item) =>
-          !item.allowedRoles ||
-          item.allowedRoles.some((roleId) => userRoleIds.includes(roleId)),
-      ),
-    [userRoleIds],
-  );
 
   const currentIndex = navItems.findIndex((item) =>
-    location.pathname.startsWith(item.path),
+    matchNavPath(location.pathname, item.path),
   );
 
   return (
     <BottomNavigation
+      component="nav"
+      aria-label="ניווט תחתון"
       className={styles.root}
-      value={currentIndex === -1 ? 0 : currentIndex}
-      onChange={(_, newValue) => navigate(navItems[newValue].path)}
+      value={currentIndex === -1 ? false : currentIndex}
+      onChange={(_, newValue) => {
+        const target = navItems[newValue]?.path;
+        if (target && target !== location.pathname) {
+          navigate(target);
+        }
+      }}
       showLabels
     >
-      {navItems.map((item) => (
+      {navItems.map((item, index) => (
         <BottomNavigationAction
           key={item.path}
           label={item.label}
           icon={item.icon}
+          aria-current={index === currentIndex ? "page" : undefined}
         />
       ))}
     </BottomNavigation>
   );
+};
+
+const matchNavPath = (pathname: string, navPath: string) => {
+  if (navPath === "/home") {
+    return pathname === "/" || pathname === "/home";
+  }
+
+  return pathname === navPath || pathname.startsWith(`${navPath}/`);
 };
