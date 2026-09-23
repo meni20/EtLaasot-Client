@@ -65,6 +65,7 @@ import {
   SHIRT_SIZE_OPTIONS,
 } from "../../constants/user.constants";
 import { TraineeMedicationsSection } from "./TraineeMedicationsSection";
+import { TraineeDocumentsSection } from "../TraineeDocuments/TraineeDocumentsSection";
 
 type UserDetailsFormState = {
   name: string;
@@ -334,6 +335,23 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
     );
   const canManageTraineeMedications =
     Boolean(isSelectedUserTrainee) && canResetPassword;
+  const targetBranches = [
+    volunteerData.branchId,
+    ...(volunteerData.userRoles?.map((role) => role.resourceId ?? role.branchId) ?? []),
+  ];
+  const canManageTraineeDocuments =
+    (showParentName ||
+      volunteerData.userRoles?.some((role) => role.roleId === AUTH_ROLES.TRAINEE.id)) &&
+    authUser?.roles.some(
+      (role) =>
+        role.roleId === AUTH_ROLES.SUPER_ADMIN.id ||
+        (role.roleId === AUTH_ROLES.BRANCH_ADMIN.id &&
+          !!role.branchId &&
+          targetBranches.includes(role.branchId) &&
+          !volunteerData.userRoles?.some(
+            (targetRole) => targetRole.roleId === AUTH_ROLES.SUPER_ADMIN.id,
+          )),
+    );
 
   const canArchiveUser = React.useMemo(() => {
     if (!authUser || !selectedUser?.id || selectedUser.isActive === false) {
@@ -920,6 +938,10 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               mode="admin"
               traineeUuid={selectedUser.id}
             />
+          )}
+
+          {open && canManageTraineeDocuments && (
+            <TraineeDocumentsSection mode="admin" traineeUuid={volunteerData.id} />
           )}
 
           <Box className={classes.section}>

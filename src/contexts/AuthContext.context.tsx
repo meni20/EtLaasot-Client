@@ -13,6 +13,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [sessionId, setSessionId] = useState(0);
   const [token, setToken] = useState<string | null>(() => getToken());
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -44,6 +45,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     const handleUnauthorized = () => {
+      setSessionId((value) => value + 1);
       clearToken();
       setUser(null);
       setToken(null);
@@ -68,6 +70,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
       setLoading(true);
       const currentUser = await authService.getMe();
+      setSessionId((value) => value + 1);
       setUser(currentUser);
       setToken((currentToken) => currentToken ?? "cookie");
     } finally {
@@ -91,6 +94,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const logout = useCallback(async () => {
     await authService.logout().catch(() => undefined);
+    setSessionId((value) => value + 1);
     clearToken();
     setToken(null);
     setUser(null);
@@ -102,7 +106,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   return (
     <AuthContext.Provider
       value={{
-                user,
+        sessionId,
+        user,
         token,
         isAuthenticated: !!token && !!user,
         mustChangePassword: Boolean(user?.mustChangePassword),
