@@ -1,6 +1,8 @@
+import type { EventAudience } from "../constants/event-audience.constants";
 import type { IUser } from "./user.interface";
 
 export interface IEvent {
+  audience?: EventAudience;
   id?: string;
   name: string;
   startDate: Date;
@@ -67,7 +69,10 @@ export interface IEventParticipants {
 }
 
 export type AttendanceIntent =
-  "BOTH" | "VOLUNTEER_ONLY" | "TRAINEE_ONLY" | "NONE";
+  | "BOTH"
+  | "VOLUNTEER_ONLY"
+  | "TRAINEE_ONLY"
+  | "NONE";
 
 export type AttendeeRsvpStatus = "pending" | "confirmed" | "declined";
 

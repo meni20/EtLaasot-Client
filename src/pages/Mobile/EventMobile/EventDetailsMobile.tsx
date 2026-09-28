@@ -1,5 +1,10 @@
+import {
+  EVENT_AUDIENCE_LABELS,
+  eventAccessError,
+} from "../../../constants/event-audience.constants";
 import { useState } from "react";
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -104,7 +109,7 @@ export const EventDetailsMobile: React.FC = () => {
   const navigate = useNavigate();
   const { eventId } = useParams<{ eventId: string }>();
   const queryClient = useQueryClient();
-  const { allEvents } = useMobileEvents();
+  const { allEvents, isLoading, error: listError, refetch } = useMobileEvents();
   const { user } = useAuth();
   const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
   const [imageLoadFailed, setImageLoadFailed] = useState(false);
@@ -119,7 +124,9 @@ export const EventDetailsMobile: React.FC = () => {
   const isTrainee = user?.roles?.some(
     (role) => role.roleId === AUTH_ROLES.TRAINEE.id,
   );
-  const useTraineeRsvp = Boolean(isTrainee && !isVolunteer);
+  const useTraineeRsvp = Boolean(
+    isTrainee && (event?.audience === "TRAINEES" || !isVolunteer),
+  );
   const canUpdateAttendanceIntent = Boolean(isVolunteer || isTrainee);
 
   const attendanceIntentMutation = useMutation({
@@ -130,6 +137,9 @@ export const EventDetailsMobile: React.FC = () => {
       currentEventId: string;
       intent: AttendanceIntent;
     }) => attendeeService.updateAttendanceIntent(currentEventId, intent),
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: ["events"] });
+    },
     onSuccess: (_updatedParticipants, { currentEventId }) => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
       queryClient.invalidateQueries({
@@ -240,7 +250,20 @@ export const EventDetailsMobile: React.FC = () => {
       </Box>
 
       {!event ? (
-        <Typography className={styles.empty}>האירוע לא נמצא</Typography>
+        isLoading ? (
+          <CircularProgress aria-label="טוען אירוע" />
+        ) : listError ? (
+          <Alert
+            severity="error"
+            action={<Button onClick={() => void refetch()}>נסו שוב</Button>}
+          >
+            {eventAccessError(listError, "טעינת האירוע נכשלה. נסו שוב.")}
+          </Alert>
+        ) : (
+          <Typography className={styles.empty}>
+            האירוע לא נמצא או אינו זמין עבורך
+          </Typography>
+        )
       ) : (
         <Box
           className={`${styles.detailsCard} ${
@@ -294,6 +317,17 @@ export const EventDetailsMobile: React.FC = () => {
             </Typography>
           )}
 
+          <Chip
+            label={`קהל יעד: ${EVENT_AUDIENCE_LABELS[event.audience ?? "ALL"]}`}
+          />
+          {attendanceIntentMutation.isError && (
+            <Alert severity="error">
+              {eventAccessError(
+                attendanceIntentMutation.error,
+                "עדכון ההשתתפות נכשל. נסו שוב.",
+              )}
+            </Alert>
+          )}
           {canUpdateAttendanceIntent && (
             <Box className={styles.rsvpRow}>
               <Box className={styles.rsvpHeader}>

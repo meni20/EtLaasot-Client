@@ -8,16 +8,17 @@ import { DataContext } from "./useDataContext";
 export const DataProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user, sessionId } = useAuth();
   const { activeBranch } = useBranch();
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["events", activeBranch],
-    queryFn: () => eventService.getAllEvents(activeBranch ?? undefined),
+    queryKey: ["events", activeBranch, user?.userId, sessionId],
+    queryFn: ({ signal }) =>
+      eventService.getAllEvents(activeBranch ?? undefined, signal),
     enabled: isAuthenticated && !!activeBranch,
   });
 
-  const events = data ?? [];
+  const events = isError ? [] : (data ?? []);
 
   return (
     <DataContext.Provider value={{ events, isLoading, isError }}>

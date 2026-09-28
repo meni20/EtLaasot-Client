@@ -1,3 +1,7 @@
+import {
+  EVENT_AUDIENCE_LABELS,
+  eventAccessError,
+} from "../../constants/event-audience.constants";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -12,7 +16,6 @@ import {
   IconButton,
   FormControlLabel,
   MenuItem,
-  Snackbar,
   TextField,
   Typography,
 } from "@mui/material";
@@ -81,6 +84,7 @@ const emptyEventForm = (): IEvent => {
     startDate,
     endDate,
     eventType: "",
+    audience: "ALL",
   };
 };
 
@@ -91,6 +95,7 @@ const toEventPayload = (form: IEvent, branchId: string | null): IEvent => ({
   startDate: form.startDate,
   endDate: form.endDate,
   eventType: form.eventType,
+  audience: form.audience ?? "ALL",
   branchId: branchId ?? undefined,
 });
 
@@ -112,6 +117,7 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
 
   useEffect(() => {
     setErrors({});
+    setErrorMsg("");
 
     if (event) {
       const startDate = new Date(event.startDate);
@@ -124,6 +130,7 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
         startDate,
         endDate,
         eventType: event.eventType ?? "",
+        audience: event.audience ?? "ALL",
       });
       setSelectedImageFile(null);
       setImagePreviewUrl(null);
@@ -293,6 +300,7 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
 
     try {
       setLoading(true);
+      setErrorMsg("");
       const payload = toEventPayload(form, activeBranch);
       let savedEvent: IEvent;
 
@@ -321,11 +329,12 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
       setRemoveExistingImage(false);
       setErrors({});
       onClose();
-    } catch {
+    } catch (error) {
       setErrorMsg(
-        event
-          ? "שגיאה בעריכת אירוע, נסה שוב"
-          : "שגיאה ביצירת אירוע, נסה שוב",
+        eventAccessError(
+          error,
+          event ? "שגיאה בעריכת אירוע, נסה שוב" : "שגיאה ביצירת אירוע, נסה שוב",
+        ),
       );
     } finally {
       setLoading(false);
@@ -400,7 +409,15 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
             backgroundColor: "transparent",
           }}
         >
-          <Box dir="rtl" sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <Box
+            dir="rtl"
+            sx={{ display: "flex", flexDirection: "column", gap: 3 }}
+          >
+            {errorMsg && (
+              <Alert severity="error" onClose={() => setErrorMsg("")}>
+                {errorMsg}
+              </Alert>
+            )}
             <Box
               sx={{
                 border: "1px solid",
@@ -421,60 +438,84 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
               >
                 פרטי האירוע
               </Typography>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: { xs: "column", sm: "row" },
-                gap: 2,
-              }}
-            >
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
+                  gap: 2,
+                }}
+              >
+                <TextField
+                  label="שם אירוע"
+                  value={form.name}
+                  onChange={handleChange}
+                  name="name"
+                  error={!!errors.name}
+                  helperText={errors.name}
+                  fullWidth
+                  autoFocus
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2.5 } }}
+                />
+                <TextField
+                  label="כתובת"
+                  value={form.address}
+                  onChange={handleChange}
+                  name="address"
+                  error={!!errors.address}
+                  helperText={errors.address}
+                  fullWidth
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2.5 } }}
+                />
+              </Box>
               <TextField
-                label="שם אירוע"
-                value={form.name}
-                onChange={handleChange}
-                name="name"
-                error={!!errors.name}
-                helperText={errors.name}
+                label="קהל יעד"
+                select
                 fullWidth
-                autoFocus
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2.5 } }}
-              />
+                name="audience"
+                value={form.audience ?? "ALL"}
+                onChange={handleChange}
+                sx={{
+                  mt: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2.5 },
+                }}
+              >
+                {Object.entries(EVENT_AUDIENCE_LABELS).map(([value, label]) => (
+                  <MenuItem key={value} value={value}>
+                    {label}
+                  </MenuItem>
+                ))}
+              </TextField>
               <TextField
-                label="כתובת"
-                value={form.address}
+                label="סוג אירוע"
+                value={form.eventType ?? ""}
                 onChange={handleChange}
-                name="address"
-                error={!!errors.address}
-                helperText={errors.address}
+                name="eventType"
+                select
                 fullWidth
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2.5 } }}
+                sx={{
+                  mt: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2.5 },
+                }}
+              >
+                {Object.entries(EVENT_TYPES).map(([key, { label, icon }]) => (
+                  <MenuItem key={key} value={key}>
+                    {icon} {label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                label="תיאור"
+                value={form.description}
+                onChange={handleChange}
+                name="description"
+                multiline
+                rows={3}
+                fullWidth
+                sx={{
+                  mt: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2.5 },
+                }}
               />
-            </Box>
-            <TextField
-              label="סוג אירוע"
-              value={form.eventType ?? ""}
-              onChange={handleChange}
-              name="eventType"
-              select
-              fullWidth
-              sx={{ mt: 2, "& .MuiOutlinedInput-root": { borderRadius: 2.5 } }}
-            >
-              {Object.entries(EVENT_TYPES).map(([key, { label, icon }]) => (
-                <MenuItem key={key} value={key}>
-                  {icon} {label}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              label="תיאור"
-              value={form.description}
-              onChange={handleChange}
-              name="description"
-              multiline
-              rows={3}
-              fullWidth
-              sx={{ mt: 2, "& .MuiOutlinedInput-root": { borderRadius: 2.5 } }}
-            />
             </Box>
 
             <Box
@@ -705,19 +746,6 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
-      <Snackbar
-        open={!!errorMsg}
-        autoHideDuration={4000}
-        onClose={() => setErrorMsg("")}
-      >
-        <Alert
-          severity="error"
-          onClose={() => setErrorMsg("")}
-          sx={{ width: "100%" }}
-        >
-          {errorMsg}
-        </Alert>
-      </Snackbar>
     </React.Fragment>
   );
 };

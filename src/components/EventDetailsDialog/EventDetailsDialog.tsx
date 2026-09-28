@@ -1,3 +1,4 @@
+import { EVENT_AUDIENCE_LABELS } from "../../constants/event-audience.constants";
 import * as React from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import {
@@ -49,6 +50,9 @@ export const EventDetailsDialog: React.FC<IEventDetailsDialogProps> = ({
 
       <DialogContent className={classes.content}>
         <Stack spacing={2}>
+          <Chip
+            label={`קהל יעד: ${EVENT_AUDIENCE_LABELS[eventData.audience ?? "ALL"]}`}
+          />
           {eventTypeInfo && (
             <Box sx={{ display: "flex", justifyContent: "center" }}>
               <Chip

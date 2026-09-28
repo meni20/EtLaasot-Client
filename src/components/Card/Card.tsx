@@ -1,3 +1,4 @@
+import { EVENT_AUDIENCE_LABELS } from "../../constants/event-audience.constants";
 import { Box, Chip, Divider, IconButton, Stack, Tooltip } from "@mui/material";
 import Card from "@mui/material/Card";
 import Button from "@mui/material/Button";
@@ -66,6 +67,8 @@ export const BasicCard: React.FC<ICardProps> = ({
   address,
   description,
   eventType,
+  audience = "ALL",
+  branchId,
   imageUrl,
   participantsCount,
   onEdit,
@@ -101,6 +104,7 @@ export const BasicCard: React.FC<ICardProps> = ({
       name: user.name,
       email: user.email,
       role: user.userRoles?.[0]?.roleId ?? 0,
+      userRoles: user.userRoles,
       events: user.events,
     }));
   }, [allUsers]);
@@ -137,6 +141,10 @@ export const BasicCard: React.FC<ICardProps> = ({
                 {eventName}
               </Typography>
               <Box className={classes.chipRow}>
+                <Chip
+                  label={`קהל יעד: ${EVENT_AUDIENCE_LABELS[audience]}`}
+                  size="small"
+                />
                 {eventTypeLabel && (
                   <Chip
                     className={classes.typeChip}
@@ -241,6 +249,8 @@ export const BasicCard: React.FC<ICardProps> = ({
         <EventAtendeeDialog
           open={open}
           onClose={() => setOpen(false)}
+          audience={audience}
+          branchId={branchId}
           eventId={eventId}
           users={formattedVolunteers || []}
           eventName={eventName}

@@ -1,3 +1,7 @@
+import {
+  isEligibleForAudience,
+  eventAccessError,
+} from "../../constants/event-audience.constants";
 import * as React from "react";
 import { createPortal } from "react-dom";
 import {
@@ -45,6 +49,8 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
   open,
   onClose,
   eventId,
+  audience = "ALL",
+  branchId,
   users,
   eventName,
   startDate,
@@ -258,19 +264,44 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
   };
 
   const handleMentorClick = (mentorId: string) => {
+    if (
+      !isEligibleForAudience(
+        users?.find((u) => u.id === mentorId)?.userRoles,
+        audience,
+        branchId,
+      )
+    )
+      return;
     const nextMentorId = selectedMentorId === mentorId ? null : mentorId;
     setSelectedMentorId(nextMentorId);
     createPairIfReady(nextMentorId, selectedTraineeId);
   };
 
   const handleTraineeClick = (traineeId: string) => {
+    if (
+      !isEligibleForAudience(
+        users?.find((u) => u.id === traineeId)?.userRoles,
+        audience,
+        branchId,
+      )
+    )
+      return;
     const nextTraineeId = selectedTraineeId === traineeId ? null : traineeId;
     setSelectedTraineeId(nextTraineeId);
     createPairIfReady(selectedMentorId, nextTraineeId);
   };
 
   const handlePairedTraineeClick = (traineeId: string) => {
-    if (!selectedMentorId || pairMutation.isPending) return;
+    if (
+      !selectedMentorId ||
+      pairMutation.isPending ||
+      !isEligibleForAudience(
+        users?.find((u) => u.id === traineeId)?.userRoles,
+        audience,
+        branchId,
+      )
+    )
+      return;
 
     setSelectedTraineeId(traineeId);
     pairMutation.mutate({ mentorId: selectedMentorId, traineeId });
@@ -304,7 +335,14 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
           selected ? classes.selectedItem : ""
         }`}
         onClick={onClick}
-        disabled={isMutating}
+        disabled={
+          isMutating ||
+          !isEligibleForAudience(
+            users?.find((user) => user.id === attendee.userId)?.userRoles,
+            audience,
+            branchId,
+          )
+        }
         aria-pressed={selected}
         aria-label={`בחר ${attendee.user?.name ?? "משתתף"} לשיבוץ`}
       >
@@ -436,7 +474,12 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
                 deletePairingMutation.isError ||
                 deleteAttendeeMutation.isError) && (
                 <Alert severity="error">
-                  הפעולה לא הושלמה. בדקו את החיבור ונסו שוב.
+                  {eventAccessError(
+                    pairMutation.error ??
+                      deletePairingMutation.error ??
+                      deleteAttendeeMutation.error,
+                    "הפעולה לא הושלמה. בדקו את החיבור ונסו שוב.",
+                  )}
                 </Alert>
               )}
               {selectedMentorId && !isMutating && (
@@ -827,6 +870,8 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
           eventId={eventId}
           open={isAddAttendeeOpen}
           onClose={() => setIsAddAttendeeOpen(false)}
+          audience={audience}
+          branchId={branchId}
           users={users || []}
         />
       )}

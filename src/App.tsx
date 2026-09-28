@@ -1,7 +1,7 @@
 import React from "react";
 import AppRouter from "./router/Router";
 import { BrowserRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { SessionQueries } from "./contexts/SessionQueries";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { heIL } from "@mui/x-date-pickers/locales";
@@ -17,23 +17,20 @@ import { CacheProvider } from "@emotion/react";
 import { prefixer } from "stylis";
 import rtlPlugin from "stylis-plugin-rtl";
 
-const queryClient = new QueryClient();
 const rtlCache = createCache({
   key: "etlaasot-rtl",
   stylisPlugins: [prefixer, rtlPlugin],
 });
 
 const App: React.FC = () => (
-  <QueryClientProvider client={queryClient}>
-    <LocalizationProvider
-      dateAdapter={AdapterDateFns}
-      adapterLocale={he}
-      localeText={
-        heIL.components.MuiLocalizationProvider.defaultProps.localeText
-      }
-    >
-      <BrowserRouter>
-        <AuthProvider>
+  <LocalizationProvider
+    dateAdapter={AdapterDateFns}
+    adapterLocale={he}
+    localeText={heIL.components.MuiLocalizationProvider.defaultProps.localeText}
+  >
+    <BrowserRouter>
+      <AuthProvider>
+        <SessionQueries>
           <BranchProvider>
             <DataProvider>
               <CacheProvider value={rtlCache}>
@@ -44,10 +41,10 @@ const App: React.FC = () => (
               </CacheProvider>
             </DataProvider>
           </BranchProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </LocalizationProvider>
-  </QueryClientProvider>
+        </SessionQueries>
+      </AuthProvider>
+    </BrowserRouter>
+  </LocalizationProvider>
 );
 
 export default App;

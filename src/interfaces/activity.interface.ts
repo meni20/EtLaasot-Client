@@ -7,7 +7,7 @@ export interface IVolunteerActivity {
   id: string;
   volunteerId: string;
   traineeId: string;
-  eventId: string;
+  eventId: string | null;
   branchId?: string | null;
   startTime: string;
   endTime?: string | null;
@@ -18,7 +18,7 @@ export interface IVolunteerActivity {
   timezone: string;
   volunteer?: IUser;
   trainee?: IUser;
-  event?: IEvent;
+  event?: IEvent | null;
   branch?: IBranch;
   createdAt?: string;
   updatedAt?: string;
