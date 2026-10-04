@@ -299,6 +299,7 @@ export const HomeMobile: React.FC = () => {
               <EventSummaryCard
                 event={selectedUpcomingEvent}
                 attendanceIntent={selectedUpcomingEventIntent}
+                featured
                 onClick={() =>
                   selectedUpcomingEvent.id &&
                   navigate(`/events/${selectedUpcomingEvent.id}`)
