@@ -70,15 +70,16 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title, menuOpen }) => {
   const navigate = useNavigate();
   const { user, logout, changePassword } = useAuth();
   const { activeBranch, availableBranches } = useBranch();
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const {
     data: currentProfile,
     isLoading: isProfileLoading,
     isError: isProfileError,
-  } = useCurrentUserProfile();
-  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  } = useCurrentUserProfile(isProfileDialogOpen);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
-  const [passwordForm, setPasswordForm] =
-    useState<PasswordFormState>(INITIAL_PASSWORD_FORM);
+  const [passwordForm, setPasswordForm] = useState<PasswordFormState>(
+    INITIAL_PASSWORD_FORM,
+  );
   const [passwordError, setPasswordError] = useState("");
   const [isSavingPassword, setIsSavingPassword] = useState(false);
   const [showPasswords, setShowPasswords] = useState(false);
@@ -144,9 +145,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title, menuOpen }) => {
     }
 
     const newPassword = normalizeNewPassword(passwordForm.newPassword);
-    const confirmPassword = normalizeNewPassword(
-      passwordForm.confirmPassword,
-    );
+    const confirmPassword = normalizeNewPassword(passwordForm.confirmPassword);
 
     if (newPassword !== confirmPassword) {
       setPasswordError("אימות הסיסמה אינו תואם");
@@ -172,10 +171,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title, menuOpen }) => {
       setIsPasswordDialogOpen(false);
     } catch (error) {
       setPasswordError(
-        getPasswordChangeErrorMessage(
-          error,
-          "לא הצלחנו לעדכן את הסיסמה",
-        ),
+        getPasswordChangeErrorMessage(error, "לא הצלחנו לעדכן את הסיסמה"),
       );
     } finally {
       setIsSavingPassword(false);
