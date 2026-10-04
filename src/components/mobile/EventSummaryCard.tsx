@@ -69,7 +69,7 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
         boxSizing: "border-box",
         width: "100%",
         maxWidth: "100%",
-        minHeight: featured ? 340 : 196,
+        minHeight: featured ? "66dvh" : 196,
         borderRadius: "var(--radius-xl, 22px)",
         p: featured ? 3 : 2.5,
         backgroundColor: hasImageBackground ? "#252027" : "#fff",
@@ -113,7 +113,7 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
           position: "relative",
           zIndex: 1,
           minWidth: 0,
-          minHeight: featured ? 280 : 0,
+          minHeight: featured ? "calc(66dvh - 48px)" : 0,
         }}
       >
         <Box
@@ -123,6 +123,7 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
             alignSelf: featured ? "stretch" : "auto",
             display: featured ? "flex" : "block",
             flexDirection: featured ? "column" : undefined,
+            alignItems: featured ? "flex-start" : undefined,
           }}
         >
           {eventType && (
@@ -130,6 +131,7 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
               size="small"
               label={`${eventType.icon} ${decodeUnicodeEscapes(eventType.label)}`}
               sx={{
+                alignSelf: featured ? "flex-start" : undefined,
                 height: featured ? 28 : 24,
                 borderRadius: "999px",
                 backgroundColor: hasImageBackground
@@ -168,6 +170,9 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
                 display: "grid",
                 gap: 1,
                 p: 1.5,
+                width: "fit-content",
+                maxWidth: "100%",
+                alignSelf: "flex-start",
                 borderRadius: "var(--radius-md, 14px)",
                 color: hasImageBackground
                   ? "rgba(255, 255, 255, 0.96)"
@@ -244,8 +249,10 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
             sx={{
               display: "inline-flex",
               alignItems: "center",
-              justifyContent: featured ? "center" : "flex-start",
-              alignSelf: featured ? "stretch" : "flex-start",
+              justifyContent: "flex-start",
+              alignSelf: "flex-start",
+              width: "fit-content",
+              maxWidth: "100%",
               gap: 0.75,
               mt: featured ? "auto" : 1.25,
               color: isRegistered
