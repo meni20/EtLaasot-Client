@@ -39,6 +39,8 @@ export const EventPage: React.FC = () => {
       {sectionEvents.map((event) => (
         <BasicCard
           key={event.id}
+          audience={event.audience}
+          branchId={event.branchId}
           eventId={event.id ?? ""}
           eventName={event.name}
           startDate={event.startDate}

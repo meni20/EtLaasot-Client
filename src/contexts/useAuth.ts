@@ -1,6 +1,7 @@
 import { createContext, useContext } from "react";
 
 export interface IAuthContext {
+    sessionId: number;
     user: {
         userId: string;
         name: string;

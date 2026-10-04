@@ -1,3 +1,7 @@
+import {
+  isEligibleForAudience,
+  eventAccessError,
+} from "../../constants/event-audience.constants";
 import * as React from "react";
 import {
   Alert,
@@ -35,6 +39,8 @@ const normalizeSearchValue = (value: unknown) =>
 export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
   open,
   eventId,
+  audience = "ALL",
+  branchId,
   onClose,
   users,
 }) => {
@@ -50,14 +56,17 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
   const filteredUsers = React.useMemo(() => {
     const normalizedSearch = normalizeSearchValue(searchTerm);
 
-    if (!normalizedSearch) return users ?? [];
+    const eligible = (users ?? []).filter((user) =>
+      isEligibleForAudience(user.userRoles, audience, branchId),
+    );
+    if (!normalizedSearch) return eligible;
 
-    return (users ?? []).filter((user) =>
+    return eligible.filter((user) =>
       [user.name, user.email].some((value) =>
         normalizeSearchValue(value).includes(normalizedSearch),
       ),
     );
-  }, [searchTerm, users]);
+  }, [searchTerm, users, audience, branchId]);
 
   React.useEffect(() => {
     if (!open) {
@@ -85,7 +94,10 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
       console.error("Error adding attendee to event:", error);
       setNotice({
         severity: "error",
-        message: "לא הצלחנו להוסיף את המשתתף. נסו שוב.",
+        message: eventAccessError(
+          error,
+          "לא הצלחנו להוסיף את המשתתף. נסו שוב.",
+        ),
       });
     } finally {
       setPendingUserId(null);

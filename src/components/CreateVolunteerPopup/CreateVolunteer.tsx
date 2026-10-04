@@ -76,6 +76,7 @@ const dialogPaperSx = {
   maxHeight: { xs: "92dvh", sm: "calc(100dvh - 64px)" },
   m: { xs: "auto 0 0", sm: 3 },
   direction: "rtl",
+  textAlign: "start",
   fontFamily: "inherit",
   backgroundColor: "rgba(255,255,255,0.9)",
   backdropFilter: "blur(22px) saturate(170%)",
@@ -89,31 +90,36 @@ const dialogPaperSx = {
 };
 
 const fieldSx = {
+  direction: "rtl",
+  textAlign: "start",
   "& .MuiOutlinedInput-root": {
     minHeight: 44,
     borderRadius: 3,
     backgroundColor: "#fff",
+    direction: "rtl",
   },
   "& .MuiInputBase-input, & .MuiSelect-select": {
-    textAlign: "right",
+    direction: "rtl",
+    textAlign: "start",
   },
   "& .MuiFormHelperText-root": {
     mx: 0,
-    textAlign: "right",
-  },
-  "& .MuiSelect-icon": {
-    right: "auto",
-    left: 9,
+    direction: "rtl",
+    textAlign: "start",
   },
 };
 
 const menuProps = {
-  PaperProps: { sx: { direction: "rtl", textAlign: "right" } },
+  PaperProps: { dir: "rtl", sx: { direction: "rtl", textAlign: "start" } },
   MenuListProps: {
+    dir: "rtl",
     sx: {
       direction: "rtl",
+      textAlign: "start",
       "& .MuiMenuItem-root": {
         justifyContent: "flex-start",
+        direction: "rtl",
+        textAlign: "start",
         minHeight: 44,
       },
     },
@@ -210,9 +216,10 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
   return (
     <React.Fragment>
       <Dialog
+        dir="rtl"
         open={open}
         onClose={handleClose}
-        PaperProps={{ sx: dialogPaperSx }}
+        PaperProps={{ dir: "rtl", sx: dialogPaperSx }}
         aria-labelledby="create-volunteer-title"
       >
         <DialogTitle
@@ -225,10 +232,12 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
               "linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(247,248,250,0.84) 100%)",
             borderBottom: "1px solid #e6e1e6",
             fontFamily: "inherit",
+            direction: "rtl",
+            textAlign: "start",
           }}
         >
-          <Stack direction="row" alignItems="center" spacing={1.5}>
-            <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ direction: "rtl" }}>
+            <Box sx={{ minWidth: 0, flex: 1 }} style={{ textAlign: "right" }}>
               <Typography sx={{ fontWeight: 900, fontSize: 20 }}>
                 יצירת מתנדב
               </Typography>
@@ -260,20 +269,26 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
           sx={{
             p: { xs: 2, sm: 3 },
             backgroundColor: "#f7f8fa",
+            direction: "rtl",
+            textAlign: "start",
             "& .MuiInputLabel-root": {
               fontFamily: "inherit",
-              right: 14,
-              left: "auto",
-              transformOrigin: "top right",
-            },
-            "& fieldset.MuiOutlinedInput-notchedOutline": {
-              textAlign: "right",
+              direction: "rtl",
+              textAlign: "start",
             },
           }}
         >
           {temporaryPasswordInfo ? (
-            <Stack spacing={2}>
-              <Alert severity="success" sx={{ borderRadius: 3 }}>
+            <Stack spacing={2} sx={{ direction: "rtl", textAlign: "start" }}>
+              <Alert
+                severity="success"
+                sx={{
+                  borderRadius: 3,
+                  direction: "rtl",
+                  textAlign: "start",
+                  "& .MuiAlert-message": { width: "100%", textAlign: "start" },
+                }}
+              >
                 המשתמש נוצר. הסיסמה הזמנית מוצגת פעם אחת בלבד.
               </Alert>
               <TextField
@@ -301,9 +316,12 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
               </Button>
             </Stack>
           ) : (
-            <Stack spacing={2.5}>
+            <Stack spacing={2.5} sx={{ direction: "rtl", textAlign: "start" }}>
               <Box>
-                <Typography sx={{ fontWeight: 900, color: "var(--color-primary)", mb: 1 }}>
+                <Typography
+                  sx={{ fontWeight: 900, color: "var(--color-primary)", mb: 1 }}
+                  style={{ textAlign: "right" }}
+                >
                   פרטי זיהוי
                 </Typography>
                 <Box
@@ -376,7 +394,10 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
               </Box>
 
               <Box>
-                <Typography sx={{ fontWeight: 900, color: "var(--color-primary)", mb: 1 }}>
+                <Typography
+                  sx={{ fontWeight: 900, color: "var(--color-primary)", mb: 1 }}
+                  style={{ textAlign: "right" }}
+                >
                   פרטי קשר
                 </Typography>
                 <Box
@@ -430,7 +451,10 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
               </Box>
 
               <Box>
-                <Typography sx={{ fontWeight: 900, color: "var(--color-primary)", mb: 1 }}>
+                <Typography
+                  sx={{ fontWeight: 900, color: "var(--color-primary)", mb: 1 }}
+                  style={{ textAlign: "right" }}
+                >
                   פרטים נוספים
                 </Typography>
                 <Box
@@ -499,6 +523,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
             pt: { xs: 1, sm: 1.5 },
             backgroundColor: "#f7f8fa",
             borderTop: "1px solid #e6e1e6",
+            direction: "rtl",
           }}
         >
           {temporaryPasswordInfo ? (
@@ -568,7 +593,13 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
         <Alert
           severity="error"
           onClose={() => setErrorMsg("")}
-          sx={{ width: "100%", borderRadius: 3 }}
+          sx={{
+            width: "100%",
+            borderRadius: 3,
+            direction: "rtl",
+            textAlign: "start",
+            "& .MuiAlert-message": { width: "100%", textAlign: "start" },
+          }}
         >
           {errorMsg}
         </Alert>

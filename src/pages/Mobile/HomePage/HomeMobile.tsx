@@ -1,3 +1,7 @@
+import {
+  isEligibleForAudience,
+  eventAccessError,
+} from "../../../constants/event-audience.constants";
 import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
@@ -104,9 +108,7 @@ export const HomeMobile: React.FC = () => {
     onError: (error: any) => {
       setFeedback({
         severity: "error",
-        message:
-          decodeUnicodeEscapes(error?.response?.data?.message) ||
-          "לא הצלחנו להתחיל את הפעילות",
+        message: eventAccessError(error, "לא הצלחנו להתחיל את הפעילות"),
       });
     },
   });
@@ -152,22 +154,43 @@ export const HomeMobile: React.FC = () => {
       traineeMap.set(trainee.id, trainee);
     });
 
-    return Array.from(traineeMap.values()).sort((first, second) =>
-      first.name.localeCompare(second.name, "he"),
+    const selectedEvent = upcomingEvents.find(
+      (event) => event.id === selectedEventId,
     );
-  }, [assignedTrainees, allTrainees]);
+    return Array.from(traineeMap.values())
+      .filter((trainee) =>
+        isEligibleForAudience(
+          trainee.userRoles,
+          selectedEvent?.audience,
+          selectedEvent?.branchId,
+        ),
+      )
+      .sort((first, second) => first.name.localeCompare(second.name, "he"));
+  }, [assignedTrainees, allTrainees, selectedEventId, upcomingEvents]);
+
+  const preferredTrainee = assignedTrainees.find(trainee =>
+    allowedTrainees.some(allowed => allowed.id === trainee.id),
+  );
 
   useEffect(() => {
-    if (!activeActivity && !selectedEventId && upcomingEvents[0]?.id) {
-      setSelectedEventId(upcomingEvents[0].id);
+    if (
+      !activeActivity &&
+      !upcomingEvents.some((event) => event.id === selectedEventId)
+    ) {
+      setSelectedEventId(upcomingEvents[0]?.id ?? "");
     }
   }, [activeActivity, selectedEventId, upcomingEvents]);
 
   useEffect(() => {
-    if (!activeActivity && !selectedTraineeId && assignedTrainees[0]?.id) {
-      setSelectedTraineeId(assignedTrainees[0].id);
+    if (
+      !activeActivity &&
+      !allowedTrainees.some((trainee) => trainee.id === selectedTraineeId)
+    ) {
+      setSelectedTraineeId(
+        preferredTrainee?.id ?? "",
+      );
     }
-  }, [activeActivity, selectedTraineeId, assignedTrainees]);
+  }, [activeActivity, selectedTraineeId, preferredTrainee, allowedTrainees]);
 
   useEffect(() => {
     if (!activeActivity) return;
@@ -199,7 +222,11 @@ export const HomeMobile: React.FC = () => {
       event.attendees?.some((attendee) => attendee.userId === user?.userId) ??
       false;
 
-    return userAttends ? "VOLUNTEER_ONLY" : "NONE";
+    return userAttends
+      ? event.audience === "TRAINEES"
+        ? "TRAINEE_ONLY"
+        : "VOLUNTEER_ONLY"
+      : "NONE";
   };
 
   const selectedUpcomingEvent =
@@ -272,6 +299,7 @@ export const HomeMobile: React.FC = () => {
               <EventSummaryCard
                 event={selectedUpcomingEvent}
                 attendanceIntent={selectedUpcomingEventIntent}
+                featured
                 onClick={() =>
                   selectedUpcomingEvent.id &&
                   navigate(`/events/${selectedUpcomingEvent.id}`)
@@ -343,7 +371,7 @@ export const HomeMobile: React.FC = () => {
                   label="אירוע"
                   value={
                     decodeUnicodeEscapes(activeActivity.event?.name) ||
-                    activeActivity.eventId
+                    (activeActivity.eventId ?? "אירוע שאינו זמין")
                   }
                 />
                 <ActivityDetail
@@ -468,9 +496,9 @@ export const HomeMobile: React.FC = () => {
                   </TextField>
 
                   <Typography sx={{ mt: 1.25, fontSize: 12, color: "#6B7280" }}>
-                    {assignedTrainees[0]
+                    {preferredTrainee
                       ? `החניך המשויך ${decodeUnicodeEscapes(
-                          assignedTrainees[0].name,
+                          preferredTrainee.name,
                         )} נבחר כברירת מחדל, ואפשר לעבור לחניך אחר מרשימת ההרשאה.`
                       : "אין חניך משויך כברירת מחדל, לכן צריך לבחור חניך לפני תחילת הפעילות."}
                   </Typography>
@@ -510,7 +538,7 @@ export const HomeMobile: React.FC = () => {
                     disabled={
                       startActivityMutation.isPending ||
                       !selectedEventId ||
-                      !selectedTraineeId ||
+                      !allowedTrainees.some(trainee => trainee.id === selectedTraineeId) ||
                       upcomingEvents.length === 0 ||
                       allowedTrainees.length === 0
                     }
@@ -548,7 +576,10 @@ const ActivityDetail: React.FC<{ label: string; value: string }> = ({
   );
 };
 
-const invalidateActivityQueries = (queryClient: QueryClient, eventId?: string) => {
+const invalidateActivityQueries = (
+  queryClient: QueryClient,
+  eventId?: string | null,
+) => {
   queryClient.invalidateQueries({ queryKey: ["activity"] });
   queryClient.invalidateQueries({ queryKey: ["activities"] });
   queryClient.invalidateQueries({ queryKey: ["events"] });

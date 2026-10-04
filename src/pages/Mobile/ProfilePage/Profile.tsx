@@ -49,6 +49,7 @@ import {
   PASSWORD_POLICY_MESSAGE,
 } from "../../../utils/password.util";
 import { TraineeMedicationsSection } from "../../../components/VolunteerDetails/TraineeMedicationsSection";
+import { TraineeDocumentsSection } from "../../../components/TraineeDocuments/TraineeDocumentsSection";
 import {
   useCurrentUserProfile,
   useUpdateCurrentUserProfile,
@@ -434,6 +435,7 @@ export const ProfilePage: React.FC = () => {
       )}
 
       {isTrainee && <TraineeMedicationsSection mode="self" />}
+      {isTrainee && <TraineeDocumentsSection mode="self" />}
 
       {isVolunteer && (
         <Box className={styles.section}>

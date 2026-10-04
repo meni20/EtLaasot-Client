@@ -87,9 +87,10 @@ export class EventService {
     return res.data;
   }
 
-  public async getAllEvents(branchId?: string) {
+  public async getAllEvents(branchId?: string, signal?: AbortSignal) {
     const res = await this.api.get("/get-all-events", {
       params: branchId ? { branchId } : {},
+      signal,
     });
     return res.data;
   }

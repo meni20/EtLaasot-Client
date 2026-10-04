@@ -1,3 +1,4 @@
+import { useAuth } from "../../../contexts/useAuth";
 import { useEffect, useMemo, useState } from "react";
 import {
   Box,
@@ -27,6 +28,7 @@ import type { IEvent } from "../../../interfaces/event.interface";
 
 export const ActivitiesPage: React.FC = () => {
   const styles = useActivityAdminStyles();
+  const { user, sessionId } = useAuth();
   const { activeBranch, availableBranches } = useBranch();
   const [filters, setFilters] = useState<IActivityAdminFilters>({
     branchId: activeBranch ?? "",
@@ -42,14 +44,18 @@ export const ActivitiesPage: React.FC = () => {
     setFilters((current) => ({
       ...current,
       branchId:
-        current.branchId && current.branchId !== "" ? current.branchId : activeBranch ?? "",
+        current.branchId && current.branchId !== ""
+          ? current.branchId
+          : (activeBranch ?? ""),
     }));
   }, [activeBranch]);
 
   const normalizedFilters = useMemo(
     () =>
       Object.fromEntries(
-        Object.entries(filters).filter(([, value]) => value !== "" && value !== undefined),
+        Object.entries(filters).filter(
+          ([, value]) => value !== "" && value !== undefined,
+        ),
       ) as IActivityAdminFilters,
     [filters],
   );
@@ -81,7 +87,13 @@ export const ActivitiesPage: React.FC = () => {
   });
 
   const { data: events = [] } = useQuery<IEvent[]>({
-    queryKey: ["events", "admin-filter", selectedBranchId],
+    queryKey: [
+      "events",
+      "admin-filter",
+      selectedBranchId,
+      user?.userId,
+      sessionId,
+    ],
     queryFn: () => eventService.getAllEvents(selectedBranchId),
   });
 

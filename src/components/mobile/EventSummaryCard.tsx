@@ -1,6 +1,8 @@
 import { Box, Chip, Stack, Typography } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import { EVENT_TYPES } from "../../constants/auth.const";
 import { formatDate } from "../../utils/data.utillity";
@@ -15,6 +17,7 @@ interface EventSummaryCardProps {
   attendanceIntent: AttendanceIntent;
   onClick?: () => void;
   showChevron?: boolean;
+  featured?: boolean;
 }
 
 const ATTENDANCE_STATUS_LABELS: Record<AttendanceIntent, string> = {
@@ -37,6 +40,7 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
   attendanceIntent,
   onClick,
   showChevron = true,
+  featured = false,
 }) => {
   const isRegistered = attendanceIntent !== "NONE";
   const eventType = event.eventType ? EVENT_TYPES[event.eventType] : undefined;
@@ -65,9 +69,9 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
         boxSizing: "border-box",
         width: "100%",
         maxWidth: "100%",
-        minHeight: 196,
+        minHeight: featured ? "66dvh" : 196,
         borderRadius: "var(--radius-xl, 22px)",
-        p: 2.5,
+        p: featured ? 3 : 2.5,
         backgroundColor: hasImageBackground ? "#252027" : "#fff",
         backgroundImage: hasImageBackground
           ? `linear-gradient(180deg, rgba(12, 15, 18, 0.46) 0%, rgba(12, 15, 18, 0.62) 100%), url("${event.imageUrl}")`
@@ -105,15 +109,30 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
         direction="row"
         alignItems="flex-start"
         spacing={1}
-        sx={{ position: "relative", zIndex: 1, minWidth: 0 }}
+        sx={{
+          position: "relative",
+          zIndex: 1,
+          minWidth: 0,
+          minHeight: featured ? "calc(66dvh - 48px)" : 0,
+        }}
       >
-        <Box sx={{ minWidth: 0, flex: 1 }}>
+        <Box
+          sx={{
+            minWidth: 0,
+            flex: 1,
+            alignSelf: featured ? "stretch" : "auto",
+            display: featured ? "flex" : "block",
+            flexDirection: featured ? "column" : undefined,
+            alignItems: featured ? "flex-start" : undefined,
+          }}
+        >
           {eventType && (
             <Chip
               size="small"
               label={`${eventType.icon} ${decodeUnicodeEscapes(eventType.label)}`}
               sx={{
-                height: 24,
+                alignSelf: featured ? "flex-start" : undefined,
+                height: featured ? 28 : 24,
                 borderRadius: "999px",
                 backgroundColor: hasImageBackground
                   ? "rgba(255, 255, 255, 0.92)"
@@ -122,7 +141,7 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
                   ? "var(--color-brand)"
                   : "var(--color-brand)",
                 border: "1px solid rgba(var(--color-brand-rgb), 0.18)",
-                fontSize: 11,
+                fontSize: featured ? 12 : 11,
                 fontWeight: 800,
               }}
             />
@@ -130,10 +149,10 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
 
           <Typography
             sx={{
-              mt: eventType ? 1 : 0,
-              fontWeight: 700,
-              fontSize: 16,
-              lineHeight: 1.4,
+              mt: eventType ? (featured ? 1.75 : 1) : 0,
+              fontWeight: featured ? 800 : 700,
+              fontSize: featured ? 22 : 16,
+              lineHeight: featured ? 1.3 : 1.4,
               overflowWrap: "anywhere",
               color: hasImageBackground ? "#fff" : "var(--color-text, #1d1d1f)",
               textShadow: hasImageBackground
@@ -144,45 +163,98 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
             {eventName}
           </Typography>
 
-          <Typography
-            sx={{
-              fontSize: 12,
-              color: hasImageBackground
-                ? "rgba(255, 255, 255, 0.94)"
-                : "var(--color-text-muted, #6e737a)",
-              mt: 0.5,
-              textShadow: hasImageBackground
-                ? "0 1px 3px rgba(0, 0, 0, 0.55)"
-                : "none",
-            }}
-          >
-            {formatDate(event.startDate)} • {formatTime(event.startDate)}
-          </Typography>
-
-          {eventAddress && (
-            <Typography
+          {featured ? (
+            <Box
               sx={{
-                fontSize: 12,
+                mt: 2,
+                display: "grid",
+                gap: 1,
+                p: 1.5,
+                width: "fit-content",
+                maxWidth: "100%",
+                alignSelf: "flex-start",
+                borderRadius: "var(--radius-md, 14px)",
                 color: hasImageBackground
-                  ? "rgba(255, 255, 255, 0.94)"
-                  : "var(--color-text-muted, #6e737a)",
-                mt: 0.5,
-                overflowWrap: "anywhere",
-                textShadow: hasImageBackground
-                  ? "0 1px 3px rgba(0, 0, 0, 0.55)"
-                  : "none",
+                  ? "rgba(255, 255, 255, 0.96)"
+                  : "var(--color-text-secondary, #51565c)",
+                backgroundColor: hasImageBackground
+                  ? "rgba(17, 20, 24, 0.34)"
+                  : "var(--color-surface-muted, #f0f2f4)",
+                border: hasImageBackground
+                  ? "1px solid rgba(255, 255, 255, 0.18)"
+                  : "1px solid var(--color-border-subtle, #e9ebef)",
+                backdropFilter: hasImageBackground ? "blur(8px)" : "none",
               }}
             >
-              {eventAddress}
-            </Typography>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <CalendarTodayOutlinedIcon sx={{ fontSize: 18 }} />
+                <Typography sx={{ fontSize: 13.5, fontWeight: 700 }}>
+                  {formatDate(event.startDate)} • {formatTime(event.startDate)}
+                </Typography>
+              </Stack>
+              {eventAddress && (
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <LocationOnOutlinedIcon sx={{ fontSize: 18 }} />
+                  <Typography
+                    sx={{
+                      minWidth: 0,
+                      fontSize: 13.5,
+                      fontWeight: 600,
+                      overflowWrap: "anywhere",
+                    }}
+                  >
+                    {eventAddress}
+                  </Typography>
+                </Stack>
+              )}
+            </Box>
+          ) : (
+            <>
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  color: hasImageBackground
+                    ? "rgba(255, 255, 255, 0.94)"
+                    : "var(--color-text-muted, #6e737a)",
+                  mt: 0.5,
+                  textShadow: hasImageBackground
+                    ? "0 1px 3px rgba(0, 0, 0, 0.55)"
+                    : "none",
+                }}
+              >
+                {formatDate(event.startDate)} • {formatTime(event.startDate)}
+              </Typography>
+
+              {eventAddress && (
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    color: hasImageBackground
+                      ? "rgba(255, 255, 255, 0.94)"
+                      : "var(--color-text-muted, #6e737a)",
+                    mt: 0.5,
+                    overflowWrap: "anywhere",
+                    textShadow: hasImageBackground
+                      ? "0 1px 3px rgba(0, 0, 0, 0.55)"
+                      : "none",
+                  }}
+                >
+                  {eventAddress}
+                </Typography>
+              )}
+            </>
           )}
 
           <Box
             sx={{
               display: "inline-flex",
               alignItems: "center",
+              justifyContent: "flex-start",
+              alignSelf: "flex-start",
+              width: "fit-content",
+              maxWidth: "100%",
               gap: 0.75,
-              mt: 1.25,
+              mt: featured ? "auto" : 1.25,
               color: isRegistered
                 ? "var(--color-success)"
                 : "var(--color-text-muted, #6e737a)",
@@ -193,9 +265,11 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
               borderColor: isRegistered
                 ? "rgba(var(--color-success-rgb), 0.18)"
                 : "var(--color-border-subtle, #e9ebef)",
-              borderRadius: "var(--radius-sm, 10px)",
-              px: 1.1,
-              py: 0.625,
+              borderRadius: featured
+                ? "var(--radius-md, 14px)"
+                : "var(--radius-sm, 10px)",
+              px: featured ? 1.5 : 1.1,
+              py: featured ? 1 : 0.625,
             }}
           >
             {isRegistered ? (
@@ -205,7 +279,7 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
             )}
             <Typography
               sx={{
-                fontSize: 12,
+                fontSize: featured ? 13 : 12,
                 fontWeight: 800,
               }}
             >

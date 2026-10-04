@@ -1,23 +1,29 @@
+import { useAuth } from "../../contexts/useAuth";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useBranch } from "../../contexts/useBranch";
 import eventService from "../../services/event.service";
 import type { IEvent } from "../../interfaces/event.interface";
 
+const EMPTY_EVENTS: IEvent[] = [];
+
 export const useMobileEvents = () => {
+  const { user, sessionId } = useAuth();
   const { activeBranch } = useBranch();
 
   const {
-    data: allEvents = [],
+    data: fetchedEvents = EMPTY_EVENTS,
     isLoading,
     error,
     refetch,
   } = useQuery<IEvent[]>({
-    queryKey: ["events", activeBranch],
-    queryFn: () => eventService.getAllEvents(activeBranch ?? undefined),
+    queryKey: ["events", activeBranch, user?.userId, sessionId],
+    queryFn: ({ signal }) =>
+      eventService.getAllEvents(activeBranch ?? undefined, signal),
     enabled: !!activeBranch,
   });
 
+  const allEvents = error ? EMPTY_EVENTS : fetchedEvents;
   const { upcomingEvents, pastEvents } = useMemo(() => {
     const now = Date.now();
 
