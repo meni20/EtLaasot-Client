@@ -71,7 +71,9 @@ export const SideMenu: React.FC<SideMenuProps> = ({
             <ListItemButton
               className={`${classes.listItemButton} ${
                 isActive ? classes.activeListItem : ""
-              } ${collapsed ? classes.collapsedListItemButton : ""}`}
+              } ${collapsed ? classes.collapsedListItemButton : ""} ${
+                item.anchoredToBottom ? classes.bottomListItem : ""
+              }`}
               selected={isActive}
               aria-label={item.label}
               aria-current={isActive ? "page" : undefined}

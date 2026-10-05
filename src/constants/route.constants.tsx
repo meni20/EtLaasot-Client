@@ -42,6 +42,11 @@ const MentorAssignmentPage = lazy(() =>
     (module) => ({ default: module.MentorAssignmentPage }),
   ),
 );
+const SettingsPage = lazy(() =>
+  import("../pages/DesktopPages/SettingsPage/Settings").then((module) => ({
+    default: module.SettingsPage,
+  })),
+);
 const HomeMobile = lazy(() =>
   import("../pages/Mobile/HomePage/HomeMobile").then((module) => ({
     default: module.HomeMobile,
@@ -99,6 +104,11 @@ export const DESKTOP_ROUTES: AppRoute[] = [
   { path: "/activities", element: <ActivitiesPage /> },
   { path: "/trainee", element: <TraineePage /> },
   { path: "/mentor-assignments", element: <MentorAssignmentPage /> },
+  {
+    path: "/settings",
+    element: <SettingsPage />,
+    allowedRoles: [AUTH_ROLES.SUPER_ADMIN.id, AUTH_ROLES.BRANCH_ADMIN.id],
+  },
 ];
 
 export const MOBILE_ROUTES: AppRoute[] = [

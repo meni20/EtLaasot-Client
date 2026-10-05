@@ -24,6 +24,7 @@ import type { IUser } from "../../../interfaces/user.interface";
 import { useVolunteerPageStyles } from "./VolunteerPage.styles";
 import { VolunteerDetails } from "../../../components/VolunteerDetails/VolunteerDetails";
 import { CreateVolunteer } from "../../../components/CreateVolunteerPopup/CreateVolunteer";
+import { useAdminRouteAction } from "../../../components/AdminActionSearch/useAdminRouteAction";
 import { useBranch } from "../../../contexts/useBranch";
 import {
   calculateAge,
@@ -58,6 +59,8 @@ export const VolunteerPage: React.FC = () => {
   const [selectedVolunteer, setSelectedVolunteer] = useState<IUser | null>(
     null,
   );
+
+  useAdminRouteAction("create-volunteer", () => setOpen(true));
 
   const {
     data: allVolunteers,
