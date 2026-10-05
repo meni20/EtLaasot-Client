@@ -156,7 +156,7 @@ export const useNavbarStyles = makeStyles({
     color: "#2f2930",
   },
   profileDialogClose: {
-    position: "absolute !important" as const,
+    position: "absolute" as const,
     left: "12px !important",
     top: "12px !important",
     color: "#6b6068 !important",

@@ -1,10 +1,12 @@
 import { useState } from "react";
 import {
+  Alert,
   Box,
   Dialog,
   DialogContent,
   DialogTitle,
   IconButton,
+  Snackbar,
   Typography,
 } from "@mui/material";
 import BusinessOutlinedIcon from "@mui/icons-material/BusinessOutlined";
@@ -13,9 +15,11 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import LockResetRoundedIcon from "@mui/icons-material/LockResetRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
+import TipsAndUpdatesOutlinedIcon from "@mui/icons-material/TipsAndUpdatesOutlined";
 import { useNavigate } from "react-router-dom";
 import { ChangePasswordDialog } from "../../../components/AccountSettings/ChangePasswordDialog";
 import { PersonalDetailsDialog } from "../../../components/AccountSettings/PersonalDetailsDialog";
+import { FeatureRequestDialog } from "../../../components/FeatureRequestDialog/FeatureRequestDialog";
 import { BranchSelector } from "../../../components/BranchSelector/BranchSelector";
 import { SettingsRow } from "../../../components/SettingsRow/SettingsRow";
 import { useAuth } from "../../../contexts/useAuth";
@@ -31,6 +35,8 @@ export const SettingsPage: React.FC = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isFeatureRequestOpen, setIsFeatureRequestOpen] = useState(false);
+  const [showFeedbackSuccess, setShowFeedbackSuccess] = useState(false);
   const canSwitchBranches = availableBranches.length > 1;
 
   const handleLogout = () => {
@@ -77,6 +83,15 @@ export const SettingsPage: React.FC = () => {
             </SettingsSection>
           )}
 
+          <SettingsSection id="help" title="עזרה ומשוב" classes={classes}>
+            <SettingsRow
+              icon={<TipsAndUpdatesOutlinedIcon />}
+              title="בקשה לפיצ'ר"
+              description="בקשה לפיצ'ר / דיווח על בעיה / הצעה לשיפור עיצוב, או כל דבר אחר"
+              onClick={() => setIsFeatureRequestOpen(true)}
+            />
+          </SettingsSection>
+
           <SettingsSection id="information" title="מידע" classes={classes}>
             <SettingsRow
               icon={<InfoOutlinedIcon />}
@@ -108,6 +123,11 @@ export const SettingsPage: React.FC = () => {
         open={isPasswordOpen}
         onClose={() => setIsPasswordOpen(false)}
       />
+      <FeatureRequestDialog
+        open={isFeatureRequestOpen}
+        onClose={() => setIsFeatureRequestOpen(false)}
+        onSuccess={() => setShowFeedbackSuccess(true)}
+      />
       <Dialog
         open={isAboutOpen}
         onClose={() => setIsAboutOpen(false)}
@@ -133,6 +153,20 @@ export const SettingsPage: React.FC = () => {
           </Typography>
         </DialogContent>
       </Dialog>
+      <Snackbar
+        open={showFeedbackSuccess}
+        autoHideDuration={5000}
+        onClose={() => setShowFeedbackSuccess(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          severity="success"
+          variant="filled"
+          onClose={() => setShowFeedbackSuccess(false)}
+        >
+          הבקשה נשלחה בהצלחה, תודה על המשוב!
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

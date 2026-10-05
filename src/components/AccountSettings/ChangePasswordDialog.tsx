@@ -130,6 +130,7 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
           aria-label="סגירת חלון שינוי סיסמה"
           onClick={closeDialog}
           className={classes.profileDialogClose}
+          style={{ position: "absolute" }}
         >
           <CloseIcon fontSize="small" />
         </IconButton>
