@@ -8,6 +8,7 @@ import {
   IconButton,
   Snackbar,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import BusinessOutlinedIcon from "@mui/icons-material/BusinessOutlined";
 import CloseIcon from "@mui/icons-material/Close";
@@ -22,8 +23,10 @@ import { PersonalDetailsDialog } from "../../../components/AccountSettings/Perso
 import { FeatureRequestDialog } from "../../../components/FeatureRequestDialog/FeatureRequestDialog";
 import { BranchSelector } from "../../../components/BranchSelector/BranchSelector";
 import { SettingsRow } from "../../../components/SettingsRow/SettingsRow";
+import { PwaInstallSettingsRow } from "../../../components/PwaInstallSettingsRow/PwaInstallSettingsRow";
 import { useAuth } from "../../../contexts/useAuth";
 import { useBranch } from "../../../contexts/useBranch";
+import { usePwaInstall } from "../../../contexts/PwaInstallContext";
 import { version as appVersion } from "../../../../package.json";
 import { useSettingsStyles } from "./Settings.styles";
 
@@ -32,12 +35,15 @@ export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { availableBranches } = useBranch();
+  const { canInstall, mobileDevice } = usePwaInstall();
+  const isMobileViewport = useMediaQuery("(max-width:1023px)");
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isFeatureRequestOpen, setIsFeatureRequestOpen] = useState(false);
   const [showFeedbackSuccess, setShowFeedbackSuccess] = useState(false);
   const canSwitchBranches = availableBranches.length > 1;
+  const showPwaInstall = isMobileViewport && mobileDevice && canInstall;
 
   const handleLogout = () => {
     logout();
@@ -80,6 +86,12 @@ export const SettingsPage: React.FC = () => {
                 description="בחירת הסניף הפעיל במערכת"
                 trailing={<BranchSelector variant="dialog" />}
               />
+            </SettingsSection>
+          )}
+
+          {showPwaInstall && (
+            <SettingsSection id="application" title="האפליקציה" classes={classes}>
+              <PwaInstallSettingsRow />
             </SettingsSection>
           )}
 

@@ -16,6 +16,8 @@ import createCache from "@emotion/cache";
 import { CacheProvider } from "@emotion/react";
 import { prefixer } from "stylis";
 import rtlPlugin from "stylis-plugin-rtl";
+import { PwaInstallProvider } from "./contexts/PwaInstallProvider";
+import { PwaInstallationTracker } from "./components/PwaInstallationTracker/PwaInstallationTracker";
 
 const rtlCache = createCache({
   key: "etlaasot-rtl",
@@ -29,20 +31,23 @@ const App: React.FC = () => (
     localeText={heIL.components.MuiLocalizationProvider.defaultProps.localeText}
   >
     <BrowserRouter>
-      <AuthProvider>
-        <SessionQueries>
-          <BranchProvider>
-            <DataProvider>
-              <CacheProvider value={rtlCache}>
-                <ThemeProvider theme={theme}>
-                  <CssBaseline />
-                  <AppRouter />
-                </ThemeProvider>
-              </CacheProvider>
-            </DataProvider>
-          </BranchProvider>
-        </SessionQueries>
-      </AuthProvider>
+      <PwaInstallProvider>
+        <AuthProvider>
+          <PwaInstallationTracker />
+          <SessionQueries>
+            <BranchProvider>
+              <DataProvider>
+                <CacheProvider value={rtlCache}>
+                  <ThemeProvider theme={theme}>
+                    <CssBaseline />
+                    <AppRouter />
+                  </ThemeProvider>
+                </CacheProvider>
+              </DataProvider>
+            </BranchProvider>
+          </SessionQueries>
+        </AuthProvider>
+      </PwaInstallProvider>
     </BrowserRouter>
   </LocalizationProvider>
 );

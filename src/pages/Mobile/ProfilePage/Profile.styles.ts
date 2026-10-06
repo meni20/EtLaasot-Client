@@ -340,6 +340,12 @@ export const useStyles = makeStyles({
         color: "var(--color-text, #1d1d1f)",
         fontFamily: "inherit",
     },
+    installAction: {
+        marginBottom: 8,
+        "&:empty": {
+            display: "none",
+        },
+    },
     logoutButton: {
         borderRadius: "var(--radius-md, 14px)",
         minHeight: 50,

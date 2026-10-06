@@ -5,6 +5,8 @@ export interface ISuperAdminDashboardTotals {
   activeAssignments: number;
   unassignedTrainees: number;
   upcomingEvents: number;
+  pwaInstallations: number;
+  pwaUniqueInstallers: number;
 }
 
 export interface ISuperAdminBranchSummary {

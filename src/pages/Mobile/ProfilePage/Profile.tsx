@@ -50,6 +50,7 @@ import {
 } from "../../../utils/password.util";
 import { TraineeMedicationsSection } from "../../../components/VolunteerDetails/TraineeMedicationsSection";
 import { TraineeDocumentsSection } from "../../../components/TraineeDocuments/TraineeDocumentsSection";
+import { PwaInstallButton } from "../../../components/PwaInstallButton/PwaInstallButton";
 import {
   useCurrentUserProfile,
   useUpdateCurrentUserProfile,
@@ -450,6 +451,10 @@ export const ProfilePage: React.FC = () => {
           ))}
         </Box>
       )}
+
+      <Box className={styles.installAction}>
+        <PwaInstallButton />
+      </Box>
 
       <Button
         fullWidth

@@ -20,6 +20,8 @@ import EventOutlinedIcon from "@mui/icons-material/EventOutlined";
 import PersonOffOutlinedIcon from "@mui/icons-material/PersonOffOutlined";
 import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined";
 import VolunteerActivismOutlinedIcon from "@mui/icons-material/VolunteerActivismOutlined";
+import InstallMobileRoundedIcon from "@mui/icons-material/InstallMobileRounded";
+import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
@@ -64,6 +66,16 @@ const SUMMARY_METRICS: SummaryMetric[] = [
     key: "upcomingEvents",
     label: "אירועים קרובים",
     icon: <EventOutlinedIcon />,
+  },
+  {
+    key: "pwaInstallations",
+    label: "התקנות אפליקציה",
+    icon: <InstallMobileRoundedIcon />,
+  },
+  {
+    key: "pwaUniqueInstallers",
+    label: "משתמשים שהתקינו",
+    icon: <GroupOutlinedIcon />,
   },
 ];
 

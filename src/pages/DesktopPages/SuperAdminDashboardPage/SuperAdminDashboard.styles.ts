@@ -31,7 +31,7 @@ export const useSuperAdminDashboardStyles = makeStyles({
     maxWidth: 1480,
     margin: "0 auto 18px",
     display: "grid",
-    gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+    gridTemplateColumns: "repeat(8, minmax(0, 1fr))",
     gap: 12,
   },
   summaryCard: {
@@ -201,9 +201,14 @@ export const useSuperAdminDashboardStyles = makeStyles({
       backgroundColor: "var(--color-primary-soft) !important",
     },
   },
-  "@media (max-width: 1200px)": {
+  "@media (max-width: 1400px)": {
     summaryGrid: {
-      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+      gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+    },
+  },
+  "@media (max-width: 900px)": {
+    summaryGrid: {
+      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
     },
   },
   "@media (max-width: 768px)": {
@@ -214,10 +219,7 @@ export const useSuperAdminDashboardStyles = makeStyles({
     title: {
       fontSize: "1.35rem !important",
     },
-    summaryGrid: {
-      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-      gap: 10,
-    },
+    summaryGrid: { gap: 10 },
     summaryCard: {
       minHeight: 122,
       padding: "14px 12px",
