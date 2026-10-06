@@ -24,6 +24,7 @@ import { FeatureRequestDialog } from "../../../components/FeatureRequestDialog/F
 import { BranchSelector } from "../../../components/BranchSelector/BranchSelector";
 import { SettingsRow } from "../../../components/SettingsRow/SettingsRow";
 import { PwaInstallSettingsRow } from "../../../components/PwaInstallSettingsRow/PwaInstallSettingsRow";
+import { PushNotificationSettings } from "../../../components/PushNotificationSettings/PushNotificationSettings";
 import { useAuth } from "../../../contexts/useAuth";
 import { useBranch } from "../../../contexts/useBranch";
 import { usePwaInstall } from "../../../contexts/PwaInstallContext";
@@ -94,6 +95,10 @@ export const SettingsPage: React.FC = () => {
               <PwaInstallSettingsRow />
             </SettingsSection>
           )}
+
+          <SettingsSection id="notifications" title="התראות" classes={classes}>
+            <PushNotificationSettings allowSelfTest />
+          </SettingsSection>
 
           <SettingsSection id="help" title="עזרה ומשוב" classes={classes}>
             <SettingsRow
