@@ -4,6 +4,7 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import { useNavigate } from "react-router-dom";
 import { BasicCard } from "../../../components/Card/Card";
 import { CreateEvent } from "../../../components/CreateEvent/CreateEvent";
+import { useAdminRouteAction } from "../../../components/AdminActionSearch/useAdminRouteAction";
 import { useDataContext } from "../../../contexts/useDataContext";
 import type { IEvent } from "../../../interfaces/event.interface";
 import { useStyles } from "./Event.styles";
@@ -15,6 +16,11 @@ export const EventPage: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<IEvent | null>(null);
   const { events } = useDataContext();
   const allEvents = useMemo(() => events ?? [], [events]);
+
+  useAdminRouteAction("create-event", () => {
+    setSelectedEvent(null);
+    setOpen(true);
+  });
 
   const { upcomingEvents, pastEvents } = useMemo(() => {
     const now = Date.now();

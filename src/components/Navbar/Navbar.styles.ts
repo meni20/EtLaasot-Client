@@ -111,6 +111,9 @@ export const useNavbarStyles = makeStyles({
     gap: 10,
     zIndex: 1,
   },
+  adminSearchSlot: {
+    display: "none",
+  },
   menuIconBox: {
     width: "44px !important",
     height: "44px !important",
@@ -146,7 +149,8 @@ export const useNavbarStyles = makeStyles({
   },
   profileDialogTitle: {
     position: "relative" as const,
-    padding: "18px 24px 10px !important",
+    padding: "18px 24px 12px 64px !important",
+    textAlign: "right" as const,
     fontFamily: "inherit !important",
     fontWeight: "800 !important" as const,
     color: "#2f2930",
@@ -365,6 +369,34 @@ export const useNavbarStyles = makeStyles({
     menuIconBox: {
       width: "40px !important",
       height: "40px !important",
+    },
+  },
+  "@media (min-width: 641px)": {
+    navActions: {
+      position: "absolute !important" as const,
+      right: "24px !important",
+      left: "auto !important",
+      top: "10px !important",
+      direction: "ltr" as const,
+    },
+    userInfo: {
+      position: "absolute !important" as const,
+      left: "24px !important",
+      right: "auto !important",
+      top: "10px !important",
+      marginInlineEnd: "0 !important",
+    },
+  },
+  "@media (min-width: 1024px)": {
+    adminSearchSlot: {
+      display: "block",
+      position: "absolute" as const,
+      right: "142px !important",
+      left: "auto !important",
+      top: "50%",
+      transform: "translateY(-50%)",
+      width: "clamp(180px, calc(50vw - 314px), 360px)",
+      zIndex: 1,
     },
   },
   "@media (max-width: 420px)": {

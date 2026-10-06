@@ -33,22 +33,27 @@ export const useSideMenuStyles = makeStyles({
     width: `${COLLAPSED_DRAWER_WIDTH}px !important`,
   },
   list: {
+    height: "100%",
     display: "flex",
     flexDirection: "column" as const,
-    gap: 8,
-    padding: "18px 12px calc(env(safe-area-inset-bottom, 0px) + 16px)",
+    gap: 4,
+    padding: "14px 12px calc(env(safe-area-inset-bottom, 0px) + 16px)",
     overflowY: "auto" as const,
     overscrollBehavior: "contain" as const,
   },
+  bottomListItem: {
+    marginTop: "auto !important",
+    borderTop: "1px solid var(--color-border-subtle)",
+  },
   collapsedList: {
-    padding: "16px 8px calc(env(safe-area-inset-bottom, 0px) + 16px)",
+    padding: "14px 8px calc(env(safe-area-inset-bottom, 0px) + 16px)",
     alignItems: "center",
   },
   listItemButton: {
     borderRadius: 12,
     margin: 0,
-    minHeight: 52,
-    padding: "11px 14px",
+    minHeight: 48,
+    padding: "8px 14px",
     color: "#342b33",
     justifyContent: "flex-start",
     textAlign: "right" as const,
@@ -135,7 +140,18 @@ export const useSideMenuStyles = makeStyles({
       borderRadius: "0 0 0 22px",
     },
     listItemButton: {
-      minHeight: 56,
+      minHeight: 48,
+    },
+  },
+  "@media (min-width: 1024px)": {
+    listItemButton: {
+      // MUI's ListItemButton sets flex-grow: 1. Inside the full-height
+      // desktop column list that makes every navigation item share the spare
+      // height. Keep each button content-sized so only Settings' auto margin
+      // consumes the remaining space.
+      flexGrow: "0 !important",
+      flexShrink: "0 !important",
+      flexBasis: "auto !important",
     },
   },
   "@media (prefers-reduced-motion: reduce)": {

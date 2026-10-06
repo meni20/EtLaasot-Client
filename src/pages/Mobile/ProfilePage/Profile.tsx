@@ -50,6 +50,8 @@ import {
 } from "../../../utils/password.util";
 import { TraineeMedicationsSection } from "../../../components/VolunteerDetails/TraineeMedicationsSection";
 import { TraineeDocumentsSection } from "../../../components/TraineeDocuments/TraineeDocumentsSection";
+import { PwaInstallButton } from "../../../components/PwaInstallButton/PwaInstallButton";
+import { PushNotificationSettings } from "../../../components/PushNotificationSettings/PushNotificationSettings";
 import {
   useCurrentUserProfile,
   useUpdateCurrentUserProfile,
@@ -450,6 +452,14 @@ export const ProfilePage: React.FC = () => {
           ))}
         </Box>
       )}
+
+      <Box component="section" aria-label="התראות">
+        <PushNotificationSettings variant="mobile" />
+      </Box>
+
+      <Box className={styles.installAction}>
+        <PwaInstallButton />
+      </Box>
 
       <Button
         fullWidth

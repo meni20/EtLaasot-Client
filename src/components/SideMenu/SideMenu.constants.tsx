@@ -5,6 +5,7 @@ import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined";
 import VolunteerActivismOutlinedIcon from "@mui/icons-material/VolunteerActivismOutlined";
 import DashboardCustomizeOutlinedIcon from "@mui/icons-material/DashboardCustomizeOutlined";
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import { AUTH_ROLES } from "../../constants/auth.const";
 
 export interface MenuItem {
@@ -12,6 +13,7 @@ export interface MenuItem {
   icon: React.ReactNode;
   path: string;
   allowedRoles?: number[];
+  anchoredToBottom?: boolean;
 }
 
 export const menuItems: MenuItem[] = [
@@ -35,4 +37,11 @@ export const menuItems: MenuItem[] = [
     path: "/mentor-assignments",
   },
   { label: "פעילויות", icon: <AssignmentOutlinedIcon />, path: "/activities" },
+  {
+    label: "הגדרות",
+    icon: <SettingsOutlinedIcon />,
+    path: "/settings",
+    allowedRoles: [AUTH_ROLES.SUPER_ADMIN.id, AUTH_ROLES.BRANCH_ADMIN.id],
+    anchoredToBottom: true,
+  },
 ];

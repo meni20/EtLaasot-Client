@@ -22,6 +22,7 @@ import userService, {
 } from "../../../services/user.service";
 import type { IUser } from "../../../interfaces/user.interface";
 import { CreateTrainee } from "../../../components/CreateTrainee/CreateTrainee";
+import { useAdminRouteAction } from "../../../components/AdminActionSearch/useAdminRouteAction";
 import { VolunteerDetails } from "../../../components/VolunteerDetails/VolunteerDetails";
 import { useBranch } from "../../../contexts/useBranch";
 import { useTraineePageStyles } from "./TraineePage.styles";
@@ -63,6 +64,8 @@ export const TraineePage: React.FC = () => {
   const [statusFilter, setStatusFilter] =
     useState<UserListStatus>("active");
   const [selectedTrainee, setSelectedTrainee] = useState<IUser | null>(null);
+
+  useAdminRouteAction("create-trainee", () => setOpen(true));
 
   const {
     data: allTrainees,
