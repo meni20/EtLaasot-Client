@@ -1,5 +1,5 @@
 import { Suspense, useMemo } from "react";
-import { Box, CircularProgress, useMediaQuery } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import { Route, Routes, Navigate } from "react-router-dom";
 import {
   DESKTOP_ROUTES,
@@ -15,7 +15,6 @@ import { PwaUpdatePrompt } from "../components/PwaUpdatePrompt/PwaUpdatePrompt";
 
 const AppRouter: React.FC = () => {
   const { isAuthenticated, loading, user, mustChangePassword } = useAuth();
-  const isMobileViewport = useMediaQuery("(max-width:1023px)");
 
   // Determine if user is a desktop role (admin) based on their highest-privilege role
   const isDesktopUser = useMemo(() => {
@@ -69,7 +68,7 @@ const AppRouter: React.FC = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
-        {isMobileViewport && <PwaUpdatePrompt />}
+        <PwaUpdatePrompt />
       </>
     );
   }
@@ -77,25 +76,31 @@ const AppRouter: React.FC = () => {
   // Admin roles → always desktop layout
   if (mustChangePassword) {
     return (
-      <Routes>
-        <Route path="/change-password" element={<PasswordChangePage />} />
-        <Route path="*" element={<Navigate to="/change-password" replace />} />
-      </Routes>
+      <>
+        <Routes>
+          <Route path="/change-password" element={<PasswordChangePage />} />
+          <Route path="*" element={<Navigate to="/change-password" replace />} />
+        </Routes>
+        <PwaUpdatePrompt />
+      </>
     );
   }
 
   if (isDesktopUser) {
     return (
-      <AppShell>
-        <Suspense fallback={<RouteLoading />}>
-          <Routes>
-            {filteredDesktopRoutes.map(({ path, element }) => (
-              <Route key={path} path={path} element={element} />
-            ))}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
-      </AppShell>
+      <>
+        <AppShell>
+          <Suspense fallback={<RouteLoading />}>
+            <Routes>
+              {filteredDesktopRoutes.map(({ path, element }) => (
+                <Route key={path} path={path} element={element} />
+              ))}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </AppShell>
+        <PwaUpdatePrompt />
+      </>
     );
   }
 

@@ -26,6 +26,10 @@ export const PwaInstallProvider: React.FC<{ children: ReactNode }> = ({
 
     const handleInstallPrompt = (event: Event) => {
       event.preventDefault();
+      // Chromium only emits this event when the app is currently installable.
+      // Treat it as authoritative so a marker left behind after uninstalling a
+      // WebAPK cannot keep the install action hidden on a later visit.
+      setInstalled(false);
       setInstallPrompt(event as BeforeInstallPromptEvent);
     };
 

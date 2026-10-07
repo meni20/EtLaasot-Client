@@ -4,10 +4,10 @@ import {
   Box,
   Button,
   CircularProgress,
+  Divider,
+  Switch,
   Typography,
 } from "@mui/material";
-import NotificationsActiveRoundedIcon from "@mui/icons-material/NotificationsActiveRounded";
-import NotificationsOffRoundedIcon from "@mui/icons-material/NotificationsOffRounded";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import pushNotificationService from "../../services/push-notification.service";
 import {
@@ -33,32 +33,11 @@ type PushNotificationSettingsProps = {
   variant?: "admin" | "mobile";
 };
 
-const STATUS_COPY: Record<
-  Exclude<PushStatus, "loading">,
-  { title: string; description: string }
-> = {
-  unsupported: {
-    title: "התראות אינן נתמכות",
-    description: "הדפדפן או המכשיר הנוכחי אינם תומכים בהתראות Push.",
-  },
-  "ios-not-installed": {
-    title: "נדרשת התקנת האפליקציה",
-    description:
-      "ב-iPhone וב-iPad יש להתקין תחילה את האפליקציה במסך הבית, ואז לפתוח אותה משם.",
-  },
-  denied: {
-    title: "ההתראות חסומות",
-    description:
-      "יש לאפשר התראות בהגדרות הדפדפן או המכשיר כדי להפעיל אותן.",
-  },
-  disabled: {
-    title: "ההתראות כבויות",
-    description: "ניתן להפעיל התראות עבור המכשיר והדפדפן הנוכחיים.",
-  },
-  enabled: {
-    title: "ההתראות פעילות",
-    description: "המכשיר הנוכחי רשום לקבלת התראות.",
-  },
+const STATUS_DESCRIPTION: Partial<Record<PushStatus, string>> = {
+  unsupported: "הדפדפן או המכשיר הנוכחי אינם תומכים בהתראות Push.",
+  "ios-not-installed":
+    "ב-iPhone וב-iPad יש להתקין תחילה את האפליקציה במסך הבית, ואז לפתוח אותה משם.",
+  denied: "יש לאפשר התראות בהגדרות הדפדפן או המכשיר כדי להפעיל אותן.",
 };
 
 export const PushNotificationSettings: React.FC<
@@ -151,7 +130,6 @@ export const PushNotificationSettings: React.FC<
         serializePushSubscription(subscription),
       );
       setStatus("enabled");
-      setMessage({ severity: "success", text: "ההתראות הופעלו בהצלחה" });
     } catch (error) {
       if (createdSubscription) {
         await createdSubscription.unsubscribe().catch(() => false);
@@ -178,7 +156,6 @@ export const PushNotificationSettings: React.FC<
       }
 
       setStatus("disabled");
-      setMessage({ severity: "success", text: "ההתראות כובו במכשיר זה" });
     } catch (error) {
       setMessage({ severity: "error", text: getErrorMessage(error) });
       await refreshStatus();
@@ -203,13 +180,17 @@ export const PushNotificationSettings: React.FC<
   };
 
   const isLoading = status === "loading";
-  const copy = isLoading ? null : STATUS_COPY[status];
-  const statusIcon =
-    status === "enabled" ? (
-      <NotificationsActiveRoundedIcon aria-hidden="true" />
-    ) : (
-      <NotificationsOffRoundedIcon aria-hidden="true" />
-    );
+  const isToggleAvailable = status === "enabled" || status === "disabled";
+  const isToggleBusy = busyAction === "enable" || busyAction === "disable";
+  const statusDescription = STATUS_DESCRIPTION[status];
+
+  const handleToggle = (
+    _event: React.ChangeEvent<HTMLInputElement>,
+    checked: boolean,
+  ) => {
+    if (checked) void handleEnable();
+    else void handleDisable();
+  };
 
   return (
     <Box
@@ -236,124 +217,80 @@ export const PushNotificationSettings: React.FC<
         mb: variant === "mobile" ? 1.75 : 0,
       }}
     >
-      {variant === "mobile" && (
-        <Typography
-          component="h2"
-          sx={{
-            mb: 1.5,
-            fontSize: 15,
-            fontWeight: 800,
-            fontFamily: "inherit",
-            textAlign: "start",
-          }}
-        >
-          התראות
-        </Typography>
-      )}
       <Box
         sx={{
-          display: "grid",
-          gridTemplateColumns: "40px minmax(0, 1fr)",
-          alignItems: "flex-start",
-          justifyItems: "start",
+          display: "flex",
+          // The app's RTL Stylis plugin flips physical direction values.
+          // Declaring LTR here produces the intended computed RTL row.
+          direction: "ltr",
+          alignItems: "center",
+          justifyContent: "space-between",
           width: "100%",
-          columnGap: 1.5,
+          minHeight: 48,
+          gap: 2,
         }}
       >
         <Box
           sx={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 40,
-            height: 40,
-            borderRadius: "50%",
-            flexShrink: 0,
-            color:
-              status === "enabled"
-                ? "var(--color-success, #2e7d32)"
-                : "var(--color-primary)",
-            bgcolor:
-              status === "enabled"
-                ? "var(--color-success-soft, #edf7ed)"
-                : "var(--color-primary-soft)",
-          }}
-        >
-          {isLoading ? <CircularProgress size={20} /> : statusIcon}
-        </Box>
-        <Box
-          sx={{
-            width: "100%",
+            direction: "ltr",
+            flex: "1 1 auto",
             minWidth: 0,
             textAlign: "start",
           }}
         >
-          <Typography sx={{ fontWeight: 800, fontFamily: "inherit" }}>
-            {isLoading ? "בודק את מצב ההתראות..." : copy?.title}
-          </Typography>
           <Typography
-            sx={{
-              mt: 0.5,
-              color: "var(--color-text-secondary, #51565c)",
-              fontSize: 13,
-              lineHeight: 1.55,
-              fontFamily: "inherit",
-            }}
+            component={variant === "mobile" ? "h2" : "span"}
+            sx={{ fontWeight: 800, fontFamily: "inherit" }}
           >
-            {isLoading ? "" : copy?.description}
+            התראות
           </Typography>
+          {statusDescription && (
+            <Typography
+              sx={{
+                mt: 0.375,
+                color: "var(--color-text-secondary, #51565c)",
+                fontSize: 13,
+                lineHeight: 1.55,
+                fontFamily: "inherit",
+                textAlign: "start",
+              }}
+            >
+              {statusDescription}
+            </Typography>
+          )}
+        </Box>
+        <Box
+          sx={{
+            direction: "ltr",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-start",
+            flex: "0 0 auto",
+            gap: 1,
+            minWidth: 64,
+          }}
+        >
+          {(isLoading || isToggleBusy) && (
+            <CircularProgress size={18} aria-label="מעדכן את מצב ההתראות" />
+          )}
+          <Switch
+            checked={status === "enabled"}
+            onChange={handleToggle}
+            disabled={!isToggleAvailable || busyAction !== null}
+            color="primary"
+            slotProps={{
+              input: { "aria-label": "הפעלת התראות" },
+            }}
+          />
         </Box>
       </Box>
 
-      {(status === "enabled" || status === "disabled") && (
-        <Box
-          sx={{
-            display: "grid",
-            gridAutoFlow: "column",
-            gridAutoColumns: "max-content",
-            justifyContent: "start",
-            gap: 1,
-            mt: 2,
-            width: "100%",
-          }}
-        >
-          {status === "disabled" ? (
-            <Button
-              variant="contained"
-              onClick={() => void handleEnable()}
-              disabled={busyAction !== null}
-              startIcon={
-                busyAction === "enable" ? (
-                  <CircularProgress size={18} color="inherit" />
-                ) : (
-                  <NotificationsActiveRoundedIcon />
-                )
-              }
-              sx={buttonSx}
-            >
-              {busyAction === "enable" ? "מפעיל..." : "הפעלת התראות"}
-            </Button>
-          ) : (
+      {allowSelfTest && status === "enabled" && (
+        <>
+          <Divider sx={{ my: 2 }} />
+          <Box sx={{ display: "flex", justifyContent: "flex-start" }}>
             <Button
               variant="outlined"
-              onClick={() => void handleDisable()}
-              disabled={busyAction !== null}
-              startIcon={
-                busyAction === "disable" ? (
-                  <CircularProgress size={18} color="inherit" />
-                ) : (
-                  <NotificationsOffRoundedIcon />
-                )
-              }
-              sx={buttonSx}
-            >
-              {busyAction === "disable" ? "מכבה..." : "כיבוי התראות"}
-            </Button>
-          )}
-
-          {allowSelfTest && status === "enabled" && (
-            <Button
-              variant="contained"
               onClick={() => void handleSelfTest()}
               disabled={busyAction !== null}
               startIcon={
@@ -367,8 +304,8 @@ export const PushNotificationSettings: React.FC<
             >
               {busyAction === "test" ? "שולח..." : "התראת בדיקה"}
             </Button>
-          )}
-        </Box>
+          </Box>
+        </>
       )}
 
       {message && (
