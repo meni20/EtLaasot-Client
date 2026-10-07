@@ -14,6 +14,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       injectRegister: null,
+      manifestFilename: 'manifest.json',
       includeAssets: [
         'etlaasot-favicon.png',
         'et-laasot-bat-yam-logo.png',
