@@ -685,8 +685,8 @@ const PasswordChangeDialog: React.FC<{
     fullWidth
     maxWidth="xs"
     PaperProps={{
+      dir: "rtl",
       sx: {
-        direction: "rtl",
         borderRadius: "22px",
         p: 0.5,
         m: 2,
@@ -774,6 +774,7 @@ const ProfilePasswordField: React.FC<{
         <InputAdornment position="end">
           <IconButton
             aria-label={visible ? "הסתרת סיסמה" : "הצגת סיסמה"}
+            aria-pressed={visible}
             edge="end"
             size="small"
             onClick={onToggleVisible}
