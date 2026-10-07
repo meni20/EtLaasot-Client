@@ -219,22 +219,23 @@ export const PushNotificationSettings: React.FC<
     >
       <Box
         sx={{
-          display: "grid",
+          display: "flex",
+          // The app's RTL Stylis plugin flips physical direction values.
+          // Declaring LTR here produces the intended computed RTL row.
           direction: "ltr",
-          gridTemplateAreas: '"control content"',
-          gridTemplateColumns: "auto minmax(0, 1fr)",
           alignItems: "center",
+          justifyContent: "space-between",
           width: "100%",
           minHeight: 48,
-          columnGap: 2,
+          gap: 2,
         }}
       >
         <Box
           sx={{
-            gridArea: "content",
-            direction: "rtl",
+            direction: "ltr",
+            flex: "1 1 auto",
             minWidth: 0,
-            textAlign: "right",
+            textAlign: "start",
           }}
         >
           <Typography
@@ -251,7 +252,7 @@ export const PushNotificationSettings: React.FC<
                 fontSize: 13,
                 lineHeight: 1.55,
                 fontFamily: "inherit",
-                textAlign: "right",
+                textAlign: "start",
               }}
             >
               {statusDescription}
@@ -260,11 +261,11 @@ export const PushNotificationSettings: React.FC<
         </Box>
         <Box
           sx={{
-            gridArea: "control",
             direction: "ltr",
             display: "flex",
             alignItems: "center",
             justifyContent: "flex-start",
+            flex: "0 0 auto",
             gap: 1,
             minWidth: 64,
           }}
