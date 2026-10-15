@@ -11,6 +11,7 @@ import type {
   AttendanceIntent,
   IEvent,
 } from "../../interfaces/event.interface";
+import { useDeferredBackgroundImage } from "../../hooks/useDeferredBackgroundImage";
 
 interface EventSummaryCardProps {
   event: IEvent;
@@ -47,9 +48,12 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
   const eventName = decodeUnicodeEscapes(event.name);
   const eventAddress = decodeUnicodeEscapes(event.address);
   const hasImageBackground = Boolean(event.imageUrl);
+  const { elementRef: cardRef, shouldLoad: shouldLoadBackgroundImage } =
+    useDeferredBackgroundImage(event.imageUrl);
 
   return (
     <Box
+      ref={cardRef}
       onClick={onClick}
       onKeyDown={(keyboardEvent) => {
         if (!onClick) return;
@@ -73,7 +77,7 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
         borderRadius: "var(--radius-xl, 22px)",
         p: featured ? 3 : 2.5,
         backgroundColor: hasImageBackground ? "#252027" : "#fff",
-        backgroundImage: hasImageBackground
+        backgroundImage: hasImageBackground && shouldLoadBackgroundImage
           ? `linear-gradient(180deg, rgba(12, 15, 18, 0.46) 0%, rgba(12, 15, 18, 0.62) 100%), url("${event.imageUrl}")`
           : "none",
         backgroundSize: "cover",

@@ -19,7 +19,9 @@ export const PwaUpdatePrompt: React.FC<PwaUpdatePromptProps> = ({
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    immediate: true,
+    // Let the initial document and authenticated API traffic finish before
+    // Workbox starts downloading the full application precache.
+    immediate: false,
     onRegisteredSW: (_serviceWorkerUrl, registration) => {
       registrationRef.current = registration;
     },

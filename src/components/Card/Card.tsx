@@ -25,6 +25,7 @@ import type { IUser } from "../../interfaces/user.interface";
 import { EventAtendeeDialog } from "../EventAtendeeDialog/EventAtendeeDialog";
 import { EventActivityAttendanceDialog } from "../EventActivityAttendanceDialog/EventActivityAttendanceDialog";
 import { EventAiSummaryDialog } from "../EventAiSummaryDialog/EventAiSummaryDialog";
+import { useDeferredBackgroundImage } from "../../hooks/useDeferredBackgroundImage";
 
 const toDate = (value: Date | string | null | undefined) => {
   if (!value) return null;
@@ -119,17 +120,19 @@ export const BasicCard: React.FC<ICardProps> = ({
     ? formatDate(start)
     : `${formatDate(start)} - ${formatDate(end)}`;
   const hasImageBackground = Boolean(imageUrl);
+  const { elementRef: cardRef, shouldLoad: shouldLoadBackgroundImage } =
+    useDeferredBackgroundImage(imageUrl);
   const isPastEvent = end ? end.getTime() < Date.now() : false;
   const statusLabel = isPastEvent ? "הסתיים" : "אירוע קרוב";
 
   return (
-    <Box className={classes.cardContainer}>
+    <Box ref={cardRef} className={classes.cardContainer}>
       <Card
         className={`${classes.card} ${
           hasImageBackground ? classes.cardWithImage : ""
         }`}
         style={
-          hasImageBackground
+          hasImageBackground && shouldLoadBackgroundImage
             ? { backgroundImage: `url("${imageUrl}")` }
             : undefined
         }
