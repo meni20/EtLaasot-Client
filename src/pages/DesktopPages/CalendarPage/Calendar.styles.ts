@@ -97,16 +97,11 @@ export const useCalendarStyles = makeStyles({
         marginInline: "auto",
         background: "var(--color-surface, #fff)",
         borderRadius: "var(--radius-xl, 22px)",
-        padding: "20px 24px 24px",
-        boxShadow: "var(--shadow-sm, 0 3px 12px rgba(16,24,40,0.07))",
-        border: "1px solid var(--color-border-subtle, #e9ebef)",
+        padding: "18px 20px 22px",
+        boxShadow: "var(--shadow-xs, 0 1px 2px rgba(16,24,40,0.05))",
+        border: "1px solid rgba(var(--color-primary-rgb), 0.12)",
         animation: "fadeInUp 220ms var(--ease-out, ease-out)",
-        transition: "box-shadow var(--transition-normal, 180ms ease), border-color var(--transition-normal, 180ms ease)",
         overflow: "hidden",
-        "&:hover": {
-            boxShadow: "var(--shadow-md, 0 12px 34px rgba(16,24,40,0.10))",
-            borderColor: "var(--color-border, #dadde3)",
-        },
 
         /* FullCalendar overrides */
         "& .fc": {
@@ -115,66 +110,100 @@ export const useCalendarStyles = makeStyles({
             color: "var(--color-text, #1d1d1f)",
         },
         "& .fc-toolbar": {
-            marginBottom: "16px !important",
-            flexWrap: "wrap",
+            display: "grid !important",
+            gridTemplateColumns: "1fr minmax(240px, auto) 1fr",
+            alignItems: "center",
+            marginBottom: "18px !important",
+            gap: 12,
+            minHeight: 50,
+        },
+        "& .fc-toolbar-chunk": {
+            display: "flex",
+            alignItems: "center",
             gap: 8,
+            minWidth: 0,
+        },
+        "& .fc-toolbar-chunk:nth-child(1)": {
+            justifySelf: "start",
+        },
+        "& .fc-toolbar-chunk:nth-child(2)": {
+            justifySelf: "center",
+            textAlign: "center" as const,
+        },
+        "& .fc-toolbar-chunk:nth-child(3)": {
+            justifySelf: "end",
         },
         "& .fc-toolbar-title": {
             fontWeight: 800,
-            fontSize: "1.35rem",
-            color: "var(--color-text, #1d1d1f)",
+            fontSize: "clamp(1.35rem, 2.2vw, 1.85rem)",
+            lineHeight: 1.25,
+            color: "var(--color-primary-pressed, #57294c)",
+            letterSpacing: "-0.015em",
+            whiteSpace: "normal" as const,
+            textWrap: "balance" as const,
         },
         "& .fc-button-group": {
-            gap: 4,
+            gap: 3,
+            padding: 3,
+            borderRadius: "var(--radius-md, 14px)",
+            backgroundColor: "var(--color-primary-soft, #f7f1f5)",
+            border: "1px solid rgba(var(--color-primary-rgb), 0.12)",
         },
         "& .fc-button-primary": {
-            minHeight: "40px !important",
+            minHeight: "44px !important",
             background: "var(--color-surface, #fff)",
             color: "var(--color-primary)",
-            border: "1px solid var(--color-border, #dadde3)",
+            border: "1px solid rgba(var(--color-primary-rgb), 0.18)",
             borderRadius: "var(--radius-sm, 10px) !important",
             fontWeight: 800,
             fontSize: 13,
-            padding: "7px 14px",
+            padding: "8px 15px",
+            margin: "0 !important",
             transition:
-                "transform var(--transition-fast, 140ms ease), background-color var(--transition-fast, 140ms ease), border-color var(--transition-fast, 140ms ease), box-shadow var(--transition-fast, 140ms ease)",
+                "background-color var(--transition-fast, 140ms ease), border-color var(--transition-fast, 140ms ease), color var(--transition-fast, 140ms ease), box-shadow var(--transition-fast, 140ms ease)",
             boxShadow: "none",
             "&:hover": {
-                background: "var(--color-primary-soft)",
-                borderColor: "var(--color-primary)",
-                boxShadow: "var(--shadow-sm, 0 3px 12px rgba(16,24,40,0.07))",
+                background: "var(--color-primary-selected, #efe3eb)",
+                borderColor: "var(--color-primary-border, #d9bfd2)",
+                color: "var(--color-primary-pressed, #57294c)",
             },
-            "&:active": {
-                transform: "scale(0.97)",
-            },
-            "&:focus": {
-                boxShadow: "0 0 0 3px rgba(var(--color-primary-rgb), 0.20)",
+            "&:focus-visible": {
+                boxShadow: "var(--shadow-focus, 0 0 0 3px rgba(var(--color-primary-rgb), 0.24))",
             },
             "&:disabled": {
-                opacity: 0.5,
+                opacity: 0.46,
             },
+        },
+        "& .fc-prev-button, & .fc-next-button": {
+            width: 44,
+            minWidth: "44px !important",
+            padding: "0 !important",
         },
         "& .fc-button-primary:not(:disabled).fc-button-active": {
             background: "var(--color-primary)",
             color: "#fff",
             borderColor: "var(--color-primary)",
-            boxShadow: "inset 0 1px 2px rgba(0,0,0,0.14)",
+            boxShadow: "none",
         },
         "& .fc-today-button": {
-            borderRadius: "10px !important",
+            borderRadius: "var(--radius-md, 14px) !important",
+            backgroundColor: "var(--color-primary-soft, #f7f1f5)",
         },
         "& .fc-scrollgrid": {
-            borderRadius: "var(--radius-lg, 18px)",
+            borderRadius: "var(--radius-md, 14px)",
             overflow: "hidden",
-            border: "1px solid var(--color-border-subtle, #e9ebef) !important",
+            border: "1px solid rgba(var(--color-primary-rgb), 0.13) !important",
         },
         "& .fc-col-header-cell": {
-            backgroundColor: "var(--color-surface-muted, #f0f2f4)",
-            fontWeight: 700,
+            backgroundColor: "var(--color-primary-soft, #f7f1f5)",
+            fontWeight: 800,
             fontSize: 13,
-            color: "var(--color-text-secondary, #51565c)",
-            padding: "10px 0",
-            borderColor: "var(--color-border-subtle, #e9ebef)",
+            color: "var(--color-primary-pressed, #57294c)",
+            padding: "11px 0",
+            borderColor: "rgba(var(--color-primary-rgb), 0.1)",
+        },
+        "& .fc-col-header-cell-cushion": {
+            padding: "3px 8px",
         },
         "& .fc-daygrid-day": {
             transition: "background-color var(--transition-fast, 140ms ease)",
@@ -182,14 +211,28 @@ export const useCalendarStyles = makeStyles({
                 backgroundColor: "rgba(var(--color-primary-rgb), 0.035)",
             },
         },
+        "& .fc-daygrid-day-frame": {
+            minHeight: "clamp(108px, 10vw, 148px)",
+            padding: "3px 4px 8px",
+        },
+        "& .fc-daygrid-day-top": {
+            minHeight: 48,
+        },
+        "& .fc-day-other": {
+            backgroundColor: "rgba(var(--color-primary-rgb), 0.015)",
+        },
+        "& .fc-day-other .fc-daygrid-day-number": {
+            opacity: 0.5,
+        },
         "& .fc-daygrid-day-number": {
             fontWeight: 700,
             color: "var(--color-text, #1d1d1f)",
             fontSize: 13,
-            padding: "6px 10px 4px",
+            padding: "7px 8px 5px",
+            width: "100%",
         },
         "& .fc-daygrid-day.fc-day-today": {
-            backgroundColor: "rgba(var(--color-primary-rgb), 0.07) !important",
+            backgroundColor: "rgba(var(--color-primary-rgb), 0.055) !important",
         },
         "& .fc-daygrid-day.fc-day-today .fc-daygrid-day-number": {
             background: "transparent",
@@ -203,23 +246,38 @@ export const useCalendarStyles = makeStyles({
             background: "var(--color-primary)",
             color: "#fff",
             borderRadius: "50%",
-            width: 28,
-            height: 28,
+            width: 30,
+            height: 30,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            boxShadow: "0 2px 7px rgba(var(--color-primary-rgb), 0.2)",
         },
         "& .fc-daygrid-event": {
-            borderRadius: "8px !important",
-            padding: "3px 8px !important",
-            fontSize: 12,
-            fontWeight: 600,
+            borderRadius: "9px !important",
+            padding: "5px 8px !important",
+            marginTop: "3px !important",
+            fontSize: 12.25,
+            fontWeight: 700,
+            lineHeight: 1.3,
             cursor: "pointer",
-            transition: "transform var(--transition-fast, 140ms ease), box-shadow var(--transition-fast, 140ms ease)",
-            border: "none !important",
+            transition: "box-shadow var(--transition-fast, 140ms ease), filter var(--transition-fast, 140ms ease)",
+            border: "1px solid rgba(255,255,255,0.26) !important",
+            boxShadow: "0 2px 6px rgba(48,48,80,0.13)",
             "&:hover": {
-                boxShadow: "0 5px 14px rgba(var(--color-primary-rgb),0.22)",
+                boxShadow: "0 4px 11px rgba(48,48,80,0.2)",
+                filter: "brightness(1.04)",
             },
+        },
+        "& .fc-event-main": {
+            overflow: "hidden",
+        },
+        "& .fc-event-time": {
+            fontWeight: 800,
+            marginInlineEnd: 4,
+        },
+        "& .fc-event-title": {
+            fontWeight: 700,
         },
         "& .fc-daygrid-more-link": {
             fontWeight: 700,
@@ -231,7 +289,7 @@ export const useCalendarStyles = makeStyles({
         },
         "& .fc-daygrid-body td, & .fc-daygrid-body th, & .fc-scrollgrid td, & .fc-scrollgrid th":
         {
-            borderColor: "var(--color-border-subtle, #e9ebef)",
+            borderColor: "rgba(var(--color-primary-rgb), 0.09)",
         },
         "& .fc-popover": {
             borderRadius: "var(--radius-lg, 18px)",
@@ -244,34 +302,17 @@ export const useCalendarStyles = makeStyles({
             color: "var(--color-text, #1d1d1f)",
             fontWeight: 700,
         },
-        "@media (hover: hover) and (pointer: fine)": {
-            "& .fc-button-primary:hover": {
-                transform: "translateY(-1px)",
-            },
-            "& .fc-daygrid-event:hover": {
-                transform: "scale(1.03)",
-            },
-        },
     },
     calendarWrapperWithBackground: {
         "&::before": {
             content: '""',
             position: "absolute" as const,
             inset: 0,
-            backgroundImage: "var(--calendar-background-image)",
+            backgroundImage:
+                "linear-gradient(rgba(255,255,255,0.64), rgba(250,247,250,0.69)), var(--calendar-background-image)",
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
-            opacity: 0.42,
-            pointerEvents: "none" as const,
-            zIndex: 0,
-        },
-        "&::after": {
-            content: '""',
-            position: "absolute" as const,
-            inset: 0,
-            background:
-                "linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(245, 246, 248, 0.82))",
             pointerEvents: "none" as const,
             zIndex: 0,
         },
@@ -283,28 +324,22 @@ export const useCalendarStyles = makeStyles({
             backgroundColor: "transparent !important",
         },
         "& .fc-daygrid-day, & .fc-daygrid-day-frame": {
-            backgroundColor: "rgba(255, 255, 255, 0.12) !important",
+            backgroundColor: "rgba(255, 255, 255, 0.16) !important",
         },
         "& .fc-daygrid-day:hover": {
-            backgroundColor: "rgba(255, 255, 255, 0.28) !important",
+            backgroundColor: "rgba(255, 255, 255, 0.34) !important",
         },
         "& .fc-col-header-cell": {
-            backgroundColor: "rgba(255, 255, 255, 0.82) !important",
-            backdropFilter: "blur(2px)",
+            backgroundColor: "rgba(247, 241, 245, 0.84) !important",
+            backdropFilter: "blur(4px)",
         },
         "& .fc-daygrid-day.fc-day-today": {
-            backgroundColor: "rgba(var(--color-primary-rgb),0.18) !important",
-        },
-        "& .fc-event, & .fc-daygrid-event": {
-            backgroundColor: "var(--color-primary) !important",
-            borderColor: "var(--color-primary-dark) !important",
-            opacity: "1 !important",
-            color: "#fff !important",
+            backgroundColor: "rgba(var(--color-primary-rgb),0.1) !important",
         },
         "& .fc-event-main, & .fc-event-title, & .fc-event-time": {
             opacity: "1 !important",
             color: "#fff !important",
-            textShadow: "0 1px 1px rgba(45, 35, 43, 0.28)",
+            textShadow: "0 1px 2px rgba(45,35,43,0.24)",
         },
     },
     dayNumberContent: {
@@ -327,11 +362,11 @@ export const useCalendarStyles = makeStyles({
     },
     hebrewDate: {
         display: "block",
-        maxWidth: 86,
+        maxWidth: 108,
         color: "var(--color-text-muted, #6e737a)",
-        fontSize: "10.5px !important",
+        fontSize: "11.5px !important",
         fontWeight: "600 !important" as const,
-        lineHeight: "1.15 !important" as const,
+        lineHeight: "1.25 !important" as const,
         whiteSpace: "nowrap" as const,
         overflow: "hidden",
         textOverflow: "ellipsis",
@@ -352,6 +387,64 @@ export const useCalendarStyles = makeStyles({
     "@media (min-width: 1024px)": {
         root: {
             paddingInline: 32,
+        },
+    },
+    "@media (max-width: 1100px)": {
+        root: {
+            paddingInline: 16,
+        },
+        header: {
+            alignItems: "flex-start",
+            flexWrap: "wrap" as const,
+        },
+        headerActions: {
+            flex: "1 1 auto",
+        },
+        calendarWrapper: {
+            padding: "18px 14px 20px",
+            "& .fc-toolbar": {
+                gridTemplateColumns: "minmax(190px, 1fr) minmax(220px, 300px) minmax(0, 1fr)",
+                gap: 10,
+            },
+            "& .fc-toolbar-title": {
+                fontSize: "1.3rem",
+                maxWidth: 300,
+            },
+            "& .fc-daygrid-day-frame": {
+                minHeight: 104,
+            },
+            "& .fc-daygrid-event": {
+                padding: "4px 6px !important",
+                fontSize: 11.5,
+            },
+        },
+        hebrewDate: {
+            maxWidth: 84,
+            fontSize: "11px !important",
+        },
+    },
+    "@media (max-width: 900px)": {
+        header: {
+            flexDirection: "column" as const,
+        },
+        headerActions: {
+            width: "100%",
+        },
+        calendarWrapper: {
+            "& .fc-toolbar": {
+                gridTemplateColumns: "minmax(180px, 1fr) minmax(210px, 260px) minmax(0, 0.35fr)",
+            },
+            "& .fc-toolbar-title": {
+                fontSize: "1.2rem",
+                maxWidth: 220,
+                whiteSpace: "pre-line" as const,
+            },
+            "& .fc-button-primary": {
+                padding: "8px 11px",
+            },
+            "& .fc-daygrid-day-frame": {
+                minHeight: 96,
+            },
         },
     },
     "@media (max-width: 760px)": {
@@ -386,16 +479,29 @@ export const useCalendarStyles = makeStyles({
                 minWidth: 620,
             },
             "& .fc-toolbar": {
+                display: "flex !important",
                 alignItems: "stretch",
                 flexDirection: "column" as const,
+                gap: 10,
+            },
+            "& .fc-toolbar-chunk": {
+                justifyContent: "center",
+                justifySelf: "stretch",
+            },
+            "& .fc-toolbar-chunk:nth-child(2)": {
+                order: -1,
             },
             "& .fc-toolbar-title": {
                 fontSize: "1.12rem",
                 textAlign: "center" as const,
+                maxWidth: 220,
             },
             "& .fc-button-primary": {
-                minHeight: "40px !important",
+                minHeight: "44px !important",
                 padding: "6px 10px",
+            },
+            "& .fc-daygrid-day-frame": {
+                minHeight: 94,
             },
         },
     },

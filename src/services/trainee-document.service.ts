@@ -1,5 +1,7 @@
 import { createServerAxiosInstance } from "../config/axiosInstance";
 import type {
+  AdminTraineeDocumentListParams,
+  AdminTraineeDocumentPage,
   DocumentType,
   DocumentView,
   TraineeDocument,
@@ -13,6 +15,17 @@ const pathFor = (target: TraineeDocumentsTarget) =>
     : `/trainee/${encodeURIComponent(target.traineeUuid)}/documents`;
 
 const traineeDocumentService = {
+  async listAdmin(
+    params: AdminTraineeDocumentListParams,
+    signal: AbortSignal,
+  ) {
+    return (
+      await api.get<AdminTraineeDocumentPage>("/trainee/documents", {
+        params,
+        signal,
+      })
+    ).data;
+  },
   async list(target: TraineeDocumentsTarget, signal: AbortSignal) {
     return (await api.get<TraineeDocument[]>(pathFor(target), { signal })).data;
   },

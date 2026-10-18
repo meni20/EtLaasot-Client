@@ -4,6 +4,7 @@ import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
+import { useEffect, useState } from "react";
 import { EVENT_TYPES } from "../../constants/auth.const";
 import { formatDate } from "../../utils/data.utillity";
 import { decodeUnicodeEscapes } from "../../utils/text.util";
@@ -28,6 +29,50 @@ const ATTENDANCE_STATUS_LABELS: Record<AttendanceIntent, string> = {
   NONE: "לא נרשמת עדיין",
 };
 
+const FEATURED_CARD_FALLBACK_ASPECT_RATIO = 4 / 5;
+const FEATURED_CARD_MIN_HEIGHT = 300;
+const FEATURED_CARD_MAX_HEIGHT = "min(72dvh, 620px)";
+const imageAspectRatioCache = new Map<string, number>();
+
+const useImageAspectRatio = (
+  imageUrl: string | null | undefined,
+  enabled: boolean,
+) => {
+  const [loadedImage, setLoadedImage] = useState<{
+    url: string;
+    aspectRatio: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!enabled || !imageUrl) return;
+
+    const cachedAspectRatio = imageAspectRatioCache.get(imageUrl);
+    if (cachedAspectRatio) {
+      setLoadedImage({ url: imageUrl, aspectRatio: cachedAspectRatio });
+      return;
+    }
+
+    let cancelled = false;
+    const image = new Image();
+
+    image.onload = () => {
+      if (cancelled || !image.naturalWidth || !image.naturalHeight) return;
+
+      const aspectRatio = image.naturalWidth / image.naturalHeight;
+      imageAspectRatioCache.set(imageUrl, aspectRatio);
+      setLoadedImage({ url: imageUrl, aspectRatio });
+    };
+    image.src = imageUrl;
+
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled, imageUrl]);
+
+  if (!imageUrl || loadedImage?.url !== imageUrl) return null;
+  return loadedImage.aspectRatio;
+};
+
 const formatTime = (date: Date | string) => {
   const value = new Date(date);
   if (Number.isNaN(value.getTime())) return "-";
@@ -50,6 +95,12 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
   const hasImageBackground = Boolean(event.imageUrl);
   const { elementRef: cardRef, shouldLoad: shouldLoadBackgroundImage } =
     useDeferredBackgroundImage(event.imageUrl);
+  const imageAspectRatio = useImageAspectRatio(
+    event.imageUrl,
+    featured && shouldLoadBackgroundImage,
+  );
+  const featuredAspectRatio =
+    imageAspectRatio ?? FEATURED_CARD_FALLBACK_ASPECT_RATIO;
 
   return (
     <Box
@@ -73,7 +124,21 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
         boxSizing: "border-box",
         width: "100%",
         maxWidth: "100%",
-        minHeight: featured ? "66dvh" : 196,
+        display: featured ? "flex" : "block",
+        flexDirection: featured ? "column" : undefined,
+        aspectRatio:
+          featured && hasImageBackground
+            ? `${featuredAspectRatio}`
+            : undefined,
+        minHeight: featured
+          ? hasImageBackground
+            ? FEATURED_CARD_MIN_HEIGHT
+            : "66dvh"
+          : 196,
+        maxHeight:
+          featured && hasImageBackground
+            ? FEATURED_CARD_MAX_HEIGHT
+            : undefined,
         borderRadius: "var(--radius-xl, 22px)",
         p: featured ? 3 : 2.5,
         backgroundColor: hasImageBackground ? "#252027" : "#fff",
@@ -117,7 +182,8 @@ export const EventSummaryCard: React.FC<EventSummaryCardProps> = ({
           position: "relative",
           zIndex: 1,
           minWidth: 0,
-          minHeight: featured ? "calc(66dvh - 48px)" : 0,
+          minHeight: 0,
+          flex: featured ? 1 : undefined,
         }}
       >
         <Box
