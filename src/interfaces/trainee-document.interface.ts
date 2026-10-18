@@ -18,3 +18,25 @@ export interface DocumentView {
   signedUrl: string;
   expiresAt: string;
 }
+
+export interface AdminTraineeDocument extends TraineeDocument {
+  traineeUuid: string;
+  traineeName: string;
+  branchId: string | null;
+  branchName: string | null;
+}
+
+export interface AdminTraineeDocumentListParams {
+  documentType: DocumentType;
+  branchId?: string;
+  search?: string;
+  page: number;
+  pageSize: number;
+}
+
+export interface AdminTraineeDocumentPage {
+  items: AdminTraineeDocument[];
+  total: number;
+  page: number;
+  pageSize: number;
+}

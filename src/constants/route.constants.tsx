@@ -47,6 +47,11 @@ const SettingsPage = lazy(() =>
     default: module.SettingsPage,
   })),
 );
+const FilesPage = lazy(() =>
+  import("../pages/DesktopPages/FilesPage/FilesPage").then((module) => ({
+    default: module.FilesPage,
+  })),
+);
 const HomeMobile = lazy(() =>
   import("../pages/Mobile/HomePage/HomeMobile").then((module) => ({
     default: module.HomeMobile,
@@ -104,6 +109,11 @@ export const DESKTOP_ROUTES: AppRoute[] = [
   { path: "/activities", element: <ActivitiesPage /> },
   { path: "/trainee", element: <TraineePage /> },
   { path: "/mentor-assignments", element: <MentorAssignmentPage /> },
+  {
+    path: "/files",
+    element: <FilesPage />,
+    allowedRoles: [AUTH_ROLES.SUPER_ADMIN.id, AUTH_ROLES.BRANCH_ADMIN.id],
+  },
   {
     path: "/settings",
     element: <SettingsPage />,

@@ -6,6 +6,7 @@ import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined";
 import VolunteerActivismOutlinedIcon from "@mui/icons-material/VolunteerActivismOutlined";
 import DashboardCustomizeOutlinedIcon from "@mui/icons-material/DashboardCustomizeOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import { AUTH_ROLES } from "../../constants/auth.const";
 
 export interface MenuItem {
@@ -31,6 +32,7 @@ export const menuItems: MenuItem[] = [
     path: "/volunteers",
   },
   { label: "חניכים", icon: <SchoolOutlinedIcon />, path: "/trainee" },
+  { label: "קבצים", icon: <FolderOutlinedIcon />, path: "/files" },
   {
     label: "שיבוץ חונכים",
     icon: <AssignmentIndOutlinedIcon />,

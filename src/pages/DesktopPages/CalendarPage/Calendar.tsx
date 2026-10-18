@@ -22,6 +22,8 @@ import { EventDetailsDialog } from "../../../components/EventDetailsDialog/Event
 import { useCalendarStyles } from "./Calendar.styles";
 import eventService from "../../../services/event.service";
 import type { IEvent } from "../../../interfaces/event.interface";
+import { EVENT_TYPES } from "../../../constants/auth.const";
+import { designTokens } from "../../../theme/tokens";
 
 const MAX_BACKGROUND_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_BACKGROUND_IMAGE_TYPES = new Set([
@@ -35,6 +37,27 @@ const HEBREW_DATE_FORMATTER = new Intl.DateTimeFormat("he-IL-u-ca-hebrew", {
   month: "long",
   timeZone: "Asia/Jerusalem",
 });
+
+const MONTH_TITLE_FORMATTER = new Intl.DateTimeFormat("he-IL", {
+  month: "long",
+  year: "numeric",
+  timeZone: "Asia/Jerusalem",
+});
+
+const EVENT_COLOR_PALETTE = [
+  designTokens.color.primary,
+  designTokens.color.primaryHover,
+  designTokens.color.brandHover,
+  designTokens.color.primaryPressed,
+  designTokens.color.brandInk,
+];
+
+const EVENT_TYPE_COLORS = Object.fromEntries(
+  Object.keys(EVENT_TYPES).map((eventType, index) => [
+    eventType,
+    EVENT_COLOR_PALETTE[index % EVENT_COLOR_PALETTE.length],
+  ]),
+) as Record<string, string>;
 
 const HEBREW_DAY_NUMERALS: Record<number, string> = {
   1: "א׳",
@@ -89,7 +112,7 @@ const toMonthKey = (date: Date) =>
 
 export const CalendarPage: React.FC = () => {
   const { events, isLoading } = useDataContext();
-  const { activeBranch } = useBranch();
+  const { activeBranch, availableBranches } = useBranch();
   const [selectedEvent, setSelectedEvent] = React.useState<IEvent | null>(null);
   const [displayedMonthKey, setDisplayedMonthKey] = React.useState(() =>
     toMonthKey(new Date()),
@@ -99,6 +122,14 @@ export const CalendarPage: React.FC = () => {
   const styles = useCalendarStyles();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  const activeBranchName = React.useMemo(() => {
+    const branchName = availableBranches.find(
+      (branch) => branch.id === activeBranch,
+    )?.name;
+
+    return branchName?.replace(/^סניף\s+/, "") ?? "";
+  }, [activeBranch, availableBranches]);
 
   const backgroundQueryKey = React.useMemo(
     () => ["calendar-background", activeBranch, displayedMonthKey],
@@ -141,17 +172,23 @@ export const CalendarPage: React.FC = () => {
     },
   });
 
-  const calendarEvents = events.map((event) => ({
-    id: event.id?.toString(),
-    title: event.name,
-    start: event.startDate,
-    end: event.endDate,
-    allDay: false,
-    backgroundColor: "var(--color-primary)",
-    borderColor: "var(--color-primary-dark)",
-    textColor: "#fff",
-    extendedProps: { ...event },
-  }));
+  const calendarEvents = events.map((event) => {
+    const eventColor = event.eventType
+      ? EVENT_TYPE_COLORS[event.eventType]
+      : undefined;
+
+    return {
+      id: event.id?.toString(),
+      title: event.name,
+      start: event.startDate,
+      end: event.endDate,
+      allDay: false,
+      backgroundColor: eventColor ?? designTokens.color.primary,
+      borderColor: eventColor ?? designTokens.color.primary,
+      textColor: "#fff",
+      extendedProps: { ...event },
+    };
+  });
 
   const handleEventClick = (clickInfo: any) => {
     setSelectedEvent(clickInfo.event.extendedProps as IEvent);
@@ -275,6 +312,15 @@ export const CalendarPage: React.FC = () => {
               start: "prev,next today",
               center: "title",
               end: "",
+            }}
+            titleFormat={(dateInfo) => {
+              const monthTitle = MONTH_TITLE_FORMATTER.format(
+                dateInfo.date.marker,
+              );
+
+              return activeBranchName
+                ? `${monthTitle}\n• בסניף ${activeBranchName}`
+                : monthTitle;
             }}
             dayMaxEvents={3}
             eventTimeFormat={{
