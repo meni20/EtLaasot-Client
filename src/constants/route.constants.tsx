@@ -88,6 +88,12 @@ const ProfilePage = lazy(() =>
   })),
 );
 
+const ParentRegistrationPage = lazy(() =>
+  import("../features/parent-registration/LiveRegistrationPage"),
+);
+const registrationEnabled =
+  import.meta.env.VITE_PARENT_REGISTRATION_ENABLED === "true";
+
 export interface AppRoute {
   path: string;
   element: React.ReactNode;
@@ -95,6 +101,13 @@ export interface AppRoute {
 }
 
 export const DESKTOP_ROUTES: AppRoute[] = [
+  ...(registrationEnabled
+    ? [{
+        path: "/parent-registration",
+        element: <ParentRegistrationPage />,
+        allowedRoles: [AUTH_ROLES.SUPER_ADMIN.id, AUTH_ROLES.BRANCH_ADMIN.id],
+      }]
+    : []),
   { path: "/", element: <DashboardPage /> },
   { path: "/dashboard", element: <DashboardPage /> },
   {
@@ -122,6 +135,13 @@ export const DESKTOP_ROUTES: AppRoute[] = [
 ];
 
 export const MOBILE_ROUTES: AppRoute[] = [
+  ...(registrationEnabled
+    ? [{
+        path: "/parent-registration",
+        element: <ParentRegistrationPage />,
+        allowedRoles: [AUTH_ROLES.TRAINEE.id],
+      }]
+    : []),
   { path: "/", element: <HomeMobile /> },
   { path: "/home", element: <HomeMobile /> },
   {

@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.registration.tsbuildinfo",
+    "types": ["node", "vite/client"],
+    "noEmit": true
+  },
+  "include": [
+    "src/features/parent-registration",
+    "tests/registration.model.test.ts",
+    "tests/registration-ui",
+    "vite.registration.config.ts",
+    "playwright.registration.config.ts"
+  ]
+}

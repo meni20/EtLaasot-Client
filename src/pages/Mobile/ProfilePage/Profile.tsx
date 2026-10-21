@@ -436,6 +436,16 @@ export const ProfilePage: React.FC = () => {
         </Box>
       )}
 
+      {isTrainee && import.meta.env.VITE_PARENT_REGISTRATION_ENABLED === "true" && (
+        <Button
+          fullWidth
+          variant="outlined"
+          sx={{ my: 3 }}
+          onClick={() => navigate("/parent-registration")}
+        >
+          רישום הורים לפעילויות
+        </Button>
+      )}
       {isTrainee && <TraineeMedicationsSection mode="self" />}
       {isTrainee && <TraineeDocumentsSection mode="self" />}
 
