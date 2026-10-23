@@ -132,5 +132,14 @@ export function useDraft(
       }
     },
     current: () => ({ ...state.current }),
+    accept: (result: { data: typeof data; form: { revision: number } }) => {
+      state.current.data = result.data;
+      state.current.revision = result.form.revision;
+      state.current.saved = state.current.generation;
+      state.current.blocked = false;
+      setData(result.data);
+      setRevision(result.form.revision);
+      setSaveState("saved");
+    },
   };
 }

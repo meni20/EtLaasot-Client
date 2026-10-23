@@ -1,8 +1,27 @@
 import type { GridColDef } from "@mui/x-data-grid";
+import { Chip } from "@mui/material";
+import { createElement } from "react";
+import {
+  statuses,
+  type FormStatus,
+} from "../../../features/parent-registration/api";
+
+export const formLabel = (value: FormStatus | null | undefined) =>
+  value === undefined ? "—" : value === null ? "אין טופס" : statuses[value];
 
 export const COLUMNS: GridColDef[] = [
   { field: "nationalIdMasked", headerName: "ת.ז", width: 150 },
   { field: "name", headerName: "שם", flex: 1.1, minWidth: 190 },
+  {
+    field: "parentRegistrationStatus",
+    headerName: "טופס",
+    width: 150,
+    align: "right",
+    headerAlign: "right",
+    valueFormatter: formLabel,
+    renderCell: (params) =>
+      createElement(Chip, { size: "small", label: formLabel(params.value) }),
+  },
   {
     field: "age",
     headerName: "גיל",

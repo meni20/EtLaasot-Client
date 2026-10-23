@@ -200,8 +200,10 @@ export function RegistrationAdmin({
           </Stack>
         </Stack>
         <Alert severity="info">
-          חסימת גישה לאפליקציה אינה מופעלת. העלאת קבצים, הפקת PDF וצפייה במסמכים
-          טרם חוברו.
+          {api.mode === "demo"
+            ? "הדגמה בלבד: לא נשמרים קבצים אמיתיים."
+            : "הקבצים והמסמכים נשמרים באחסון פרטי ונגישים למנהל הסניף המורשה."}{" "}
+          הגבלת הגישה תלויה בחובת הרישום ובהפעלת האכיפה.
         </Alert>
         {success && <Alert severity="success">{success}</Alert>}
         <Paper
@@ -359,7 +361,7 @@ export function RegistrationAdmin({
                   </TableCell>
                   <TableCell align="right">
                     {row.documentStatus === "READY"
-                      ? "מוכן (צפייה לא זמינה)"
+                      ? "מוכן באחסון פרטי"
                       : row.documentStatus === "FAILED"
                         ? "נכשל"
                         : "ממתין להפקה"}
@@ -441,7 +443,11 @@ export function RegistrationAdmin({
               )}
               {detail.data && (
                 <>
-                  <DetailView detail={detail.data} />
+                  <DetailView
+                    detail={detail.data}
+                    api={api}
+                    reload={() => detail.refetch()}
+                  />
                   <Stack direction="row" gap={3}>
                     <Button
                       variant="outlined"
@@ -497,8 +503,9 @@ export function RegistrationAdmin({
             </Typography>
             {dialog === "annual" && (
               <Alert severity="info">
-                ייפתח רישום שנתי לכל החניכים בסניף, כולל מצטרפים חדשים. אכיפת
-                חסימת גישה עדיין כבויה.
+                פתיחת הרישום תחייב אישור שנתי לחניכי הסניף. אם הגבלת הגישה
+                מופעלת, חניכים ללא אישור יוגבלו מיידית ללא תקופת חסד. בקשה חדשה
+                שכבר אושרה לשנת הפעילות הנוכחית נחשבת לרישום מאושר.
               </Alert>
             )}
             {dialog === "renew" && (
@@ -522,7 +529,7 @@ export function RegistrationAdmin({
                       onChange={(_, v) => setBlocking(v)}
                     />
                   }
-                  label="בקשה חוסמת (האכיפה עדיין כבויה)"
+                  label="בקשה חוסמת עד לאישור"
                 />
               </>
             )}
@@ -649,7 +656,15 @@ function flatten(value: unknown, prefix = ""): [string, unknown][] {
     );
   return [[prefix, value]];
 }
-function DetailView({ detail }: { detail: FormDetail }) {
+function DetailView({
+  detail,
+  api,
+  reload,
+}: {
+  detail: FormDetail;
+  api: RegistrationApi;
+  reload: () => Promise<unknown>;
+}) {
   const [versionId, setVersionId] = useState("");
   const versions = [...detail.versions].sort(
     (a, b) => b.versionNumber - a.versionNumber,
@@ -756,10 +771,58 @@ function DetailView({ detail }: { detail: FormDetail }) {
       ) : (
         <Typography>הטיוטה טרם הוגשה. אין עדיין גרסה חתומה לצפייה.</Typography>
       )}
+      {api.document &&
+        detail.documents
+          .filter((d) => !d.versionId || d.versionId === version?.id)
+          .map((d) => (
+            <Button
+              key={d.id}
+              onClick={() =>
+                void api.document!(detail.form.id, d.id)
+                  .then((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download =
+                      d.kind === "REGISTRATION_PDF"
+                        ? "registration.pdf"
+                        : `evidence.${d.mimeType === "application/pdf" ? "pdf" : d.mimeType === "image/png" ? "png" : "jpg"}`;
+                    a.click();
+                    setTimeout(() => URL.revokeObjectURL(url), 60000);
+                  })
+                  .catch(() =>
+                    window.alert(
+                      "אין אפשרות לפתוח את הקובץ. יש לבדוק הרשאה וזמינות.",
+                    ),
+                  )
+              }
+            >
+              הורדת{" "}
+              {d.kind === "REGISTRATION_PDF"
+                ? "PDF הרישום"
+                : d.kind === "PHYSICIAN_SUMMARY"
+                  ? "סיכום רפואי"
+                  : "חתימה"}{" "}
+              פרטי
+            </Button>
+          ))}
+      {api.adminRetryPdf &&
+        detail.form.status === "PENDING_REVIEW" &&
+        detail.form.documentStatus !== "READY" && (
+          <Button
+            onClick={() =>
+              void api.adminRetryPdf!(detail.form.id)
+                .then(reload)
+                .catch(() => window.alert("ההגשה נשמרה; הפקת PDF נכשלה."))
+            }
+          >
+            ניסיון נוסף להפקת PDF
+          </Button>
+        )}
       <Typography>
         מסמכים:{" "}
         {detail.documents.length
-          ? `${detail.documents.length} מסמכים רשומים; הצפייה אינה זמינה`
+          ? `${detail.documents.length} מסמכים פרטיים`
           : "אין מסמכים זמינים"}
         . PDF:{" "}
         {detail.form.documentStatus === "READY"

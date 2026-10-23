@@ -2,6 +2,7 @@ import {
   Avatar,
   Box,
   Button,
+  Chip,
   IconButton,
   InputAdornment,
   TextField,
@@ -13,9 +14,14 @@ import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import SearchIcon from "@mui/icons-material/Search";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
-import { DataGrid, type GridColDef } from "@mui/x-data-grid";
-import { useMemo, useState } from "react";
-import { COLUMNS } from "./Trainee.constants";
+import PictureAsPdfOutlinedIcon from "@mui/icons-material/PictureAsPdfOutlined";
+import {
+  DataGrid,
+  type GridColDef,
+  type GridRenderCellParams,
+} from "@mui/x-data-grid";
+import { useCallback, useMemo, useState } from "react";
+import { COLUMNS, formLabel } from "./Trainee.constants";
 import { useQuery } from "@tanstack/react-query";
 import userService, {
   type UserListStatus,
@@ -47,6 +53,8 @@ type TraineeTableRow = Pick<
   | "address"
 > & {
   nationalIdMasked: string;
+  parentRegistrationStatus: IUser["parentRegistrationStatus"];
+  parentRegistrationPdf: IUser["parentRegistrationPdf"];
   shirtSizeDisplay: string;
   originalTrainee: IUser;
 };
@@ -58,11 +66,9 @@ export const TraineePage: React.FC = () => {
   const styles = useTraineePageStyles();
   const { activeBranch } = useBranch();
   const [open, setOpen] = useState<boolean>(false);
-  const [isDetailsPanelOpen, setIsDetailsPanelOpen] =
-    useState<boolean>(false);
+  const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] =
-    useState<UserListStatus>("active");
+  const [statusFilter, setStatusFilter] = useState<UserListStatus>("active");
   const [selectedTrainee, setSelectedTrainee] = useState<IUser | null>(null);
 
   useAdminRouteAction("create-trainee", () => setOpen(true));
@@ -97,6 +103,8 @@ export const TraineePage: React.FC = () => {
     return (
       allTrainees?.map((trainee: IUser) => ({
         id: trainee.id,
+        parentRegistrationStatus: trainee.parentRegistrationStatus,
+        parentRegistrationPdf: trainee.parentRegistrationPdf,
         nationalIdMasked: formatMaskedNationalId(
           trainee.nationalIdMasked,
           trainee.nationalIdLast4,
@@ -132,9 +140,29 @@ export const TraineePage: React.FC = () => {
         trainee.address,
       ]
         .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(normalizedSearch)),
+        .some((value) =>
+          String(value).toLowerCase().includes(normalizedSearch),
+        ),
     );
   }, [rowsData, searchTerm]);
+
+  const openApprovedPdf = useCallback((row: TraineeTableRow) => {
+      const reference = row.parentRegistrationPdf;
+      if (row.parentRegistrationStatus !== "APPROVED" || !reference) return;
+
+      const url = new URL("/registration-pdf", window.location.origin);
+      url.searchParams.set("source", reference.source);
+      url.searchParams.set("formId", reference.formId);
+      url.searchParams.set("documentId", reference.documentId);
+      const pdfTab = window.open(url.toString(), "_blank");
+      if (!pdfTab) {
+        window.alert(
+          "הדפדפן חסם את פתיחת ה-PDF. יש לאפשר חלונות קופצים ולנסות שוב.",
+        );
+        return;
+      }
+      pdfTab.opener = null;
+    }, []);
 
   const columns = useMemo<GridColDef[]>(
     () => [
@@ -167,7 +195,49 @@ export const TraineePage: React.FC = () => {
           </Box>
         ),
       },
-      ...COLUMNS.slice(2),
+      ...COLUMNS.slice(2).map((column) =>
+        column.field === "parentRegistrationStatus"
+          ? {
+              ...column,
+              renderCell: (
+                params: GridRenderCellParams<
+                  TraineeTableRow,
+                  IUser["parentRegistrationStatus"]
+                >,
+              ) => {
+                const row = params.row as TraineeTableRow;
+                const canOpen =
+                  params.value === "APPROVED" && !!row.parentRegistrationPdf;
+                const chip = (
+                  <Chip
+                    size="small"
+                    label={formLabel(params.value)}
+                    icon={canOpen ? <PictureAsPdfOutlinedIcon /> : undefined}
+                    clickable={canOpen}
+                    onClick={
+                      canOpen
+                        ? (event) => {
+                            event.stopPropagation();
+                            void openApprovedPdf(row);
+                          }
+                        : undefined
+                    }
+                    aria-label={
+                      canOpen
+                        ? `פתיחת טופס מאושר של ${row.name} בחלון חדש`
+                        : undefined
+                    }
+                  />
+                );
+                return canOpen ? (
+                  <Tooltip title="פתיחת טופס מאושר בחלון חדש">{chip}</Tooltip>
+                ) : (
+                  chip
+                );
+              },
+            }
+          : column,
+      ),
       {
         field: "actions",
         headerName: "פעולות",
@@ -205,7 +275,7 @@ export const TraineePage: React.FC = () => {
         ),
       },
     ],
-    [],
+    [openApprovedPdf],
   );
   const isArchivedView = statusFilter === "archived";
   const emptyMessage = searchTerm.trim()

@@ -10,8 +10,8 @@ export type DocumentStatus = "PENDING" | "READY" | "FAILED";
 export interface FormSummary {
   id: string;
   branchId: string;
-  activityYearId: string;
-  requestType: "YEARLY" | "INDIVIDUAL";
+  activityYearId: string | null;
+  requestType: "YEARLY" | "INDIVIDUAL" | "APPLICATION";
   status: FormStatus;
   revision: number;
   currentStep: number;
@@ -48,7 +48,7 @@ export interface RegistrationStatus {
   registrationRequired: boolean;
   wouldBlockAccess: boolean;
   accessBlocked: boolean;
-  documentIntegration: "DEFERRED";
+  documentIntegration: "DEFERRED" | "READY";
 }
 export interface Feedback {
   formId: string | null;
@@ -67,8 +67,8 @@ export interface ListRow {
   id: string;
   traineeUuid: string;
   branchId: string;
-  activityYearId: string;
-  requestType: "YEARLY" | "INDIVIDUAL";
+  activityYearId: FormSummary["activityYearId"];
+  requestType: FormSummary["requestType"];
   status: FormStatus;
   documentStatus: DocumentStatus;
   submittedAt: string | null;
@@ -114,6 +114,15 @@ export interface FormDetail {
 }
 export interface RegistrationApi {
   readonly mode: "live" | "demo";
+  upload?(input: {
+    kind: "PHYSICIAN_SUMMARY" | "SIGNATURE";
+    file: Blob;
+    revision: number;
+    signer?: "parent1" | "parent2";
+  }): Promise<{ documentId: string; contentHash: string; signedAt: string }>;
+  retryPdf?(): Promise<unknown>;
+  adminRetryPdf?(id: string): Promise<unknown>;
+  document?(id: string, documentId: string): Promise<Blob>;
   me(): Promise<DraftResponse>;
   status(): Promise<RegistrationStatus>;
   feedback(): Promise<Feedback>;
@@ -199,6 +208,36 @@ export function createRegistrationApi(http: AxiosInstance): RegistrationApi {
   const base = "/parent-registration";
   return {
     mode: "live",
+    upload: async ({ kind, file, revision, signer }) => {
+      const body = new FormData();
+      body.append(
+        "file",
+        file,
+        file.type === "image/png"
+          ? "attachment.png"
+          : file.type === "image/jpeg"
+            ? "attachment.jpg"
+            : "attachment.pdf",
+      );
+      body.append("revision", String(revision));
+      if (signer) body.append("signer", signer);
+      return call("post", `${base}/me/attachments/${kind}`, body);
+    },
+    retryPdf: () => call("post", `${base}/me/pdf/retry`),
+    adminRetryPdf: (id) =>
+      call("post", `${base}/admin/forms/${encodeURIComponent(id)}/pdf/retry`),
+    document: async (id, documentId) => {
+      try {
+        return (
+          await http.get(
+            `${base}/admin/forms/${encodeURIComponent(id)}/documents/${encodeURIComponent(documentId)}`,
+            { responseType: "blob" },
+          )
+        ).data;
+      } catch (error) {
+        throw safeRegistrationError(error);
+      }
+    },
     me: () => call("get", `${base}/me`),
     status: () => call("get", `${base}/me/status`),
     feedback: () => call("get", `${base}/me/feedback`),
@@ -232,7 +271,7 @@ export function createRegistrationApi(http: AxiosInstance): RegistrationApi {
 export const statuses: Record<FormStatus, string> = {
   DRAFT: "טיוטה",
   PENDING_REVIEW: "ממתין לאישור",
-  CHANGES_REQUESTED: "נדרשים תיקונים",
+  CHANGES_REQUESTED: "הוחזר לתיקון",
   APPROVED: "מאושר",
 };
 export function canApprove(detail: FormDetail): boolean {

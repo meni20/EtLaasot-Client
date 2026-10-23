@@ -176,9 +176,9 @@ function MobileForm({
     setMessage("");
     try {
       const validation = validateForm(draft.data, initial.declarationVersion, {
-        physician: !!file,
-        parent1: !!signatures.parent1,
-        parent2: !!signatures.parent2,
+        physician: !!file || !!draft.data.medical?.physicianSummaryDocumentId,
+        parent1: !!signatures.parent1 || !!draft.data.signatures?.parent1,
+        parent2: !!signatures.parent2 || !!draft.data.signatures?.parent2,
       });
       setIssues(validation);
       if (validation.length) {
@@ -187,14 +187,54 @@ function MobileForm({
         return;
       }
       if (!(await draft.flush())) return;
-      if (api.mode !== "demo" || !onDemoSubmit) {
-        setMessage(
-          "שליחה אינה זמינה: נדרש חיבור מאומת להעלאת סיכום רפואי וחתימות. לא נשלח טופס ולא נוצר PDF.",
-        );
-        return;
+      if (api.mode === "demo") {
+        if (!onDemoSubmit) throw new Error("Demo submission unavailable");
+        await onDemoSubmit();
+      } else {
+        if (!api.upload)
+          throw new Error("Private upload integration is unavailable");
+        let current = await api.me();
+        if (!current.form) throw new Error("Save a draft before submitting");
+        let data = structuredClone(current.data),
+          revision = current.form.revision;
+        const save = async () => {
+          const next = await api.save({ data, revision, currentStep: 5 });
+          data = next.data;
+          revision = next.form.revision;
+          draft.accept(next);
+        };
+        if (file) {
+          const uploaded = await api.upload({
+            kind: "PHYSICIAN_SUMMARY",
+            file,
+            revision,
+          });
+          data.medical = {
+            ...data.medical,
+            physicianSummaryDocumentId: uploaded.documentId,
+          };
+          delete data.signatures;
+          await save();
+        }
+        for (const signer of ["parent1", "parent2"] as const) {
+          const ink = signatures[signer];
+          if (!ink) continue;
+          const blob = await (await fetch(ink.image)).blob();
+          const signing = await api.upload({
+            kind: "SIGNATURE",
+            file: blob,
+            revision,
+            signer,
+          });
+          data.signatures = { ...data.signatures, [signer]: signing };
+        }
+        await save();
+        await api.submit({
+          formId: current.form.id,
+          revision,
+          idempotencyKey: crypto.randomUUID(),
+        });
       }
-      // A UI transition only. No document IDs, upload acknowledgements or submit payloads are fabricated.
-      await onDemoSubmit();
       setSignatures({});
       setFile(undefined);
       await reload();
@@ -253,7 +293,9 @@ function MobileForm({
         </Typography>
         {status.wouldBlockAccess && (
           <Alert severity="info">
-            נדרש אישור לרישום זה. חסימת השימוש באפליקציה עדיין אינה מופעלת.
+            {status.accessBlocked
+              ? "נדרש אישור לרישום זה. הגישה לאפליקציה מוגבלת עד לקבלת האישור."
+              : "נדרש אישור לרישום זה. חסימת השימוש באפליקציה עדיין אינה מופעלת."}
           </Alert>
         )}
         {formStatus === "CHANGES_REQUESTED" && (
@@ -275,8 +317,8 @@ function MobileForm({
             {initial.form?.documentStatus === "FAILED"
               ? "ההפקה נכשלה"
               : initial.form?.documentStatus === "READY"
-                ? "מוכן; הצפייה עדיין אינה זמינה"
-                : "ממתין להפקה — השירות טרם חובר"}
+                ? "מוכן ונשמר באחסון פרטי"
+                : "ממתין להפקה; ניתן לנסות שוב אם ההפקה נכשלת"}
           </Alert>
         )}
         {approved && (
@@ -373,6 +415,23 @@ function MobileForm({
                 </Button>
               ))}
             </Box>
+            {pending &&
+              initial.form?.documentStatus !== "READY" &&
+              api.retryPdf && (
+                <Button
+                  onClick={() =>
+                    void api.retryPdf!()
+                      .then(reload)
+                      .catch(() =>
+                        setMessage(
+                          "הפקת PDF נכשלה; ההגשה נשמרה וניתן לנסות שוב.",
+                        ),
+                      )
+                  }
+                >
+                  ניסיון נוסף להפקת PDF
+                </Button>
+              )}
             {message && (
               <Alert severity="warning" role="alert">
                 {message}
@@ -415,6 +474,7 @@ function MobileForm({
               {draft.step === 5 && (
                 <SigningStage
                   {...props}
+                  live={api.mode === "live" && !!api.upload}
                   file={file}
                   onFile={(value) => {
                     setFile(value);
@@ -456,7 +516,7 @@ function MobileForm({
                   >
                     {api.mode === "demo"
                       ? "הדמיית שליחה (ללא העלאה)"
-                      : "בדיקה ושליחה — העלאה טרם חוברה"}
+                      : "שליחת הטופס"}
                   </Button>
                 )
               )}

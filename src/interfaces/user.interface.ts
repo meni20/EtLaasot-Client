@@ -1,4 +1,5 @@
 import type { IEvent } from "./event.interface";
+import type { FormStatus } from "../features/parent-registration/api";
 import type { ITraineeMedication } from "./trainee-medication.interface";
 
 export type UserGender = "male" | "female";
@@ -6,6 +7,12 @@ export type ShirtSize = "XS" | "S" | "M" | "L" | "XL" | "XXL" | "OTHER";
 
 export interface IUser {
   id: string;
+  parentRegistrationStatus?: FormStatus | null;
+  parentRegistrationPdf?: {
+    source: "RENEWAL" | "APPLICATION";
+    formId: string;
+    documentId: string;
+  } | null;
   nationalIdRevealId?: string | null;
   nationalIdLast4?: string | null;
   nationalIdMasked?: string | null;

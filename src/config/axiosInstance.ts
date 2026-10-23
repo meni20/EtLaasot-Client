@@ -25,6 +25,12 @@ export const createAxiosInstance = (
   instance.interceptors.response.use(
     (response) => response,
     (error) => {
+      if (
+        error?.response?.status === 403 &&
+        error?.response?.data?.code === "PARENT_REGISTRATION_REQUIRED"
+      ) {
+        window.dispatchEvent(new Event("registration:required"));
+      }
       if (error?.response?.status === 401) {
         clearToken();
         window.dispatchEvent(new Event("auth:unauthorized"));

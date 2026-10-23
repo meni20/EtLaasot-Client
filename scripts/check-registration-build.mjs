@@ -8,11 +8,18 @@ assert.equal(
   false,
   "Demo entry must not be published",
 );
+assert.equal(
+  existsSync("dist/phase4-demo.html"),
+  false,
+  "Phase 4 QA entry must not be published",
+);
 const markers = [
   "createDemoAdapter",
   "fictional@example.test",
   "demo-north",
   "סביבת הדגמה מקומית",
+  "phase4-fictional-branch",
+  "Phase 4 QA",
 ];
 function inspect(directory) {
   for (const entry of readdirSync(directory, { withFileTypes: true })) {

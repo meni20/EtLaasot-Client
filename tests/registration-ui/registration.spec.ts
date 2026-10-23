@@ -200,13 +200,13 @@ test("all ten exact declarations remain visible and require individual acceptanc
   await boxes.nth(0).check();
   await expect(boxes.nth(1)).not.toBeChecked();
 });
-test("required validation jumps to stage one and preserves free navigation; upload explicitly unavailable", async ({
+test("required validation jumps to stage one and preserves free navigation with the demo upload warning", async ({
   page,
 }) => {
   await begin(page);
   await stage(page, 5);
   await expect(
-    page.getByText(/העלאה לשרת והפקת PDF עדיין אינן זמינות/),
+    page.getByText(/הדגמה בלבד: הקבצים והחתימות נשארים בזיכרון ולא מועלים/),
   ).toBeVisible();
   await page.getByRole("button", { name: "הדמיית שליחה (ללא העלאה)" }).click();
   await expect(page.getByText("שלב 1 מתוך 5", { exact: true })).toBeVisible();
@@ -249,7 +249,7 @@ test("high DPI canvas drops partial strokes and clears both completed signatures
   await expect(page.getByRole("img", { name: /חתימה שהושלמה/ })).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.length)).toBe(0);
 });
-test("two-parent local UX submission prevents duplicate clicks and shows pending without claiming PDF success", async ({
+test("two-parent local UX submission prevents duplicate clicks and shows the pending PDF state", async ({
   page,
 }) => {
   await scenario(page, "טיוטה מלאה לחתימה");
@@ -266,7 +266,9 @@ test("two-parent local UX submission prevents duplicate clicks and shows pending
   await expect(
     page.getByText(/זהו מצב הדגמה בלבד. לא נשלח טופס אמיתי/),
   ).toBeVisible();
-  await expect(page.getByText(/ממתין להפקה — השירות טרם חובר/)).toBeVisible();
+  await expect(
+    page.getByText(/PDF: ממתין להפקה; ניתן לנסות שוב אם ההפקה נכשלת/),
+  ).toBeVisible();
 });
 test("single-parent signing works with optional second ID empty; mismatched second signing is rejected", async ({
   page,

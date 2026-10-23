@@ -493,6 +493,7 @@ export function DeclarationsStage(
 }
 export function SigningStage(
   props: FieldProps & {
+    live?: boolean;
     file?: File;
     onFile: (file?: File) => void;
     signatures: { parent1?: CompletedSignature; parent2?: CompletedSignature };
@@ -506,9 +507,10 @@ export function SigningStage(
   const [fileError, setFileError] = useState("");
   return (
     <Stack gap={5}>
-      <Alert severity="warning">
-        העלאה לשרת והפקת PDF עדיין אינן זמינות. בחירת קובץ וחתימה כאן נשארות
-        בזיכרון בלבד; לא נוצר מסמך בשרת. שליחה אמיתית אינה זמינה.
+      <Alert severity={props.live ? "info" : "warning"}>
+        {props.live
+          ? "הקבצים והחתימות יישמרו באחסון פרטי בעת השליחה. שינוי פרטי הטופס מבטל חתימות קודמות."
+          : "הדגמה בלבד: הקבצים והחתימות נשארים בזיכרון ולא מועלים."}
       </Alert>
       <Typography variant="h6" component="h3">
         סיכום רפואי עדכני
@@ -543,8 +545,9 @@ export function SigningStage(
       {fileError && <Alert severity="error">{fileError}</Alert>}
       {props.file && (
         <Alert severity="info">
-          נבחר בזיכרון בלבד: {props.file.name} (
-          {Math.ceil(props.file.size / 1024)} KB). הקובץ לא הועלה.
+          {props.live ? "נבחר:" : "נבחר בזיכרון בלבד:"} {props.file.name} (
+          {Math.ceil(props.file.size / 1024)} KB).{" "}
+          {props.live ? "יועלה בעת השליחה." : "הקובץ לא הועלה."}
           <Button onClick={() => props.onFile(undefined)}>הסרה</Button>
         </Alert>
       )}

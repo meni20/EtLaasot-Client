@@ -58,6 +58,10 @@ export function useRegistrationAction<T>(
   return useMutation({
     mutationFn: action,
     retry: false,
-    onSuccess: () => client.invalidateQueries({ queryKey: ["registration"] }),
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: ["registration"] }),
+        client.invalidateQueries({ queryKey: ["trainees"] }),
+      ]),
   });
 }

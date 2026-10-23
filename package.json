@@ -14,7 +14,10 @@
     "test:registration:ui": "playwright test --config playwright.registration.config.ts",
     "typecheck": "tsc -b",
     "typecheck:registration": "tsc -p tsconfig.registration.json",
-    "test:registration:build": "node scripts/check-registration-build.mjs"
+    "test:registration:build": "node scripts/check-registration-build.mjs",
+    "dev:phase4": "vite --config vite.phase4.config.ts",
+    "test:phase4": "node --experimental-strip-types --test tests/phase4.model.test.ts",
+    "test:phase4:ui": "playwright test --config playwright.phase4.config.ts"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",

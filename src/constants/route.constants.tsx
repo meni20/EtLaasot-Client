@@ -88,11 +88,14 @@ const ProfilePage = lazy(() =>
   })),
 );
 
-const ParentRegistrationPage = lazy(() =>
-  import("../features/parent-registration/LiveRegistrationPage"),
+const ParentRegistrationPage = lazy(
+  () => import("../features/parent-registration/LiveRegistrationPage"),
 );
 const registrationEnabled =
   import.meta.env.VITE_PARENT_REGISTRATION_ENABLED === "true";
+const ApplicantAdminPage = lazy(
+  () => import("../features/parent-admission/ApplicantAdminPage"),
+);
 
 export interface AppRoute {
   path: string;
@@ -101,12 +104,23 @@ export interface AppRoute {
 }
 
 export const DESKTOP_ROUTES: AppRoute[] = [
+  ...(import.meta.env.VITE_APPLICANT_REGISTRATION_ENABLED === "true"
+    ? [
+        {
+          path: "/parent-applications-admin",
+          element: <ApplicantAdminPage />,
+          allowedRoles: [AUTH_ROLES.SUPER_ADMIN.id, AUTH_ROLES.BRANCH_ADMIN.id],
+        },
+      ]
+    : []),
   ...(registrationEnabled
-    ? [{
-        path: "/parent-registration",
-        element: <ParentRegistrationPage />,
-        allowedRoles: [AUTH_ROLES.SUPER_ADMIN.id, AUTH_ROLES.BRANCH_ADMIN.id],
-      }]
+    ? [
+        {
+          path: "/parent-registration",
+          element: <ParentRegistrationPage />,
+          allowedRoles: [AUTH_ROLES.SUPER_ADMIN.id, AUTH_ROLES.BRANCH_ADMIN.id],
+        },
+      ]
     : []),
   { path: "/", element: <DashboardPage /> },
   { path: "/dashboard", element: <DashboardPage /> },
@@ -136,11 +150,13 @@ export const DESKTOP_ROUTES: AppRoute[] = [
 
 export const MOBILE_ROUTES: AppRoute[] = [
   ...(registrationEnabled
-    ? [{
-        path: "/parent-registration",
-        element: <ParentRegistrationPage />,
-        allowedRoles: [AUTH_ROLES.TRAINEE.id],
-      }]
+    ? [
+        {
+          path: "/parent-registration",
+          element: <ParentRegistrationPage />,
+          allowedRoles: [AUTH_ROLES.TRAINEE.id],
+        },
+      ]
     : []),
   { path: "/", element: <HomeMobile /> },
   { path: "/home", element: <HomeMobile /> },

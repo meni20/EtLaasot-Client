@@ -204,5 +204,14 @@ export function validateForm(
       if (!data[parent]?.name?.trim()) add(`${parent}.name`);
     }
   }
+  if (
+    (local.parent2 || data.signatures?.parent2) &&
+    data.parent1?.nationalId &&
+    data.parent2?.nationalId &&
+    data.parent1.nationalId.padStart(9, "0") ===
+      data.parent2.nationalId.padStart(9, "0")
+  ) {
+    add("parent2.nationalId", "לכל הורה חתום נדרשת תעודת זהות נפרדת");
+  }
   return issues;
 }
