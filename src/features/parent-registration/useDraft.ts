@@ -1,19 +1,32 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  type DraftResponse,
-  type RegistrationApi,
-  RegistrationError,
-} from "./api";
+import { RegistrationError } from "./api";
 import { prefill, setField, type ProfilePrefill } from "./model";
 
-export function useDraft(
-  api: RegistrationApi,
-  initial: DraftResponse,
+interface DraftTransport<T> {
+  save(input: {
+    data: T;
+    currentStep: number;
+    revision: number;
+  }): Promise<{ data: T; form: { revision: number } }>;
+}
+interface DraftInitial<T> {
+  data: T;
+  form: { currentStep: number; revision: number } | null;
+}
+export function useDraft<T = import("./contracts").RegistrationData>(
+  api: DraftTransport<T>,
+  initial: DraftInitial<T>,
   profile: ProfilePrefill,
   readOnly = false,
+  model?: { setField(data: T, path: string, value: unknown): T },
 ) {
   const [data, setData] = useState(() =>
-    initial.form ? initial.data : prefill(initial.data, profile),
+    initial.form || model
+      ? initial.data
+      : (prefill(
+          initial.data as import("./contracts").RegistrationData,
+          profile,
+        ) as T),
   );
   const [step, setStep] = useState(initial.form?.currentStep ?? 1);
   const [revision, setRevision] = useState(initial.form?.revision ?? 0);
@@ -99,7 +112,13 @@ export function useDraft(
   const change = (path: string, value: unknown) => {
     if (readOnly || saveState === "conflict") return;
     state.current.blocked = false;
-    const next = setField(state.current.data, path, value);
+    const next = model
+      ? model.setField(state.current.data, path, value)
+      : (setField(
+          state.current.data as import("./contracts").RegistrationData,
+          path,
+          value,
+        ) as T);
     state.current.data = next;
     state.current.generation++;
     setData(next);

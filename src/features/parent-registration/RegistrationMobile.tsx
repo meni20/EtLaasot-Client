@@ -48,10 +48,12 @@ export function RegistrationMobile({
   api,
   profile,
   onDemoSubmit,
+  onSubmitted,
 }: {
   api: RegistrationApi;
   profile: ProfilePrefill;
   onDemoSubmit?: () => Promise<void>;
+  onSubmitted?: () => void;
 }) {
   const draft = useRegistration(api);
   const status = useRegistrationStatus(api);
@@ -87,6 +89,7 @@ export function RegistrationMobile({
       feedback={feedback.data?.reason ?? feedback.data?.requestReason}
       reload={reload}
       onDemoSubmit={onDemoSubmit}
+      onSubmitted={onSubmitted}
     />
   );
 }
@@ -98,6 +101,7 @@ function MobileForm({
   feedback,
   reload,
   onDemoSubmit,
+  onSubmitted,
 }: {
   api: RegistrationApi;
   initial: DraftResponse;
@@ -106,6 +110,7 @@ function MobileForm({
   feedback?: string | null;
   reload: () => Promise<void>;
   onDemoSubmit?: () => Promise<void>;
+  onSubmitted?: () => void;
 }) {
   const draft = useDraft(
     api,
@@ -238,6 +243,7 @@ function MobileForm({
       setSignatures({});
       setFile(undefined);
       await reload();
+      onSubmitted?.();
     } catch (e) {
       if (e instanceof RegistrationError && e.field) {
         const path = e.field.replace(/^data\./, "");

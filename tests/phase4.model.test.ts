@@ -46,3 +46,24 @@ test("an absent second parent remains optional", () => {
     false,
   );
 });
+
+test("registration types default to trainee and isolate query identities", async () => {
+  const {
+    normalizeRegistrationType,
+    applicationQueryScope,
+    canStartRegistration,
+  } = await import("../src/features/parent-admission/registration-type.ts");
+  assert.equal(normalizeRegistrationType(), "TRAINEE");
+  assert.throws(() => normalizeRegistrationType(null));
+  assert.throws(() => normalizeRegistrationType("ADMIN"));
+  assert.notDeepEqual(
+    applicationQueryScope("TRAINEE", "same-id"),
+    applicationQueryScope("VOLUNTEER", "same-id"),
+  );
+  assert.notDeepEqual(
+    applicationQueryScope("TRAINEE", "one"),
+    applicationQueryScope("TRAINEE", "two"),
+  );
+  assert.equal(canStartRegistration("TRAINEE"), true);
+  assert.equal(canStartRegistration("VOLUNTEER"), false);
+});

@@ -3,7 +3,7 @@ import type { RegistrationApi, ListParams } from "./api";
 
 export function useRegistration(api: RegistrationApi) {
   return useQuery({
-    queryKey: ["registration", "me"],
+    queryKey: ["registration", ...(api.queryScope ?? []), "me"],
     queryFn: () => api.me(),
     retry: false,
     staleTime: Infinity,
@@ -12,7 +12,7 @@ export function useRegistration(api: RegistrationApi) {
 }
 export function useRegistrationStatus(api: RegistrationApi) {
   return useQuery({
-    queryKey: ["registration", "status"],
+    queryKey: ["registration", ...(api.queryScope ?? []), "status"],
     queryFn: () => api.status(),
     retry: false,
     gcTime: 0,
@@ -20,7 +20,7 @@ export function useRegistrationStatus(api: RegistrationApi) {
 }
 export function useRegistrationFeedback(api: RegistrationApi) {
   return useQuery({
-    queryKey: ["registration", "feedback"],
+    queryKey: ["registration", ...(api.queryScope ?? []), "feedback"],
     queryFn: () => api.feedback(),
     retry: false,
     gcTime: 0,

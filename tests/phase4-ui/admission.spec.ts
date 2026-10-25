@@ -31,15 +31,20 @@ async function mock(
     corrections?: boolean;
     restricted?: boolean;
     pdfAvailable?: boolean;
+    submitted?: boolean;
   } = {},
 ) {
-  let authorized = false;
+  let authorized = options.submitted ?? false;
   let blocked = options.restricted ?? false;
   let state = {
     application: {
       id,
       branchId: branch,
-      status: options.corrections ? "CHANGES_REQUESTED" : "DRAFT",
+      status: options.submitted
+        ? "PENDING_REVIEW"
+        : options.corrections
+          ? "CHANGES_REQUESTED"
+          : "DRAFT",
       revision: 0,
       currentStep: 1,
       documentStatus: "PENDING",
@@ -243,6 +248,25 @@ test("unknown ID starts an independent branch-selected application, with mandato
   await page.getByRole("button", { name: "יצירת בקשה ללא חשבון" }).click();
   await expect(
     page.getByText("קוד השחזור מוצג פעם אחת.", { exact: false }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "שמירת קוד שחזור פרטי" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText("סיום הגישה מבטל גם את קוד השחזור.", { exact: false }),
+  ).toHaveCount(0);
+  await expect(page.getByLabel("קוד שחזור", { exact: true })).toHaveValue(
+    "r".repeat(43),
+  );
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: async () => undefined },
+    });
+  });
+  await page.getByRole("button", { name: "העתקת קוד השחזור" }).click();
+  await expect(
+    page.getByText("קוד השחזור הועתק", { exact: true }),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "שמרתי את קוד השחזור במקום בטוח" })
@@ -259,6 +283,24 @@ test("unknown ID starts an independent branch-selected application, with mandato
   expect(
     await page.evaluate(() => JSON.stringify({ ...localStorage })),
   ).not.toContain("123456782");
+});
+test("submitted new trainee sees only the minimal completion message", async ({
+  page,
+}) => {
+  await mock(page, { submitted: true });
+  await page.goto("/phase4-demo.html?screen=apply");
+
+  await expect(
+    page.getByText("הטופס נשלח בהצלחה והועבר לטיפול.", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.locator('[data-testid="CheckCircleOutlineIcon"]'),
+  ).toBeVisible();
+  await expect(page.getByRole("button")).toHaveCount(0);
+  await expect(page.getByText("PDF", { exact: false })).toHaveCount(0);
+  await expect(
+    page.getByText("עת לעשות · בקשת רישום חניך", { exact: true }),
+  ).toHaveCount(0);
 });
 test("correction recovery rotates credentials and opens all five existing RTL stages", async ({
   page,
@@ -349,8 +391,12 @@ test("old bookmarks become registration-only and approval restores normal naviga
     page.getByText("נדרש אישור רישום.", { exact: false }),
   ).toBeVisible();
   await expect(page.getByText("גישה רגילה לדוגמה")).toHaveCount(0);
-  await expect(page.getByRole('heading',{name:'רישום הורים לפעילויות',exact:true})).toBeVisible();
-  await expect(page.getByText('הגישה לאפליקציה מוגבלת עד לקבלת האישור.',{exact:false})).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "רישום הורים לפעילויות", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("הגישה לאפליקציה מוגבלת עד לקבלת האישור.", { exact: false }),
+  ).toBeVisible();
   await expect(
     page.getByText("חסימת השימוש באפליקציה עדיין אינה מופעלת.", {
       exact: false,
@@ -363,4 +409,52 @@ test("old bookmarks become registration-only and approval restores normal naviga
   state.approve();
   await page.getByRole("button", { name: "בדיקת אישור מחדש" }).click();
   await expect(page.getByText("גישה רגילה לדוגמה")).toBeVisible();
+});
+
+test("registration preparation is hidden by default; enabled selector preserves ID/branch without volunteer creation", async ({
+  page,
+}) => {
+  const { calls } = await mock(page);
+  await page.goto("/phase4-demo.html");
+  await page.getByLabel("תעודת זהות", { exact: true }).fill("123456782");
+  await page.getByRole("button", { name: "המשך", exact: true }).click();
+  await page.getByRole("button", { name: "להתחלת רישום חניך" }).click();
+  await page.getByLabel("סניף פעיל").click();
+  await page.getByRole("option").first().click();
+  const selector = page.getByRole("combobox", { name: /^סוג הרשמה/ });
+  if (process.env.PHASE1_UI_VOLUNTEER_PREPARATION !== "true") {
+    await expect(selector).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: "יצירת בקשה ללא חשבון" }),
+    ).toBeEnabled();
+    return;
+  }
+  await expect(selector).toHaveText("הרשמה לחניך");
+  const rect = await selector.boundingBox();
+  expect(rect!.x).toBeLessThan(100);
+  const heading = await page.getByRole("heading", { level: 1 }).boundingBox();
+  expect(heading!.y).toBeGreaterThan(rect!.y + rect!.height);
+  await selector.click();
+  await page.getByRole("option", { name: "הרשמה למתנדב" }).click();
+  await expect(page.getByRole("listbox")).toBeHidden();
+  await expect(page.locator(".MuiPopover-root")).toHaveCount(0);
+  await expect(page.getByLabel("תעודת זהות מתנדב")).toHaveValue("123456782");
+  await expect(page.getByLabel("סניף פעיל")).toContainText("סניף בדיקה מקומי");
+  await expect(
+    page.getByRole("button", { name: "יצירת בקשה ללא חשבון" }),
+  ).toBeEnabled();
+  await page.screenshot({
+    path: ".registration-qa/phase1-selector.png",
+    fullPage: true,
+  });
+  expect(calls.filter((c) => c.url.endsWith("/start"))).toHaveLength(0);
+  await selector.click();
+  await page.getByRole("option", { name: "הרשמה לחניך" }).click();
+  await expect(page.getByLabel("תעודת זהות חניך")).toHaveValue("123456782");
+  await page.getByRole("button", { name: "יצירת בקשה ללא חשבון" }).click();
+  expect(calls.find((c) => c.url.endsWith("/start"))?.body).toEqual({
+    identifier: "123456782",
+    branchId: branch,
+    registrationType: "TRAINEE",
+  });
 });

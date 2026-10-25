@@ -5,6 +5,11 @@ import {
   Box,
   Button,
   Checkbox,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControlLabel,
   IconButton,
   MenuItem,
@@ -21,6 +26,14 @@ import {
   MedicalStage,
 } from "../parent-registration/Stages";
 import { createApplicationAdminApi, type ApplicationDetail } from "./api";
+import { RegistrationError } from "../parent-registration/api";
+import {
+  normalizeRegistrationType,
+  type RegistrationType,
+} from "./registration-type";
+import { VolunteerApplicationDetails } from "./VolunteerApplicationDetails";
+
+import { volunteerApprovalBlockers } from "./volunteer-review.model";
 
 const labels = {
   DRAFT: "טיוטה",
@@ -30,6 +43,12 @@ const labels = {
   APPROVED: "אושר",
 };
 export default function ApplicantAdminPage() {
+  const { sessionId } = useAuth();
+  return <ApplicantAdminWorkspace key={sessionId ?? "anonymous"} />;
+}
+function ApplicantAdminWorkspace() {
+  const volunteerEnabled =
+    import.meta.env.VITE_VOLUNTEER_REGISTRATION_ENABLED === "true";
   const { availableBranches } = useBranch(),
     { user, sessionId } = useAuth();
   const branches = availableBranches.filter((b) =>
@@ -42,15 +61,36 @@ export default function ApplicantAdminPage() {
   const [page, setPage] = useState(1),
     [selected, setSelected] = useState(""),
     [reason, setReason] = useState(""),
-    [verified, setVerified] = useState(false);
+    [verifiedVersion, setVerifiedVersion] = useState("");
+  const [type, setType] = useState<RegistrationType | "ALL">(
+    volunteerEnabled ? "ALL" : "TRAINEE",
+  );
+  const [status, setStatus] = useState(""),
+    [search, setSearch] = useState("");
+  const [confirmation, setConfirmation] = useState<{
+    action: "approve" | "reject";
+    id: string;
+    versionId: string;
+    reason: string;
+  } | null>(null);
+  const [passwordExpires, setPasswordExpires] = useState("");
   const [password, setPassword] = useState(""),
     [showPassword, setShowPassword] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const cache = useQueryClient();
   const list = useQuery({
-    queryKey: ["applications", "list", sessionId, branch, page],
-    queryFn: () => api.list(branch, page),
+    queryKey: [
+      "applications",
+      "list",
+      sessionId,
+      branch,
+      page,
+      type,
+      status,
+      search,
+    ],
+    queryFn: () => api.list(branch, page, type, status, search),
     enabled: !!branch,
     retry: false,
     gcTime: 0,
@@ -62,6 +102,8 @@ export default function ApplicantAdminPage() {
     retry: false,
     gcTime: 0,
   });
+  const setVerified = (value: boolean) =>
+    setVerifiedVersion(value ? (detail.data?.versions[0]?.id ?? "") : "");
   const run = async (work: () => Promise<void>) => {
     if (busy) return;
     setBusy(true);
@@ -69,28 +111,62 @@ export default function ApplicantAdminPage() {
     try {
       await work();
       await cache.invalidateQueries({ queryKey: ["applications"] });
-    } catch {
-      setError("הפעולה לא הושלמה. יש לבדוק הרשאה, גרסה עדכנית וזמינות מסמכים.");
+    } catch (error) {
+      setPassword("");
+      setShowPassword(false);
+      setVerified(false);
+      setConfirmation(null);
+      setError(
+        error instanceof RegistrationError && error.status === 409
+          ? "הגרסה או מסמכי הבקשה השתנו. יש לבדוק מחדש את הבקשה לפני החלטה."
+          : "הפעולה לא הושלמה. יש לבדוק הרשאה, גרסה עדכנית וזמינות מסמכים.",
+      );
+      await cache.invalidateQueries({ queryKey: ["applications"] });
     } finally {
       setBusy(false);
     }
   };
-  const doc = detail.data,
+  const reset = () => {
+    setSelected("");
+    setReason("");
+    setVerified(false);
+    setPassword("");
+    setShowPassword(false);
+    setConfirmation(null);
+    setError("");
+  };
+  const doc =
+      detail.data &&
+      (volunteerEnabled ||
+        normalizeRegistrationType(detail.data.application.registrationType) ===
+          "TRAINEE")
+        ? detail.data
+        : undefined,
     latest = doc?.versions[0];
+  const verified = !!latest && verifiedVersion === latest.id;
+  const isVolunteer =
+    doc &&
+    normalizeRegistrationType(doc.application.registrationType) === "VOLUNTEER";
+  const blockers = isVolunteer
+    ? volunteerApprovalBlockers(doc as ApplicationDetail<"VOLUNTEER">)
+    : [];
+  const canApprove = !!doc && canApproveApplication(doc) && !blockers.length;
   return (
     <Box dir="rtl" p={5}>
       <Stack gap={3}>
         <Typography component="h1" variant="h5" color="primary">
-          בקשות חניכים חדשים
+          {volunteerEnabled ? "בקשות רישום" : "בקשות חניכים חדשים"}
         </Typography>
         <Alert severity="warning">
-          אלה בקשות ללא חשבון מאומת. אישור דורש אימות ידני, סיכום רפואי ו-PDF
-          חתום מאומת של הגרסה שנבדקה. הקבצים נשמרים באחסון פרטי.
+          {volunteerEnabled
+            ? "אלה בקשות ללא חשבון מאומת. אישור דורש אימות ידני, את כל הראיות הנדרשות ו-PDF חתום מאומת של הגרסה שנבדקה. הקבצים נשמרים באחסון פרטי."
+            : "אלה בקשות ללא חשבון מאומת. אישור דורש אימות ידני, סיכום רפואי ו-PDF חתום מאומת של הגרסה שנבדקה. הקבצים נשמרים באחסון פרטי."}
         </Alert>
         <TextField
           select
           label="סניף"
           value={branch}
+          disabled={busy}
           onChange={(e) => {
             setBranch(e.target.value);
             setSelected("");
@@ -98,6 +174,8 @@ export default function ApplicantAdminPage() {
             setVerified(false);
             setPassword("");
             setPage(1);
+            setShowPassword(false);
+            setConfirmation(null);
           }}
         >
           {branches.map((b) => (
@@ -106,6 +184,56 @@ export default function ApplicantAdminPage() {
             </MenuItem>
           ))}
         </TextField>
+        <Stack direction="row" gap={2} flexWrap="wrap">
+          {volunteerEnabled && (
+            <TextField
+              select
+              label="סוג הרשמה"
+              sx={{ minWidth: 180 }}
+              value={type}
+              disabled={busy}
+              onChange={(e) => {
+                setType(e.target.value as RegistrationType | "ALL");
+                setPage(1);
+                reset();
+              }}
+            >
+              <MenuItem value="ALL">הכול</MenuItem>
+              <MenuItem value="TRAINEE">חניכים</MenuItem>
+              <MenuItem value="VOLUNTEER">מתנדבים</MenuItem>
+            </TextField>
+          )}
+          <TextField
+            select
+            label="מצב בקשה"
+            sx={{ minWidth: 180 }}
+            value={status}
+            disabled={busy}
+            onChange={(e) => {
+              setStatus(e.target.value);
+              setPage(1);
+              reset();
+            }}
+          >
+            <MenuItem value="">כל המצבים</MenuItem>
+            {Object.entries(labels).map(([key, label]) => (
+              <MenuItem key={key} value={key}>
+                {label}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            label="חיפוש לפי שם"
+            sx={{ minWidth: 240 }}
+            value={search}
+            disabled={busy}
+            onChange={(e) => {
+              setSearch(e.target.value.slice(0, 100));
+              setPage(1);
+              reset();
+            }}
+          />
+        </Stack>
         {(error || list.isError || detail.isError) && (
           <Alert severity="error">
             {error || "לא ניתן לטעון בקשות מורשות"}
@@ -115,16 +243,30 @@ export default function ApplicantAdminPage() {
           <Stack key={app.id} direction="row" gap={1} alignItems="center">
             <Button
               fullWidth
+              disabled={busy}
               variant={selected === app.id ? "contained" : "outlined"}
               onClick={() => {
                 setSelected(app.id);
                 setReason("");
                 setVerified(false);
                 setPassword("");
+                setShowPassword(false);
+                setConfirmation(null);
+                setError("");
               }}
             >
               {app.applicantName || "ללא שם"} · {labels[app.status]}
             </Button>
+            {volunteerEnabled && (
+              <Chip
+                label={
+                  normalizeRegistrationType(app.registrationType) ===
+                  "VOLUNTEER"
+                    ? "מתנדב"
+                    : "חניך"
+                }
+              />
+            )}
             {app.pdfDocumentId && (
               <IconButton
                 size="small"
@@ -157,22 +299,26 @@ export default function ApplicantAdminPage() {
         ))}
         <Stack direction="row" gap={2}>
           <Button
-            disabled={page <= 1}
+            disabled={busy || page <= 1}
             onClick={() => {
               setPage((p) => p - 1);
               setSelected("");
               setPassword("");
+              setShowPassword(false);
+              setConfirmation(null);
             }}
           >
             הקודם
           </Button>
           <Typography>עמוד {page}</Typography>
           <Button
-            disabled={!list.data || page * 25 >= list.data.count}
+            disabled={busy || !list.data || page * 25 >= list.data.count}
             onClick={() => {
               setPage((p) => p + 1);
               setSelected("");
               setPassword("");
+              setShowPassword(false);
+              setConfirmation(null);
             }}
           >
             הבא
@@ -187,9 +333,29 @@ export default function ApplicantAdminPage() {
             {doc.application.feedbackReason && (
               <Alert severity="info">{doc.application.feedbackReason}</Alert>
             )}
-            <SignedApplication detail={doc} />
+            {isVolunteer ? (
+              <VolunteerApplicationDetails
+                detail={doc as ApplicationDetail<"VOLUNTEER">}
+              />
+            ) : (
+              <SignedApplication detail={doc as ApplicationDetail<"TRAINEE">} />
+            )}
             {doc.documents
-              .filter((d) => !d.versionId || d.versionId === latest?.id)
+              .filter((d) => {
+                if (!isVolunteer)
+                  return !d.versionId || d.versionId === latest?.id;
+                const data = (doc as ApplicationDetail<"VOLUNTEER">).versions[0]
+                  ?.data;
+                return (
+                  d.versionId === latest?.id ||
+                  [
+                    data?.policeClearanceDocumentId,
+                    ...Object.values(data?.signatures ?? {}).map(
+                      (s) => s.documentId,
+                    ),
+                  ].includes(d.id)
+                );
+              })
               .map((d) => (
                 <Button
                   key={d.id}
@@ -213,7 +379,20 @@ export default function ApplicantAdminPage() {
                     ? "PDF הרישום"
                     : d.kind === "PHYSICIAN_SUMMARY"
                       ? "סיכום רפואי"
-                      : "חתימה"}{" "}
+                      : d.kind === "POLICE_CLEARANCE"
+                        ? "אישור משטרה"
+                        : isVolunteer
+                          ? ({
+                              VOLUNTEER_AGREEMENT: "חתימת הסכם ההתנדבות",
+                              PARENTAL_CONSENT: "חתימת הורה",
+                              CONFIDENTIALITY: "חתימת סודיות",
+                            }[
+                              d.signaturePurpose as
+                                | "VOLUNTEER_AGREEMENT"
+                                | "PARENTAL_CONSENT"
+                                | "CONFIDENTIALITY"
+                            ] ?? "חתימה")
+                          : "חתימה"}{" "}
                   פרטי
                 </Button>
               ))}
@@ -233,6 +412,7 @@ export default function ApplicantAdminPage() {
             <TextField
               label="סיבת החזרה לתיקון או דחייה"
               multiline
+              disabled={busy}
               value={reason}
               onChange={(e) => setReason(e.target.value.slice(0, 2000))}
             />
@@ -241,11 +421,19 @@ export default function ApplicantAdminPage() {
                 disabled={
                   busy ||
                   doc.application.status !== "PENDING_REVIEW" ||
+                  !latest ||
                   !reason.trim()
                 }
                 onClick={() =>
                   void run(async () => {
-                    await api.review(selected, "request-changes", reason);
+                    await api.review(
+                      selected,
+                      "request-changes",
+                      reason,
+                      latest!.id,
+                    );
+                    setVerified(false);
+                    setReason("");
                   })
                 }
               >
@@ -256,11 +444,15 @@ export default function ApplicantAdminPage() {
                 disabled={
                   busy ||
                   doc.application.status !== "PENDING_REVIEW" ||
+                  !latest ||
                   !reason.trim()
                 }
                 onClick={() =>
-                  void run(async () => {
-                    await api.review(selected, "reject", reason);
+                  setConfirmation({
+                    action: "reject",
+                    id: selected,
+                    versionId: latest!.id,
+                    reason,
                   })
                 }
               >
@@ -271,64 +463,195 @@ export default function ApplicantAdminPage() {
               control={
                 <Checkbox
                   checked={verified}
+                  disabled={busy}
                   onChange={(_, v) => setVerified(v)}
                 />
               }
-              label="אימתתי ידנית את זהות החניך וההורה ואת שיוכם לסניף"
+              label={
+                isVolunteer
+                  ? "אימתתי ידנית את זהות המתנדב, המסמכים ושיוכו לסניף"
+                  : "אימתתי ידנית את זהות החניך וההורה ואת שיוכם לסניף"
+              }
             />
             <Button
               variant="contained"
-              disabled={
-                busy || !verified || !latest || !canApproveApplication(doc)
-              }
+              disabled={busy || !verified || !latest || !canApprove}
               onClick={() =>
-                void run(async () => {
-                  const result = await api.approve(selected, latest!.id);
-                  setPassword(result.temporaryPassword);
-                  setShowPassword(false);
+                setConfirmation({
+                  action: "approve",
+                  id: selected,
+                  versionId: latest!.id,
+                  reason: "",
                 })
               }
             >
-              אישור ויצירת חשבון חניך
+              {isVolunteer
+                ? "אישור ויצירת חשבון מתנדב"
+                : "אישור ויצירת חשבון חניך"}
             </Button>
-            {!canApproveApplication(doc) && (
+            {!canApprove && (
               <Alert severity="info">
                 אישור אינו זמין ללא חיבור מסמכים וראיות מאומתות של הגרסה
                 הנוכחית. לא נוצר חשבון.
+                {blockers.map((b) => (
+                  <Typography key={b}>{b}</Typography>
+                ))}
               </Alert>
             )}
+            {doc.history && (
+              <Stack gap={1}>
+                <Typography variant="h6">היסטוריית הבקשה</Typography>
+                {doc.history.map((h) => (
+                  <Typography key={h.id}>
+                    {h.createdAt} ·{" "}
+                    {labels[h.action as keyof typeof labels] ??
+                      {
+                        CREATED: "נוצרה בקשה",
+                        SUBMITTED: "הוגשה גרסה",
+                        PDF_GENERATED: "הופק PDF",
+                        PDF_FAILED: "הפקת PDF נכשלה",
+                        RECOVERED: "שוחזרה גישה",
+                        SESSION_REVOKED: "בוטלה גישה",
+                      }[h.action as "CREATED"] ??
+                      h.action}{" "}
+                    ·{" "}
+                    {h.versionId
+                      ? `גרסה ${doc.versions.find((v) => v.id === h.versionId)?.versionNumber ?? ""} · `
+                      : ""}
+                    {h.reason ?? ""}
+                  </Typography>
+                ))}
+              </Stack>
+            )}
+            {isVolunteer &&
+              doc.documents
+                .filter(
+                  (d) =>
+                    d.kind === "REGISTRATION_PDF" && d.versionId !== latest?.id,
+                )
+                .map((d) => (
+                  <Button
+                    key={d.id}
+                    onClick={() =>
+                      void run(async () => {
+                        const blob = await api.document(selected, d.id);
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = "registration-history.pdf";
+                        a.click();
+                        setTimeout(() => URL.revokeObjectURL(url), 60000);
+                      })
+                    }
+                  >
+                    PDF גרסה{" "}
+                    {
+                      doc.versions.find((v) => v.id === d.versionId)
+                        ?.versionNumber
+                    }{" "}
+                    · היסטוריה פרטית
+                  </Button>
+                ))}
           </>
         )}
-        {password && (
-          <Stack gap={2}>
-            <Alert severity="warning">
-              הסיסמה מוצגת פעם אחת למנהל לצורך מסירה ידנית. אין לשמור אותה
-              בהערות או לשלוח בדואר אוטומטי.
-            </Alert>
-            <TextField
-              label="סיסמה זמנית למסירה"
-              type={showPassword ? "text" : "password"}
-              value={password}
-              slotProps={{ input: { readOnly: true } }}
-            />
-            <Button onClick={() => setShowPassword((v) => !v)}>
-              הצגה / הסתרה
+        <Dialog
+          open={!!password}
+          onClose={() => {
+            setPassword("");
+            setShowPassword(false);
+          }}
+          dir="rtl"
+          fullWidth
+        >
+          <DialogTitle>מסירה חד-פעמית של סיסמה זמנית</DialogTitle>
+          <DialogContent>
+            <Stack gap={2}>
+              <Alert severity="warning">
+                הסיסמה מוצגת פעם אחת למנהל לצורך מסירה ידנית. אין לשמור אותה
+                בהערות או לשלוח בדואר אוטומטי.
+              </Alert>
+              <TextField
+                label="סיסמה זמנית למסירה"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                slotProps={{ input: { readOnly: true } }}
+              />
+              <Typography>תוקף הסיסמה: {passwordExpires}</Typography>
+              <Button onClick={() => setShowPassword((v) => !v)}>
+                הצגה / הסתרה
+              </Button>
+              <Button
+                onClick={() => {
+                  setPassword("");
+                  setShowPassword(false);
+                }}
+              >
+                סיום והסרת הסיסמה מהמסך
+              </Button>
+            </Stack>
+          </DialogContent>
+        </Dialog>
+        <Dialog
+          open={!!confirmation}
+          onClose={() => {
+            if (!busy) setConfirmation(null);
+          }}
+          dir="rtl"
+          fullWidth
+        >
+          <DialogTitle>
+            {confirmation?.action === "approve"
+              ? "אישור הבקשה ויצירת חשבון"
+              : "אישור דחיית בקשה"}
+          </DialogTitle>
+          <DialogContent>
+            <Typography>
+              {confirmation?.action === "approve"
+                ? "הפעולה תיצור חשבון עבור הגרסה שנבדקה. יש למסור את הסיסמה הזמנית ידנית."
+                : `הבקשה תידחה. סיבה: ${confirmation?.reason ?? ""}`}
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button disabled={busy} onClick={() => setConfirmation(null)}>
+              ביטול
             </Button>
             <Button
-              onClick={() => {
-                setPassword("");
-                setShowPassword(false);
-              }}
+              disabled={busy}
+              onClick={() =>
+                void run(async () => {
+                  if (!confirmation) return;
+                  const decision = confirmation;
+                  setPassword("");
+                  setShowPassword(false);
+                  if (decision.action === "approve") {
+                    const result = await api.approve(
+                      decision.id,
+                      decision.versionId,
+                    );
+                    setPassword(result.temporaryPassword ?? "");
+                    setPasswordExpires(result.temporaryPasswordExpiresAt ?? "");
+                  } else
+                    await api.review(
+                      decision.id,
+                      "reject",
+                      decision.reason,
+                      decision.versionId,
+                    );
+                  setConfirmation(null);
+                  setVerified(false);
+                  setReason("");
+                })
+              }
             >
-              סיום והסרת הסיסמה מהמסך
+              אישור סופי
             </Button>
-          </Stack>
-        )}
+          </DialogActions>
+        </Dialog>
       </Stack>
     </Box>
   );
 }
-function canApproveApplication(d: ApplicationDetail) {
+function canApproveApplication(d: ApplicationDetail<RegistrationType>) {
   const latest = d.versions[0];
   return (
     d.integration === "READY" &&

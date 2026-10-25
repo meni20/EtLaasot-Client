@@ -19,6 +19,9 @@ export default defineConfig({
   ],
   optimizeDeps: { entries: ["phase4-demo.html"] },
   define: {
+    "import.meta.env.VITE_VOLUNTEER_REGISTRATION_ENABLED": JSON.stringify(
+      process.env.PHASE1_UI_VOLUNTEER_PREPARATION === "true" ? "true" : "false",
+    ),
     "import.meta.env.VITE_SERVER_URL": JSON.stringify("http://127.0.0.1:5184"),
     "import.meta.env.VITE_PARENT_REGISTRATION_API_URL": JSON.stringify(
       "http://127.0.0.1:5184",

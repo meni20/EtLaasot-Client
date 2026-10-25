@@ -11,13 +11,13 @@ import {
 import type { RegistrationData } from "./contracts";
 import { valueAt, type FieldIssue } from "./model";
 
-export interface FieldProps {
-  data: RegistrationData;
+export interface FieldProps<T extends object = RegistrationData> {
+  data: T;
   change: (path: string, value: unknown) => void;
   issues: FieldIssue[];
   disabled?: boolean;
 }
-export function Field({
+export function Field<T extends object = RegistrationData>({
   path,
   label,
   required,
@@ -26,7 +26,7 @@ export function Field({
   multiline,
   displayValue,
   ...props
-}: FieldProps & {
+}: FieldProps<T> & {
   path: string;
   label: string;
   required?: boolean;
@@ -86,12 +86,12 @@ export function Field({
     </TextField>
   );
 }
-export function YesNo({
+export function YesNo<T extends object = RegistrationData>({
   path,
   label,
   clearPaths = [],
   ...props
-}: FieldProps & {
+}: FieldProps<T> & {
   path: string;
   label: string;
   clearPaths?: { path: string; value: unknown }[];

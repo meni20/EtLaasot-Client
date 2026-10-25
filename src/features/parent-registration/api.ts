@@ -113,6 +113,7 @@ export interface FormDetail {
   documents: SafeDocument[];
 }
 export interface RegistrationApi {
+  readonly queryScope?: readonly unknown[];
   readonly mode: "live" | "demo";
   upload?(input: {
     kind: "PHYSICIAN_SUMMARY" | "SIGNATURE";
