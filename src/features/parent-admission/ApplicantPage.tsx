@@ -1,3 +1,4 @@
+import { useReloadGuard } from "../../hooks/useReloadGuard";
 import { VolunteerRegistration } from "../volunteer-registration/VolunteerRegistration";
 import {
   canStartRegistration,
@@ -53,7 +54,7 @@ export function ApplicantPage({
   );
   useEffect(() => () => queries.clear(), [queries]);
   if (!client)
-    return <Alert severity="error">הרישום אינו מחובר לכתובת API מאושרת.</Alert>;
+    return <Alert severity="error">הרישום אינו זמין כרגע. נסו שוב מאוחר יותר.</Alert>;
   return (
     <QueryClientProvider client={queries}>
       <ApplicantWorkspace client={client} clear={() => queries.clear()} />
@@ -86,6 +87,7 @@ function ApplicantWorkspace({
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [epoch, setEpoch] = useState(0);
+  useReloadGuard(busy || (!!newCode && !ack), "יש להשלים את הפעולה ולשמור את קוד השחזור לפני העדכון.");
   const api = useMemo(
     () => applicantFormApi(client, snapshot?.application.id),
     [client, snapshot?.application.id],
@@ -171,15 +173,15 @@ function ApplicantWorkspace({
             <>
               {error && (
                 <Alert severity="error">
-                  לא ניתן להשלים את פעולת ה-PDF. נסו שוב מאוחר יותר.
+                  לא ניתן לפתוח או להכין את המסמך כרגע. נסו שוב מאוחר יותר.
                 </Alert>
               )}
               <Typography role="status">
                 {snapshot.application.documentStatus === "READY"
-                  ? "PDF חתום מוכן"
+                  ? "המסמך החתום מוכן"
                   : snapshot.application.documentStatus === "FAILED"
                     ? "הפקת ה-PDF נכשלה. ניתן לנסות שוב."
-                    : "ה-PDF טרם הופק"}
+                    : "המסמך בהכנה"}
               </Typography>
               <Button
                 disabled={

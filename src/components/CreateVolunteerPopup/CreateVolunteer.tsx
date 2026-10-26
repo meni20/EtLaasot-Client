@@ -1,3 +1,4 @@
+import { useReloadGuard } from "../../hooks/useReloadGuard";
 import {
   Alert,
   Box,
@@ -43,10 +44,9 @@ const INITIAL_FORM: IUser = {
 };
 
 const helperCopy: Partial<Record<keyof IUser, string>> = {
-  name: "שם פרטי ומשפחה כפי שיופיע במערכת",
+  name: "שם פרטי ושם משפחה",
   id: "9 ספרות, ללא מקפים",
   dateOfBirth: "לא ניתן לבחור תאריך עתידי",
-  gender: "בחירה זו נשמרת כערך מערכת קיים",
   phoneNumber: "מספר ישראלי תקין",
   address: "רחוב, מספר ועיר",
   email: "אופציונלי, למשל name@example.com",
@@ -131,6 +131,7 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
   onClose,
 }) => {
   const [loading, setLoading] = useState<boolean>(false);
+  useReloadGuard(open || loading);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [temporaryPasswordInfo, setTemporaryPasswordInfo] = useState<{
@@ -240,9 +241,6 @@ export const CreateVolunteer: React.FC<ICreateVolunteerProps> = ({
             <Box sx={{ minWidth: 0, flex: 1 }} style={{ textAlign: "right" }}>
               <Typography sx={{ fontWeight: 900, fontSize: 20 }}>
                 יצירת מתנדב
-              </Typography>
-              <Typography sx={{ mt: 0.5, color: "#6d6670", fontSize: 13 }}>
-                פרטים בסיסיים, קשר והערות לצוות
               </Typography>
             </Box>
             <IconButton

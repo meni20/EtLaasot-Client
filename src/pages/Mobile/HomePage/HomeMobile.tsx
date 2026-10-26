@@ -1,3 +1,5 @@
+import { useReloadGuard } from "../../../hooks/useReloadGuard";
+import { apiErrorMessage } from "../../../utils/api-error";
 import {
   isEligibleForAudience,
   eventAccessError,
@@ -127,12 +129,12 @@ export const HomeMobile: React.FC = () => {
       setFeedback({
         severity: "error",
         message:
-          decodeUnicodeEscapes(error?.response?.data?.message) ||
-          "לא הצלחנו לסיים את הפעילות",
+          apiErrorMessage(error, "לא הצלחנו לסיים את הפעילות. נסו שוב."),
       });
     },
   });
 
+  useReloadGuard(!!notes || startActivityMutation.isPending || endActivityMutation.isPending);
   const activeAssignments = useMemo(
     () => myTrainees.filter((assignment) => assignment.isActive),
     [myTrainees],

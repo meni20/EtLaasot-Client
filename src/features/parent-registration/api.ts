@@ -71,6 +71,7 @@ export interface ListRow {
   requestType: FormSummary["requestType"];
   status: FormStatus;
   documentStatus: DocumentStatus;
+  pdfDocumentId?: string | null;
   submittedAt: string | null;
   approvedAt: string | null;
   createdAt: string;

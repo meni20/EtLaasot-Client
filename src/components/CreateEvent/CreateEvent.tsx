@@ -1,3 +1,4 @@
+import { useReloadGuard } from "../../hooks/useReloadGuard";
 import {
   EVENT_AUDIENCE_LABELS,
   eventAccessError,
@@ -105,6 +106,7 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
   event,
 }) => {
   const [loading, setLoading] = useState(false);
+  useReloadGuard(open || loading);
   const [errors, setErrors] = useState<EventValidationErrors>({});
   const [errorMsg, setErrorMsg] = useState("");
   const queryClient = useQueryClient();
@@ -372,18 +374,6 @@ export const CreateEvent: React.FC<ICreateEventProps> = ({
           }}
         >
           {event ? "עריכת אירוע" : "יצירת אירוע"}
-          <Typography
-            component="span"
-            sx={{
-              display: "block",
-              mt: 0.75,
-              color: "text.secondary",
-              fontSize: 13,
-              fontWeight: 500,
-            }}
-          >
-            פרטים, זמן ותמונה במקום אחד
-          </Typography>
         </DialogTitle>
         <IconButton
           aria-label="סגירת חלון יצירת אירוע"

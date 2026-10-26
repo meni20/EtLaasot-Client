@@ -127,9 +127,6 @@ export const SuperAdminDashboardPage: React.FC = () => {
         <Typography component="h1" className={classes.title}>
           סקירה ארגונית
         </Typography>
-        <Typography className={classes.subtitle}>
-          תמונת מצב עדכנית של כל הסניפים הפעילים
-        </Typography>
       </Box>
 
       <Box className={classes.summaryGrid}>

@@ -1,3 +1,4 @@
+import { useReloadGuard } from "../../hooks/useReloadGuard";
 import {
   isEligibleForAudience,
   eventAccessError,
@@ -387,6 +388,7 @@ export const EventAtendeeDialog: React.FC<IEventAtendeeDialogProps> = ({
     window.print();
   }, []);
 
+  useReloadGuard(!!(open && (selectedMentorId || selectedTraineeId || isAssignmentsDialogOpen)) || pairMutation.isPending || deletePairingMutation.isPending || deleteAttendeeMutation.isPending || sendAssignmentsMutation.isPending);
   return (
     <>
       <Dialog

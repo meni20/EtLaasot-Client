@@ -1,3 +1,4 @@
+import { useReloadGuard } from "../../../hooks/useReloadGuard";
 import { useState } from "react";
 import {
   Alert,
@@ -39,6 +40,7 @@ export const PasswordChangePage: React.FC = () => {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  useReloadGuard(loading || Object.values(form).some(Boolean));
 
   const handleChange =
     (field: FieldName) => (event: React.ChangeEvent<HTMLInputElement>) => {

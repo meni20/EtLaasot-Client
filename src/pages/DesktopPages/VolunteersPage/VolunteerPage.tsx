@@ -212,9 +212,6 @@ export const VolunteerPage: React.FC = () => {
       <Box className={styles.header}>
         <Box>
           <Typography className={styles.pageTitle}>מתנדבים</Typography>
-          <Typography className={styles.pageSubtitle}>
-            ניהול וצפייה בפרטי המתנדבים בסניף הנוכחי
-          </Typography>
         </Box>
         <Button
           className={styles.createButton}
@@ -231,7 +228,7 @@ export const VolunteerPage: React.FC = () => {
           className={styles.searchField}
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="חיפוש לפי שם, 4 ספרות ת.ז, טלפון, אימייל או כתובת"
+          placeholder="חיפוש מתנדבים"
           aria-label="חיפוש מתנדבים"
           size="small"
           type="search"

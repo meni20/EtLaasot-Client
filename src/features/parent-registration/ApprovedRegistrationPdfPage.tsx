@@ -77,7 +77,7 @@ export default function ApprovedRegistrationPdfPage() {
     <Box
       component="iframe"
       src={pdfUrl}
-      title="טופס רישום הורים מאושר"
+      title="טופס רישום חניכים מאושר"
       sx={{ width: "100%", height: "100dvh", border: 0, display: "block" }}
     />
   );

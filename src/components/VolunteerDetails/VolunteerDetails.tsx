@@ -1,3 +1,4 @@
+import { useReloadGuard } from "../../hooks/useReloadGuard";
 import {
   Box,
   Stack,
@@ -216,6 +217,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
     temporaryPassword: string;
     temporaryPasswordExpiresAt: string;
   } | null>(null);
+  useReloadGuard(open && (isEditOpen || !!passwordResetInfo));
   const [passwordResetError, setPasswordResetError] = React.useState("");
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = React.useState(false);
   const [archiveError, setArchiveError] = React.useState("");
@@ -551,7 +553,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
       setSelectedUser(nextUser);
       onUserUpdated?.(nextUser);
       setArchiveError("");
-      setArchiveSuccess("המשתמש הוסר מהמערכת");
+      setArchiveSuccess("המשתמש הועבר לארכיון");
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["volunteers"] }),
         queryClient.invalidateQueries({ queryKey: ["trainees"] }),
@@ -566,11 +568,11 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
         ?.status;
 
       if (status === 403) {
-        setArchiveError("אין לך הרשאה להסיר משתמש זה");
+        setArchiveError("אין לך הרשאה להעביר משתמש זה לארכיון");
       } else if (status === 409) {
-        setArchiveError("המשתמש כבר הוסר מהמערכת");
+        setArchiveError("המשתמש כבר בארכיון");
       } else {
-        setArchiveError("לא הצלחנו להסיר את המשתמש");
+        setArchiveError("לא הצלחנו להעביר את המשתמש לארכיון");
       }
     },
   });
@@ -752,6 +754,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
     onClose();
   };
 
+  useReloadGuard(resetPasswordMutation.isPending || updateUserMutation.isPending || archiveUserMutation.isPending || restoreUserMutation.isPending);
   if (!open) return null;
 
   return (
@@ -811,7 +814,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
                   </Stack>
                 )}
                 <Chip
-                  label={selectedUser.isActive === false ? "הוסר" : "פעיל"}
+                  label={selectedUser.isActive === false ? "בארכיון" : "פעיל"}
                   size="small"
                   className={`${classes.statusChip} ${
                     selectedUser.isActive === false
@@ -1271,7 +1274,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
         aria-labelledby="archive-user-title"
       >
         <DialogTitle id="archive-user-title" sx={detailsDialogTitleSx}>
-          הסרת משתמש מהמערכת
+          העברת משתמש לארכיון
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
@@ -1280,8 +1283,8 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
             ) : (
               <Typography sx={{ fontFamily: "inherit" }}>
                 המשתמש לא יוכל להתחבר או להשתמש במערכת. הרשומות ההיסטוריות שלו
-                באירועים, שיוכים ודוחות יישמרו. האם אתה בטוח שברצונך להסיר את
-                המשתמש מהמערכת?
+                באירועים, שיוכים ודוחות יישמרו. האם להעביר את
+                המשתמש לארכיון?
               </Typography>
             )}
             {archiveError && (
@@ -1310,10 +1313,10 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               {archiveUserMutation.isPending ? (
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <CircularProgress size={18} color="inherit" />
-                  <span>מסיר...</span>
+                  <span>מעביר לארכיון...</span>
                 </Stack>
               ) : (
-                "הסר משתמש"
+                "העברה לארכיון"
               )}
             </Button>
           )}
@@ -1513,10 +1516,10 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
         >
           <Box>
             {canArchiveUser && (
-              <Tooltip title="הסרת משתמש">
+              <Tooltip title="העברה לארכיון">
                 <span>
                   <IconButton
-                    aria-label="הסרת משתמש"
+                    aria-label="העברה לארכיון"
                     onClick={openArchiveDialogFromEdit}
                     disabled={updateUserMutation.isPending}
                     className={classes.deleteIconButton}

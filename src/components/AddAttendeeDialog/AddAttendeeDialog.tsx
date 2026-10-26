@@ -161,7 +161,7 @@ export const AddAttendeeDialog: React.FC<IAddAttendeeDialogProps> = ({
               color: "text.secondary",
             }}
           >
-            חיפוש מהיר לפי שם או אימייל
+            חיפוש משתתפים
           </Typography>
         </DialogTitle>
 

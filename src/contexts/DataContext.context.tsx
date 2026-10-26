@@ -11,7 +11,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
   const { isAuthenticated, user, sessionId } = useAuth();
   const { activeBranch } = useBranch();
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isPending, isError, error, refetch } = useQuery({
     queryKey: ["events", activeBranch, user?.userId, sessionId],
     queryFn: ({ signal }) =>
       eventService.getAllEvents(activeBranch ?? undefined, signal),
@@ -21,7 +21,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
   const events = isError ? [] : (data ?? []);
 
   return (
-    <DataContext.Provider value={{ events, isLoading, isError }}>
+    <DataContext.Provider value={{ events, isLoading: isPending, isError, error, refetch }}>
       {children}
     </DataContext.Provider>
   );

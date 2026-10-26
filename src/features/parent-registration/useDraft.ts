@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useReloadGuard } from "../../hooks/useReloadGuard";
 import { RegistrationError } from "./api";
 import { prefill, setField, type ProfilePrefill } from "./model";
 
@@ -33,6 +34,7 @@ export function useDraft<T = import("./contracts").RegistrationData>(
   const [saveState, setSaveState] = useState<
     "saved" | "dirty" | "saving" | "error" | "conflict"
   >("saved");
+  useReloadGuard(!readOnly && saveState !== "saved", "יש להמתין לשמירת הטיוטה או לנסות לשמור שוב לפני העדכון.");
   const [error, setError] = useState<Error | null>(null);
   const [signatureGeneration, setSignatureGeneration] = useState(0);
   const state = useRef({

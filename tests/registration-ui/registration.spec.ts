@@ -267,7 +267,7 @@ test("two-parent local UX submission prevents duplicate clicks and shows the pen
     page.getByText(/זהו מצב הדגמה בלבד. לא נשלח טופס אמיתי/),
   ).toBeVisible();
   await expect(
-    page.getByText(/PDF: ממתין להפקה; ניתן לנסות שוב אם ההפקה נכשלת/),
+    page.getByText(/PDF: בהכנה/),
   ).toBeVisible();
 });
 test("single-parent signing works with optional second ID empty; mismatched second signing is rejected", async ({
@@ -331,14 +331,14 @@ test("branch admin scope, status counts, immutable versions, no approval without
     detail.getByRole("table", { name: "השוואת פרטי רישום" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "בקשת תיקונים", exact: true }).click();
-  await page.getByRole("button", { name: "אישור פעולה" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "החזרת הטופס לתיקון", exact: true }).click();
   await expect(
     page.getByText("חובה להזין סיבה", { exact: true }),
   ).toBeVisible();
   await page
     .getByRole("textbox", { name: "סיבה", exact: false })
     .fill("נא לעדכן פרטים בדויים");
-  await page.getByRole("button", { name: "אישור פעולה" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "החזרת הטופס לתיקון", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page
     .getByRole("button", { name: "בקשת חידוש אישי", exact: true })
@@ -348,7 +348,7 @@ test("branch admin scope, status counts, immutable versions, no approval without
     .getByRole("textbox", { name: "סיבה", exact: false })
     .fill("חידוש הדגמה");
   await page.getByRole("checkbox").check();
-  await page.getByRole("button", { name: "אישור פעולה" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "שליחת בקשת חידוש", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
 test("super admin may select authorized branches; annual opening is explicit", async ({
@@ -359,7 +359,7 @@ test("super admin may select authorized branches; annual opening is explicit", a
   await select(page, "סניף מורשה", "סניף הדגמה דרום");
   await page.getByRole("button", { name: "פתיחת רישום שנתי" }).click();
   await expect(page.getByRole("dialog")).toContainText("סניף הדגמה דרום");
-  await page.getByRole("button", { name: "אישור פעולה" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "פתיחת רישום שנתי לחניכים", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
 test("visual captures and preview makes no external requests or runtime errors", async ({

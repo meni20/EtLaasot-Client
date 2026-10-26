@@ -1,3 +1,4 @@
+import { useReloadGuard } from "../../hooks/useReloadGuard";
 import { useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import {
@@ -11,6 +12,7 @@ import {
   DialogContent,
   DialogTitle,
   FormControlLabel,
+  IconButton,
   MenuItem,
   Paper,
   Stack,
@@ -21,8 +23,10 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
+import PictureAsPdfOutlined from "@mui/icons-material/PictureAsPdfOutlined";
 import {
   type FormDetail,
   type FormStatus,
@@ -90,6 +94,7 @@ export function RegistrationAdmin({
   const [dialog, setDialog] = useState<
     "annual" | "renew" | "changes" | "approve" | null
   >(null);
+  useReloadGuard(!!dialog);
   const [reason, setReason] = useState("");
   const [trainee, setTrainee] = useState("");
   const [blocking, setBlocking] = useState(false);
@@ -160,6 +165,20 @@ export function RegistrationAdmin({
         search.trim(),
       ),
     ) ?? [];
+  const openPdf = (formId: string, documentId: string) => {
+    const url = new URL("/registration-pdf", window.location.origin);
+    url.searchParams.set("source", "RENEWAL");
+    url.searchParams.set("formId", formId);
+    url.searchParams.set("documentId", documentId);
+    const pdfTab = window.open(url.toString(), "_blank");
+    if (!pdfTab) {
+      window.alert(
+        "הדפדפן חסם את פתיחת ה-PDF. יש לאפשר חלונות קופצים ולנסות שוב.",
+      );
+      return;
+    }
+    pdfTab.opener = null;
+  };
   return (
     <Box
       dir="rtl"
@@ -176,10 +195,7 @@ export function RegistrationAdmin({
         >
           <Box>
             <Typography component="h1" variant="h4" fontWeight={700}>
-              רישום הורים
-            </Typography>
-            <Typography color="text.secondary">
-              מעקב, בדיקה ואישור הטפסים של הסניף
+              רישום חניכים
             </Typography>
           </Box>
           <Stack direction="row" gap={2}>
@@ -195,16 +211,10 @@ export function RegistrationAdmin({
               disabled={!branch || !year}
               onClick={() => open("annual")}
             >
-              פתיחת רישום שנתי
+              פתיחת רישום שנתי לחניכים
             </Button>
           </Stack>
         </Stack>
-        <Alert severity="info">
-          {api.mode === "demo"
-            ? "הדגמה בלבד: לא נשמרים קבצים אמיתיים."
-            : "הקבצים והמסמכים נשמרים באחסון פרטי ונגישים למנהל הסניף המורשה."}{" "}
-          הגבלת הגישה תלויה בחובת הרישום ובהפעלת האכיפה.
-        </Alert>
         {success && <Alert severity="success">{success}</Alert>}
         <Paper
           variant="outlined"
@@ -299,7 +309,7 @@ export function RegistrationAdmin({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             fullWidth
-            helperText="השרת אינו מספק חיפוש בכל העמודים. סינון זה חל על עד 25 הטפסים המוצגים."
+            helperText="החיפוש חל על העמוד הנוכחי בלבד."
           />
           <TextField
             select
@@ -334,7 +344,7 @@ export function RegistrationAdmin({
           variant="outlined"
           sx={{ borderRadius: 4, borderColor: "#D9BFD2" }}
         >
-          <Table aria-label="טפסי רישום הורים">
+          <Table aria-label="טפסי רישום חניכים">
             <TableHead>
               <TableRow>
                 {["חניך/ה", "סוג בקשה", "סטטוס", "מסמך PDF", ""].map(
@@ -361,15 +371,35 @@ export function RegistrationAdmin({
                   </TableCell>
                   <TableCell align="right">
                     {row.documentStatus === "READY"
-                      ? "מוכן באחסון פרטי"
+                      ? "מוכן"
                       : row.documentStatus === "FAILED"
-                        ? "נכשל"
-                        : "ממתין להפקה"}
+                        ? "ההפקה נכשלה"
+                        : "בהכנה"}
                   </TableCell>
                   <TableCell>
-                    <Button onClick={() => setSelected(row.id)}>
-                      פתיחת טופס
-                    </Button>
+                    <Stack direction="row" alignItems="center" gap={1}>
+                      <Button onClick={() => setSelected(row.id)}>
+                        פתיחת טופס
+                      </Button>
+                      {row.pdfDocumentId && (
+                        <Tooltip title="פתיחת PDF בחלון חדש">
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            aria-label={`פתיחת PDF הרישום של ${
+                              trainees.find((t) => t.id === row.traineeUuid)
+                                ?.name ?? "החניך"
+                            }`}
+                            onClick={() =>
+                              openPdf(row.id, row.pdfDocumentId!)
+                            }
+                            sx={{ width: 40, height: 40 }}
+                          >
+                            <PictureAsPdfOutlined fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </Stack>
                   </TableCell>
                 </TableRow>
               ))}
@@ -467,8 +497,7 @@ export function RegistrationAdmin({
                   {!canApprove(detail.data) &&
                     detail.data.form.status === "PENDING_REVIEW" && (
                       <Typography color="text.secondary">
-                        אישור יתאפשר רק כאשר השרת יספק PDF מאומת של גרסת ההגשה
-                        העדכנית וסטטוס READY.
+                        אפשר לאשר לאחר שהמסמך החתום והמאומת של ההגשה העדכנית יהיה מוכן.
                       </Typography>
                     )}
                 </>
@@ -488,7 +517,7 @@ export function RegistrationAdmin({
       >
         <DialogTitle>
           {dialog === "annual"
-            ? "פתיחת רישום שנתי"
+            ? "פתיחת רישום שנתי לחניכים"
             : dialog === "renew"
               ? "בקשת חידוש אישי"
               : dialog === "changes"
@@ -565,7 +594,15 @@ export function RegistrationAdmin({
             disabled={action.isPending}
             onClick={() => void confirm()}
           >
-            {action.isPending ? "מבצע…" : "אישור פעולה"}
+            {action.isPending
+              ? "מבצע…"
+              : dialog === "annual"
+                ? "פתיחת רישום שנתי לחניכים"
+                : dialog === "renew"
+                  ? "שליחת בקשת חידוש"
+                  : dialog === "changes"
+                    ? "החזרת הטופס לתיקון"
+                    : "אישור הטופס"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -802,8 +839,7 @@ function DetailView({
                 ? "PDF הרישום"
                 : d.kind === "PHYSICIAN_SUMMARY"
                   ? "סיכום רפואי"
-                  : "חתימה"}{" "}
-              פרטי
+                  : "חתימה"}
             </Button>
           ))}
       {api.adminRetryPdf &&
@@ -828,8 +864,8 @@ function DetailView({
         {detail.form.documentStatus === "READY"
           ? "מוכן"
           : detail.form.documentStatus === "FAILED"
-            ? "נכשל"
-            : "ממתין להפקה"}
+            ? "ההפקה נכשלה"
+            : "בהכנה"}
         .
       </Typography>
     </Stack>

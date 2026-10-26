@@ -1,3 +1,4 @@
+import { apiErrorMessage } from "../../utils/api-error";
 import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
@@ -34,7 +35,7 @@ type PushNotificationSettingsProps = {
 };
 
 const STATUS_DESCRIPTION: Partial<Record<PushStatus, string>> = {
-  unsupported: "הדפדפן או המכשיר הנוכחי אינם תומכים בהתראות Push.",
+  unsupported: "הדפדפן או המכשיר הנוכחי אינם תומכים בהתראות.",
   "ios-not-installed":
     "ב-iPhone וב-iPad יש להתקין תחילה את האפליקציה במסך הבית, ואז לפתוח אותה משם.",
   denied: "יש לאפשר התראות בהגדרות הדפדפן או המכשיר כדי להפעיל אותן.",
@@ -339,15 +340,4 @@ const buttonSx = {
   },
 };
 
-const getErrorMessage = (error: unknown) => {
-  if (typeof error === "object" && error !== null && "response" in error) {
-    const response = error.response as {
-      data?: { message?: string | string[] };
-    };
-    const serverMessage = response.data?.message;
-    if (typeof serverMessage === "string") return serverMessage;
-    if (Array.isArray(serverMessage)) return serverMessage[0];
-  }
-
-  return "לא הצלחנו לעדכן את ההתראות. אפשר לנסות שוב.";
-};
+const getErrorMessage = (error: unknown) => apiErrorMessage(error, "לא הצלחנו לעדכן את ההתראות. אפשר לנסות שוב.");

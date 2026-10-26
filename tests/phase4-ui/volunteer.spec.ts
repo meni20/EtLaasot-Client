@@ -298,7 +298,7 @@ test("complete adult volunteer form, exact legal content, RTL, autosave, current
     page.getByRole("button", { name: "הורדת PDF חתום" }),
   ).toBeDisabled();
   await page.getByRole("button", { name: "ניסיון נוסף להפקת PDF" }).click();
-  await expect(page.getByText("PDF חתום מוכן", { exact: true })).toBeVisible();
+  await expect(page.getByText("המסמך החתום מוכן", { exact: true })).toBeVisible();
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "הורדת PDF חתום" }).click();
   expect((await download).suggestedFilename()).toBe(

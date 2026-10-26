@@ -1,3 +1,4 @@
+import { useReloadGuard } from "../../hooks/useReloadGuard";
 import { useMemo, useRef, useState } from "react";
 import {
   Alert,
@@ -95,6 +96,7 @@ export function VolunteerRegistration({
   const [inks, setInks] = useState<
     Partial<Record<VolunteerPurpose, CompletedSignature>>
   >({});
+  useReloadGuard(busy || Object.values(inks).some(Boolean), "יש להשלים את שמירת החתימות והמסמכים לפני העדכון.");
   const working = useRef(false),
     idempotency = useRef<{ revision: number; key: string } | undefined>(
       undefined,
@@ -131,7 +133,7 @@ export function VolunteerRegistration({
     try {
       await work();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "הפעולה לא הושלמה");
+      setMessage(error instanceof Error && /[\u0590-\u05ff]/.test(error.message) ? error.message : "הפעולה לא הושלמה. נסו שוב.");
     } finally {
       working.current = false;
       setBusy(false);
@@ -140,7 +142,7 @@ export function VolunteerRegistration({
   const sign = (purpose: VolunteerPurpose) =>
     run(async () => {
       if (!inks[purpose] || !client.upload)
-        throw new Error("יש להשלים חתימה וחיבור לאחסון פרטי");
+        throw new Error("לא ניתן להשלים את החתימה כרגע. בדקו שחתמתם ונסו שוב.");
       if (!(await draft.flush())) return;
       const current = draft.current();
       const blob = new Blob(
@@ -324,8 +326,8 @@ export function VolunteerRegistration({
       <Typography role="status">
         {
           {
-            saved: "נשמר",
-            dirty: "ממתין לשמירה",
+            saved: "כל השינויים נשמרו",
+            dirty: "ממתין לשמירה…",
             saving: "שומר…",
             error: "השמירה נכשלה",
             conflict: "קיימת גרסה חדשה יותר",
@@ -357,7 +359,7 @@ export function VolunteerRegistration({
       {message && <Alert severity="error">{message}</Alert>}
       {initial.integration !== "READY" && (
         <Alert severity="warning">
-          אחסון פרטי אינו זמין. ניתן לשמור טיוטה; חתימה ושליחה דורשות חיבור.
+          אפשר לשמור טיוטה. חתימה ושליחה אינן זמינות כרגע.
         </Alert>
       )}
       <Typography component="h3" variant="h6">
@@ -506,7 +508,7 @@ export function VolunteerRegistration({
           </Stack>
         ) : (
           <Alert severity="info">
-            אישור הורים אינו נדרש למועמד/ת בגיל 18 ומעלה. הגיל נבדק גם בשרת.
+            אישור הורים אינו נדרש למועמד/ת בגיל 18 ומעלה.
           </Alert>
         ))}
       {draft.step === 5 && (

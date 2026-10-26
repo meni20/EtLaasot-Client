@@ -215,9 +215,6 @@ export const ActivitiesPage: React.FC = () => {
     <Box className={styles.root}>
       <Box className={styles.header}>
         <Typography className={styles.pageTitle}>ניהול פעילויות מתנדבים</Typography>
-        <Typography className={styles.subtitle}>
-          צפייה בכל הסשנים, כולל שעות, סטטוס, חניך, אירוע והערות.
-        </Typography>
       </Box>
 
       <Box className={styles.filtersCard}>

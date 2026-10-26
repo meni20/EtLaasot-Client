@@ -1,3 +1,4 @@
+import { useReloadGuard } from "../../hooks/useReloadGuard";
 import { stageNames } from "./stageNames";
 import { useRef, useState } from "react";
 import {
@@ -130,6 +131,7 @@ function MobileForm({
   }>({});
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  useReloadGuard(submitting || !!file || !!signatures.parent1 || !!signatures.parent2, "יש להשלים את שמירת המסמכים והחתימות לפני העדכון.");
   const inFlight = useRef(false);
   const [reloadConfirm, setReloadConfirm] = useState(false);
   const formStatus = initial.form?.status;
@@ -197,9 +199,9 @@ function MobileForm({
         await onDemoSubmit();
       } else {
         if (!api.upload)
-          throw new Error("Private upload integration is unavailable");
+          throw new Error("העלאת מסמכים אינה זמינה כרגע. נסו שוב מאוחר יותר.");
         let current = await api.me();
-        if (!current.form) throw new Error("Save a draft before submitting");
+        if (!current.form) throw new Error("יש לשמור טיוטה לפני השליחה.");
         let data = structuredClone(current.data),
           revision = current.form.revision;
         const save = async () => {
@@ -250,7 +252,7 @@ function MobileForm({
         setIssues([{ path, stage: stageFor(path), message: e.message }]);
         go(stageFor(path));
       }
-      setMessage(e instanceof Error ? e.message : "השליחה נכשלה");
+      setMessage(e instanceof Error && /[\u0590-\u05ff]/.test(e.message) ? e.message : "השליחה נכשלה. נסו שוב.");
     } finally {
       inFlight.current = false;
       setSubmitting(false);
@@ -292,10 +294,10 @@ function MobileForm({
           />
         </Stack>
         <Typography component="h1" variant="h4" fontWeight={700}>
-          רישום הורים לפעילויות
+          רישום חניכים לפעילויות
         </Typography>
         <Typography color="text.secondary">
-          ממלאים בקצב שלכם. ניתן לעבור בין כל השלבים ולחזור להשלמה.
+          אפשר לעבור בין השלבים ולחזור להשלמה.
         </Typography>
         {status.wouldBlockAccess && (
           <Alert severity="info">
@@ -323,8 +325,8 @@ function MobileForm({
             {initial.form?.documentStatus === "FAILED"
               ? "ההפקה נכשלה"
               : initial.form?.documentStatus === "READY"
-                ? "מוכן ונשמר באחסון פרטי"
-                : "ממתין להפקה; ניתן לנסות שוב אם ההפקה נכשלת"}
+                ? "מוכן"
+                : "בהכנה"}
           </Alert>
         )}
         {approved && (

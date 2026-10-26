@@ -1,3 +1,4 @@
+import { useReloadGuard } from "../../hooks/useReloadGuard";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -78,6 +79,7 @@ function ApplicantAdminWorkspace() {
     [showPassword, setShowPassword] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  useReloadGuard(busy || !!password || !!confirmation || (!!selected && !!reason));
   const cache = useQueryClient();
   const list = useQuery({
     queryKey: [
@@ -155,7 +157,7 @@ function ApplicantAdminWorkspace() {
     <Box dir="rtl" p={5}>
       <Stack gap={3}>
         <Typography component="h1" variant="h5" color="primary">
-          {volunteerEnabled ? "בקשות רישום" : "בקשות חניכים חדשים"}
+          בקשות הרשמה
         </Typography>
         <Alert severity="warning">
           {volunteerEnabled
@@ -392,8 +394,7 @@ function ApplicantAdminWorkspace() {
                                 | "PARENTAL_CONSENT"
                                 | "CONFIDENTIALITY"
                             ] ?? "חתימה")
-                          : "חתימה"}{" "}
-                  פרטי
+                          : "חתימה"}
                 </Button>
               ))}
             {doc.application.status === "PENDING_REVIEW" &&
@@ -491,8 +492,8 @@ function ApplicantAdminWorkspace() {
             </Button>
             {!canApprove && (
               <Alert severity="info">
-                אישור אינו זמין ללא חיבור מסמכים וראיות מאומתות של הגרסה
-                הנוכחית. לא נוצר חשבון.
+                לא ניתן לאשר לפני שכל המסמכים והראיות של ההגשה העדכנית יהיו
+                מוכנים ומאומתים. לא נוצר חשבון.
                 {blockers.map((b) => (
                   <Typography key={b}>{b}</Typography>
                 ))}
@@ -643,7 +644,9 @@ function ApplicantAdminWorkspace() {
                 })
               }
             >
-              אישור סופי
+              {confirmation?.action === "approve"
+                ? "אישור ויצירת חשבון"
+                : "דחיית הבקשה"}
             </Button>
           </DialogActions>
         </Dialog>

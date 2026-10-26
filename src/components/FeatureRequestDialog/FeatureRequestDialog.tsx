@@ -1,3 +1,4 @@
+import { useReloadGuard } from "../../hooks/useReloadGuard";
 import { useState } from "react";
 import axios from "axios";
 import {
@@ -35,6 +36,7 @@ export const FeatureRequestDialog: React.FC<FeatureRequestDialogProps> = ({
   const [error, setError] = useState("");
   const [showValidation, setShowValidation] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  useReloadGuard(open || isSending);
 
   const reset = () => {
     setTitle("");
@@ -93,9 +95,9 @@ export const FeatureRequestDialog: React.FC<FeatureRequestDialogProps> = ({
         id="feature-request-dialog-title"
         className={classes.title}
       >
-        בקשה לפיצ&apos;ר
+        עזרה ומשוב
         <IconButton
-          aria-label="סגירת טופס בקשה לפיצ'ר"
+          aria-label="סגירת עזרה ומשוב"
           onClick={closeDialog}
           disabled={isSending}
           className={classes.close}

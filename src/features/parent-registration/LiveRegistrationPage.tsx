@@ -22,8 +22,7 @@ export default function LiveRegistrationPage() {
   if (!url)
     return (
       <Alert severity="warning">
-        הרישום אינו מחובר לסביבת API מאושרת. יש להגדיר כתובת API מאושרת וזהה
-        לכתובת השרת של האפליקציה. לא תתבצע פנייה לשרת חלופי.
+        הרישום אינו זמין כרגע. נסו שוב מאוחר יותר.
       </Alert>
     );
   return <ConnectedRegistration url={url} />;
@@ -76,7 +75,7 @@ function ConnectedRegistration({ url }: { url: string }) {
     gcTime: 0,
   });
   if (!user || (!admin && !trainee))
-    return <Alert severity="error">אין הרשאה לרישום הורים.</Alert>;
+    return <Alert severity="error">אין הרשאה לרישום חניכים.</Alert>;
   const error = admin ? trainees.error : profile.error;
   if (error)
     return (

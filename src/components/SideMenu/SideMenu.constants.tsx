@@ -21,7 +21,7 @@ export const menuItems: MenuItem[] = [
   ...(import.meta.env.VITE_APPLICANT_REGISTRATION_ENABLED === "true"
     ? [
         {
-          label: "בקשות חניכים חדשים",
+          label: "בקשות הרשמה",
           icon: <AssignmentOutlinedIcon />,
           path: "/parent-applications-admin",
           allowedRoles: [AUTH_ROLES.SUPER_ADMIN.id, AUTH_ROLES.BRANCH_ADMIN.id],
@@ -31,7 +31,7 @@ export const menuItems: MenuItem[] = [
   ...(import.meta.env.VITE_PARENT_REGISTRATION_ENABLED === "true"
     ? [
         {
-          label: "רישום הורים",
+          label: "רישום חניכים",
           icon: <AssignmentOutlinedIcon />,
           path: "/parent-registration",
           allowedRoles: [AUTH_ROLES.SUPER_ADMIN.id, AUTH_ROLES.BRANCH_ADMIN.id],

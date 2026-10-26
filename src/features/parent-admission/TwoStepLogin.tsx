@@ -97,7 +97,7 @@ export function TwoStepLogin({
             ? "כניסה באמצעות תעודת זהות"
             : step === "PASSWORD"
               ? "הזנת סיסמה"
-              : "רישום חניך חדש"}
+              : "בקשת הרשמה"}
         </Typography>
         <Stack gap={3}>
           {error && (
@@ -161,10 +161,6 @@ export function TwoStepLogin({
           )}
           {step === "REGISTER" ? (
             <>
-              <Alert severity="info">
-                אפשר להגיש בקשה לרישום. מילוי הטופס אינו יוצר חשבון ואינו מהווה
-                אימות זהות; הבקשה תיבדק על ידי מנהל הסניף.
-              </Alert>
               <Button
                 type="button"
                 variant="contained"
@@ -173,7 +169,7 @@ export function TwoStepLogin({
                   navigate("/apply");
                 }}
               >
-                להתחלת רישום חניך
+                להתחלת הרשמה
               </Button>
             </>
           ) : (
@@ -193,11 +189,6 @@ export function TwoStepLogin({
                 המשך בקשה עם קוד שחזור
               </Button>
             )}
-          {step !== "REGISTER" && (
-            <Typography variant="caption">
-              לסיוע בסיסמה יש לפנות למנהל הסניף.
-            </Typography>
-          )}
           <PwaInstallButton />
         </Stack>
       </Box>

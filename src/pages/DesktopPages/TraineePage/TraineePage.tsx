@@ -289,9 +289,6 @@ export const TraineePage: React.FC = () => {
       <Box className={styles.header}>
         <Box>
           <Typography className={styles.pageTitle}>חניכים</Typography>
-          <Typography className={styles.pageSubtitle}>
-            ניהול וצפייה בפרטי החניכים בסניף הנוכחי
-          </Typography>
         </Box>
         <Button
           className={styles.createButton}
@@ -308,7 +305,7 @@ export const TraineePage: React.FC = () => {
           className={styles.searchField}
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="חיפוש לפי שם, שם הורה, 4 ספרות ת.ז, טלפון, אימייל או כתובת"
+          placeholder="חיפוש חניכים"
           aria-label="חיפוש חניכים"
           size="small"
           type="search"

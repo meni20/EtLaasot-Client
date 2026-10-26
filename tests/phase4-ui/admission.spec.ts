@@ -238,7 +238,7 @@ test("unknown ID starts an independent branch-selected application, with mandato
   await expect(
     page.getByText("לסיוע בסיסמה יש לפנות למנהל הסניף.", { exact: true }),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: "להתחלת רישום חניך" }).click();
+  await page.getByRole("button", { name: "להתחלת הרשמה" }).click();
   await expect(page.getByText("בקשה חדשה", { exact: true })).toBeVisible();
   await expect(
     page.getByText("הבקשה אינה חשבון משתמש.", { exact: false }),
@@ -392,7 +392,7 @@ test("old bookmarks become registration-only and approval restores normal naviga
   ).toBeVisible();
   await expect(page.getByText("גישה רגילה לדוגמה")).toHaveCount(0);
   await expect(
-    page.getByRole("heading", { name: "רישום הורים לפעילויות", exact: true }),
+    page.getByRole("heading", { name: "רישום חניכים לפעילויות", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByText("הגישה לאפליקציה מוגבלת עד לקבלת האישור.", { exact: false }),
@@ -418,7 +418,7 @@ test("registration preparation is hidden by default; enabled selector preserves 
   await page.goto("/phase4-demo.html");
   await page.getByLabel("תעודת זהות", { exact: true }).fill("123456782");
   await page.getByRole("button", { name: "המשך", exact: true }).click();
-  await page.getByRole("button", { name: "להתחלת רישום חניך" }).click();
+  await page.getByRole("button", { name: "להתחלת הרשמה" }).click();
   await page.getByLabel("סניף פעיל").click();
   await page.getByRole("option").first().click();
   const selector = page.getByRole("combobox", { name: /^סוג הרשמה/ });

@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { reloadSafety } from "../../utils/reload-safety";
 import { Alert, Button, Snackbar } from "@mui/material";
 import { useRegisterSW } from "virtual:pwa-register/react";
 
@@ -11,6 +12,14 @@ interface PwaUpdatePromptProps {
 export const PwaUpdatePrompt: React.FC<PwaUpdatePromptProps> = ({
   hasBottomNavigation = false,
 }) => {
+  const reason = useSyncExternalStore(
+    reloadSafety.subscribe,
+    reloadSafety.getReason,
+    () => "",
+  );
+  const [reloadPending, setReloadPending] = useState(false);
+  const [updateError, setUpdateError] = useState(false);
+  const [activating, setActivating] = useState(false);
   const registrationRef = useRef<ServiceWorkerRegistration | undefined>(
     undefined,
   );
@@ -22,17 +31,36 @@ export const PwaUpdatePrompt: React.FC<PwaUpdatePromptProps> = ({
     // Let the initial document and authenticated API traffic finish before
     // Workbox starts downloading the full application precache.
     immediate: false,
+    // Includes a worker activated by another tab. Never let the library reload
+    // directly: work may have become dirty after the update button was clicked.
+    onNeedReload: () => setReloadPending(true),
     onRegisteredSW: (_serviceWorkerUrl, registration) => {
       registrationRef.current = registration;
     },
   });
 
   useEffect(() => {
+    if (reloadPending && !reloadSafety.getReason()) window.location.reload();
+  }, [reloadPending, reason]);
+  const update = async () => {
+    if (reloadSafety.getReason() || activating) return;
+    setActivating(true);
+    setUpdateError(false);
+    try {
+      await updateServiceWorker(true);
+    } catch {
+      setUpdateError(true);
+    } finally {
+      setActivating(false);
+    }
+  };
+
+  useEffect(() => {
     const updateInterval = window.setInterval(() => {
       const registration = registrationRef.current;
       if (!registration || registration.installing || !navigator.onLine) return;
 
-      void registration.update();
+      void registration.update().catch(() => setUpdateError(true));
     }, UPDATE_INTERVAL_MS);
 
     return () => window.clearInterval(updateInterval);
@@ -45,7 +73,7 @@ export const PwaUpdatePrompt: React.FC<PwaUpdatePromptProps> = ({
 
   return (
     <Snackbar
-      open={offlineReady || needRefresh}
+      open={offlineReady || needRefresh || reloadPending}
       anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       sx={{
         bottom: hasBottomNavigation
@@ -55,7 +83,7 @@ export const PwaUpdatePrompt: React.FC<PwaUpdatePromptProps> = ({
       }}
     >
       <Alert
-        severity={needRefresh ? "info" : "success"}
+        severity={needRefresh || reloadPending ? "info" : "success"}
         variant="filled"
         onClose={closePrompt}
         role="status"
@@ -67,11 +95,12 @@ export const PwaUpdatePrompt: React.FC<PwaUpdatePromptProps> = ({
           borderRadius: "var(--radius-md)",
         }}
         action={
-          needRefresh ? (
+          needRefresh || reloadPending ? (
             <Button
               color="inherit"
               size="small"
-              onClick={() => void updateServiceWorker(true)}
+              disabled={!!reason || activating || reloadPending}
+              onClick={() => void update()}
               sx={{ minWidth: 88, minHeight: 44, fontFamily: "inherit" }}
             >
               עדכון עכשיו
@@ -79,8 +108,11 @@ export const PwaUpdatePrompt: React.FC<PwaUpdatePromptProps> = ({
           ) : undefined
         }
       >
-        {needRefresh
-          ? "גרסה חדשה זמינה. ניתן לעדכן כעת בבטחה."
+        {needRefresh || reloadPending
+          ? reason ||
+            (updateError
+              ? "העדכון לא הושלם. נסו שוב."
+              : "גרסה חדשה זמינה. אפשר לעדכן כעת.")
           : "האפליקציה מוכנה לפתיחה לאחר ההתקנה. נתונים עדכניים דורשים חיבור לרשת."}
       </Alert>
     </Snackbar>

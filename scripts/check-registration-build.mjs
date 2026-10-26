@@ -13,6 +13,11 @@ assert.equal(
   false,
   "Phase 4 QA entry must not be published",
 );
+assert.equal(
+  existsSync("dist/ux-demo.html"),
+  false,
+  "UX harness must not be published",
+);
 const markers = [
   "createDemoAdapter",
   "fictional@example.test",
@@ -20,6 +25,9 @@ const markers = [
   "סביבת הדגמה מקומית",
   "phase4-fictional-branch",
   "Phase 4 QA",
+  "uxOfferUpdate",
+  "uxExternalActivation",
+  "בדיקת UX מקומית",
 ];
 function inspect(directory) {
   for (const entry of readdirSync(directory, { withFileTypes: true })) {

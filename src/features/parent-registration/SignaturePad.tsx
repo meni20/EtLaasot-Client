@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useReloadGuard } from "../../hooks/useReloadGuard";
 import { Box, Button, Stack, Typography } from "@mui/material";
 
 export interface CompletedSignature {
@@ -18,6 +19,11 @@ export function SignaturePad({
   const drawing = useRef(false);
   const segments = useRef(0);
   const [ink, setInk] = useState(false);
+  const [started, setStarted] = useState(false);
+  useReloadGuard(
+    started || ink || !!value,
+    "יש להשלים ולשמור את החתימה או לנקות אותה לפני העדכון.",
+  );
   useEffect(() => {
     const element = canvas.current;
     if (!element) return;
@@ -36,6 +42,7 @@ export function SignaturePad({
       drawing.current = false;
       segments.current = 0;
       setInk(false);
+      setStarted(false);
     });
     observer.observe(element);
     return () => observer.disconnect();
@@ -47,6 +54,7 @@ export function SignaturePad({
     drawing.current = false;
     segments.current = 0;
     setInk(false);
+    setStarted(false);
     onChange(undefined);
   };
   return (
@@ -92,6 +100,7 @@ export function SignaturePad({
             ctx?.beginPath();
             ctx?.moveTo(e.clientX - r.left, e.clientY - r.top);
             drawing.current = true;
+            setStarted(true);
           }}
           onPointerMove={(e) => {
             if (!drawing.current) return;

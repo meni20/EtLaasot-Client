@@ -1,3 +1,4 @@
+import { useReloadGuard } from "../../hooks/useReloadGuard";
 import { useId, useRef, useState } from "react";
 import {
   Alert,
@@ -78,6 +79,7 @@ function DocumentsContent({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const pending = upload.isPending || remove.isPending;
+  useReloadGuard(!!action || pending);
   const selected = DOCUMENT_TYPES.find((item) => item.type === action?.type);
 
   function open(next: Action) {

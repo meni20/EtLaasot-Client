@@ -311,10 +311,10 @@ test("manager uses server filters and pagination; immutable volunteer details an
     page.getByRole("textbox", { name: "מספר טלפון של המתנדב" }),
   ).toHaveCount(0);
   await expect(
-    page.getByRole("button", { name: "הורדת אישור משטרה פרטי" }),
+    page.getByRole("button", { name: "הורדת אישור משטרה" }),
   ).toBeVisible();
   const download = page.waitForEvent("download");
-  await page.getByRole("button", { name: "הורדת PDF הרישום פרטי" }).click();
+  await page.getByRole("button", { name: "הורדת PDF הרישום" }).click();
   await download;
   expect(h.calls.some((c) => c.path.includes("/documents/"))).toBe(true);
   await page.screenshot({
@@ -335,7 +335,7 @@ test("approval requires confirmation, hands off the password once and removes it
     .check();
   await page.getByRole("button", { name: "אישור ויצירת חשבון מתנדב" }).click();
   expect(h.calls.filter((c) => c.path.endsWith("/approve"))).toHaveLength(0);
-  await page.getByRole("button", { name: "אישור סופי" }).click();
+  await page.getByRole("button", { name: "אישור ויצירת חשבון", exact: true }).click();
   const password = page.getByLabel("סיסמה זמנית למסירה");
   await expect(password).toHaveValue(temporaryPassword);
   await expect(password).toHaveAttribute("type", "password");
@@ -378,7 +378,7 @@ test("minor consent is read only; rejection and corrections carry the exact revi
   await page.getByRole("button", { name: "ביטול", exact: true }).click();
   expect(h.calls.filter((c) => c.path.endsWith("/reject"))).toHaveLength(0);
   await page.getByRole("button", { name: "דחיית בקשה" }).click();
-  await page.getByRole("button", { name: "אישור סופי" }).click();
+  await page.getByRole("button", { name: "דחיית הבקשה", exact: true }).click();
   await expect
     .poll(() => h.calls.find((c) => c.path.endsWith("/reject"))?.body)
     .toMatchObject({ expectedVersionId: versionId, reason: "סיבה מקומית" });
@@ -407,7 +407,7 @@ test("missing clearance and PDF block approval; stale approval exposes no passwo
     })
     .check();
   await page.getByRole("button", { name: "אישור ויצירת חשבון מתנדב" }).click();
-  await page.getByRole("button", { name: "אישור סופי" }).click();
+  await page.getByRole("button", { name: "אישור ויצירת חשבון", exact: true }).click();
   await expect(
     page.getByText(
       "הגרסה או מסמכי הבקשה השתנו. יש לבדוק מחדש את הבקשה לפני החלטה.",

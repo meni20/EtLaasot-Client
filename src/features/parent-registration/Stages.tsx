@@ -410,8 +410,7 @@ export function MedicalStage(props: FieldProps) {
         multiline
       />
       <Typography variant="body2" color="text.secondary">
-        מידע על ניידות ועזרה באכילה נכלל בשדה הפירוט ההתפתחותי בהתאם לחוזה
-        הנוכחי.
+        פרטו כאן גם עזרה בניידות ובאכילה.
       </Typography>
       <Typography variant="h6" component="h3">
         הרופא/ה המטפל/ת
