@@ -13,6 +13,7 @@ export interface IUser {
     formId: string;
     documentId: string;
   } | null;
+  volunteerRegistrationPdf?: IUser["parentRegistrationPdf"];
   nationalIdRevealId?: string | null;
   nationalIdLast4?: string | null;
   nationalIdMasked?: string | null;
