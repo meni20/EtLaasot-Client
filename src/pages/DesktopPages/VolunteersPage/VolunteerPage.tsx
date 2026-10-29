@@ -53,11 +53,9 @@ export const VolunteerPage: React.FC = () => {
   const styles = useVolunteerPageStyles();
   const { activeBranch } = useBranch();
   const [open, setOpen] = useState<boolean>(false);
-  const [isDetailsPanelOpen, setIsDetailsPanelOpen] =
-    useState<boolean>(false);
+  const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] =
-    useState<UserListStatus>("active");
+  const [statusFilter, setStatusFilter] = useState<UserListStatus>("active");
   const [selectedVolunteer, setSelectedVolunteer] = useState<IUser | null>(
     null,
   );
@@ -128,7 +126,9 @@ export const VolunteerPage: React.FC = () => {
         volunteer.address,
       ]
         .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(normalizedSearch)),
+        .some((value) =>
+          String(value).toLowerCase().includes(normalizedSearch),
+        ),
     );
   }, [rowsData, searchTerm]);
 
@@ -294,6 +294,7 @@ export const VolunteerPage: React.FC = () => {
             onClose={closeVolunteerDetails}
             volunteerData={selectedVolunteer}
             onUserUpdated={setSelectedVolunteer}
+            allowBranchAdminPromotion
           />
         )}
 
