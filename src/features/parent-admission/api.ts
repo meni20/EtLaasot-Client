@@ -16,6 +16,7 @@ import {
   type RegistrationApi,
 } from "../parent-registration/api";
 import { registrationApiUrl } from "../parent-registration/environment";
+import { normalizeRecoveryCode } from "./recovery-code";
 
 export type ApplicationStatus =
   | "DRAFT"
@@ -163,7 +164,9 @@ export function createApplicantClient<T extends RegistrationType = "TRAINEE">(
       ),
     recover: (code) =>
       receive(
-        call("POST", "/parent-applications/recover", { recoveryCode: code }),
+        call("POST", "/parent-applications/recover", {
+          recoveryCode: normalizeRecoveryCode(code),
+        }),
       ),
     me: () => call("GET", "/parent-applications/me"),
     save: (body) => call("PATCH", "/parent-applications/me/draft", body),
@@ -299,12 +302,14 @@ export function applicantFormApi(
 }
 export interface ApplicationDetail<T extends RegistrationType = "TRAINEE"> {
   application: ApplicationSummary<T>;
+  recoveryEligible?: boolean;
   branch?: { id: string; name: string; isActive: boolean } | null;
   history?: {
     id: string;
     action: string;
     versionId: string | null;
     reason: string | null;
+    actorUuid?: string | null;
     createdAt: string;
   }[];
   integration: "UNAVAILABLE" | "READY";
@@ -374,6 +379,13 @@ export function createApplicationAdminApi() {
       ),
     detail: (id: string) =>
       safe(http.get<ApplicationDetail<RegistrationType>>(`/${id}`)),
+    reissueRecoveryCode: (id: string, identityVerified: boolean) =>
+      safe(
+        http.post<{ recoveryCode: string; recoveryExpiresAt: string }>(
+          `/${id}/recovery-code/reissue`,
+          { identityVerified },
+        ),
+      ),
     retryPdf: (id: string) => safe(http.post(`/${id}/pdf/retry`)),
     document: (id: string, documentId: string) =>
       safe(

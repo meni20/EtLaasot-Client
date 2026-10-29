@@ -23,6 +23,7 @@ import CheckCircleOutline from "@mui/icons-material/CheckCircleOutline";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RegistrationMobile } from "../parent-registration/RegistrationMobile";
 import { RegistrationError } from "../parent-registration/api";
+import { isRecoveryCode } from "./recovery-code";
 import {
   admissionUrl,
   applicantFormApi,
@@ -54,7 +55,9 @@ export function ApplicantPage({
   );
   useEffect(() => () => queries.clear(), [queries]);
   if (!client)
-    return <Alert severity="error">הרישום אינו זמין כרגע. נסו שוב מאוחר יותר.</Alert>;
+    return (
+      <Alert severity="error">הרישום אינו זמין כרגע. נסו שוב מאוחר יותר.</Alert>
+    );
   return (
     <QueryClientProvider client={queries}>
       <ApplicantWorkspace client={client} clear={() => queries.clear()} />
@@ -87,7 +90,10 @@ function ApplicantWorkspace({
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [epoch, setEpoch] = useState(0);
-  useReloadGuard(busy || (!!newCode && !ack), "יש להשלים את הפעולה ולשמור את קוד השחזור לפני העדכון.");
+  useReloadGuard(
+    busy || (!!newCode && !ack),
+    "יש להשלים את הפעולה ולשמור את קוד השחזור לפני העדכון.",
+  );
   const api = useMemo(
     () => applicantFormApi(client, snapshot?.application.id),
     [client, snapshot?.application.id],
@@ -135,9 +141,13 @@ function ApplicantWorkspace({
       await work();
     } catch (e) {
       setError(
-        e instanceof RegistrationError && e.status === 409
-          ? "לא ניתן להתחיל בקשה נוספת. יש להיכנס עם סיסמה או להשתמש בקוד השחזור שנשמר."
-          : "הפעולה לא הושלמה. אין לשחזר בקשה באמצעות תעודת זהות בלבד.",
+        e instanceof RegistrationError && e.status === 429
+          ? "בוצעו ניסיונות רבים מדי. יש להמתין ולנסות שוב."
+          : e instanceof RegistrationError && e.status === 401
+            ? "הגישה אינה תקפה או שפג תוקפה. בדקו את קוד השחזור או פנו למנהל הסניף."
+            : e instanceof RegistrationError && e.status === 409
+              ? "לא ניתן להתחיל בקשה נוספת. יש להיכנס עם סיסמה או להשתמש בקוד השחזור שנשמר."
+              : "הפעולה לא הושלמה. אין לשחזר בקשה באמצעות תעודת זהות בלבד.",
       );
     } finally {
       setBusy(false);
@@ -265,6 +275,7 @@ function ApplicantWorkspace({
                 <TextField
                   fullWidth
                   label="קוד שחזור"
+                  helperText="שמרו את הקוד במקום פרטי. הוא נדרש להמשך הרשמה ממכשיר אחר."
                   value={newCode}
                   InputProps={{
                     readOnly: true,
@@ -365,21 +376,6 @@ function ApplicantWorkspace({
                 )}
               </>
             )}
-            <Button
-              disabled={busy}
-              onClick={() =>
-                void run(async () => {
-                  await client.revoke();
-                  clear();
-                  setSnapshot(null);
-                  setNewCode("");
-                  setCopied(false);
-                  setCode("");
-                })
-              }
-            >
-              סיום וביטול הגישה לבקשה במכשיר זה
-            </Button>
           </>
         ) : (
           <>
@@ -452,13 +448,20 @@ function ApplicantWorkspace({
             <Typography variant="h6">המשך בקשה קיימת או תיקונים</Typography>
             <TextField
               label="קוד שחזור פרטי"
+              helperText="קוד חדש: XXXX-XXXX-XXXX-XXXX. גם קוד שחזור ישן שנשמר תקף."
               type="password"
               autoComplete="off"
               value={code}
-              onChange={(e) => setCode(e.target.value.trim())}
+              onChange={(e) => setCode(e.target.value)}
+              inputProps={{
+                dir: "ltr",
+                maxLength: 64,
+                autoCapitalize: "none",
+                spellCheck: false,
+              }}
             />
             <Button
-              disabled={busy || code.length !== 43}
+              disabled={busy || !isRecoveryCode(code)}
               onClick={() =>
                 void run(async () => accept(await client.recover(code)))
               }

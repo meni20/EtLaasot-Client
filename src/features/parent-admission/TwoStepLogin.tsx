@@ -23,9 +23,6 @@ import {
   setPendingApplicantId,
 } from "./api";
 
-// Temporary UI gate. The recovery route and API remain available.
-const SHOW_RECOVERY_ENTRY = false;
-
 export function TwoStepLogin({
   identify,
 }: {
@@ -183,12 +180,11 @@ export function TwoStepLogin({
               {busy ? "ממשיך…" : step === "ID" ? "המשך" : "התחבר"}
             </Button>
           )}
-          {SHOW_RECOVERY_ENTRY &&
-            import.meta.env.VITE_APPLICANT_REGISTRATION_ENABLED === "true" && (
-              <Button type="button" onClick={() => navigate("/apply")}>
-                המשך בקשה עם קוד שחזור
-              </Button>
-            )}
+          {import.meta.env.VITE_APPLICANT_REGISTRATION_ENABLED === "true" && (
+            <Button type="button" onClick={() => navigate("/apply")}>
+              המשך בקשה עם קוד שחזור
+            </Button>
+          )}
           <PwaInstallButton />
         </Stack>
       </Box>

@@ -75,11 +75,25 @@ function ApplicantAdminWorkspace() {
     reason: string;
   } | null>(null);
   const [passwordExpires, setPasswordExpires] = useState("");
+  const [recovery, setRecovery] = useState<{
+    id: string;
+    verified: boolean;
+    code?: string;
+    expiresAt?: string;
+    copied?: boolean;
+    error?: string;
+  } | null>(null);
   const [password, setPassword] = useState(""),
     [showPassword, setShowPassword] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
-  useReloadGuard(busy || !!password || !!confirmation || (!!selected && !!reason));
+  useReloadGuard(
+    busy ||
+      !!password ||
+      !!confirmation ||
+      !!recovery ||
+      (!!selected && !!reason),
+  );
   const cache = useQueryClient();
   const list = useQuery({
     queryKey: [
@@ -129,6 +143,7 @@ function ApplicantAdminWorkspace() {
     }
   };
   const reset = () => {
+    setRecovery(null);
     setSelected("");
     setReason("");
     setVerified(false);
@@ -178,6 +193,7 @@ function ApplicantAdminWorkspace() {
             setPage(1);
             setShowPassword(false);
             setConfirmation(null);
+            setRecovery(null);
           }}
         >
           {branches.map((b) => (
@@ -334,6 +350,17 @@ function ApplicantAdminWorkspace() {
             </Typography>
             {doc.application.feedbackReason && (
               <Alert severity="info">{doc.application.feedbackReason}</Alert>
+            )}
+            {doc.recoveryEligible === true && (
+              <Button
+                variant="outlined"
+                disabled={busy}
+                onClick={() =>
+                  setRecovery({ id: doc.application.id, verified: false })
+                }
+              >
+                הנפקת קוד שחזור חדש
+              </Button>
             )}
             {isVolunteer ? (
               <VolunteerApplicationDetails
@@ -520,6 +547,9 @@ function ApplicantAdminWorkspace() {
                       ? `גרסה ${doc.versions.find((v) => v.id === h.versionId)?.versionNumber ?? ""} · `
                       : ""}
                     {h.reason ?? ""}
+                    {h.actorUuid && h.action === "RECOVERED"
+                      ? ` · מנהל: ${h.actorUuid}`
+                      : ""}
                   </Typography>
                 ))}
               </Stack>
@@ -555,6 +585,141 @@ function ApplicantAdminWorkspace() {
                 ))}
           </>
         )}
+        <Dialog
+          open={!!recovery}
+          onClose={() => {
+            if (!busy) setRecovery(null);
+          }}
+          dir="rtl"
+          fullWidth
+        >
+          <DialogTitle>הנפקת קוד שחזור חדש</DialogTitle>
+          <DialogContent>
+            <Stack gap={2}>
+              <Typography>מספר בקשה: {recovery?.id}</Typography>
+              {recovery?.error && (
+                <Alert severity="error">{recovery.error}</Alert>
+              )}
+              {recovery?.code ? (
+                <>
+                  <Alert severity="warning">
+                    הקוד מוצג פעם אחת. יש למסור אותו רק לפונה שזהותו אומתה, ולא
+                    לשמור אותו בהערות הבקשה. הקוד הקודם והגישה הקודמת אינם
+                    תקפים.
+                  </Alert>
+                  <TextField
+                    label="קוד שחזור למסירה"
+                    value={recovery.code}
+                    slotProps={{
+                      input: { readOnly: true },
+                      htmlInput: { dir: "ltr" },
+                    }}
+                  />
+                  <Typography>
+                    תוקף הקוד:{" "}
+                    {new Date(recovery.expiresAt!).toLocaleString("he-IL")}
+                  </Typography>
+                  <Button
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(recovery.code!);
+                        setRecovery((current) =>
+                          current
+                            ? { ...current, copied: true, error: undefined }
+                            : null,
+                        );
+                      } catch {
+                        setRecovery((current) =>
+                          current
+                            ? {
+                                ...current,
+                                error:
+                                  "לא ניתן להעתיק אוטומטית. יש לסמן את הקוד ולהעתיק ידנית.",
+                              }
+                            : null,
+                        );
+                      }
+                    }}
+                  >
+                    העתקת קוד השחזור
+                  </Button>
+                  {recovery.copied && (
+                    <Alert severity="success" role="status">
+                      קוד השחזור הועתק
+                    </Alert>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Typography>
+                    הפעולה תבטל את הקוד והגישה הקודמים ותאפשר שחזור של אותה
+                    בקשה. המידע, החתימות, המסמכים והיסטוריית ההגשות יישמרו.
+                  </Typography>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={recovery?.verified ?? false}
+                        disabled={busy}
+                        onChange={(_, verified) =>
+                          setRecovery((current) =>
+                            current ? { ...current, verified } : null,
+                          )
+                        }
+                      />
+                    }
+                    label="אימתתי באופן עצמאי את זהות הפונה המבקש לשחזר גישה"
+                  />
+                </>
+              )}
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button disabled={busy} onClick={() => setRecovery(null)}>
+              {recovery?.code ? "סיום והסרת הקוד מהמסך" : "ביטול"}
+            </Button>
+            {!recovery?.code && (
+              <Button
+                disabled={busy || !recovery?.verified}
+                onClick={async () => {
+                  if (busy || !recovery?.verified) return;
+                  const id = recovery.id;
+                  setBusy(true);
+                  try {
+                    const result = await api.reissueRecoveryCode(
+                      id,
+                      recovery.verified,
+                    );
+                    setRecovery({
+                      id,
+                      verified: false,
+                      code: result.recoveryCode,
+                      expiresAt: result.recoveryExpiresAt,
+                    });
+                    void cache
+                      .invalidateQueries({ queryKey: ["applications"] })
+                      .catch(() => {});
+                  } catch (error) {
+                    const message =
+                      error instanceof RegistrationError && error.status === 429
+                        ? "בוצעו ניסיונות רבים מדי. יש להמתין ולנסות שוב."
+                        : error instanceof RegistrationError &&
+                            error.status === 403
+                          ? "אין הרשאה להנפיק קוד לבקשה זו."
+                          : error instanceof RegistrationError &&
+                              error.status === 409
+                            ? "לבקשה כבר נוצר חשבון. יש להשתמש בכניסה עם סיסמה."
+                            : "לא התקבל קוד שחזור. אם ההנפקה נקלטה, הקוד הקודם כבר אינו תקף. יש לאמת זהות ולנסות להנפיק שוב.";
+                    setRecovery({ id, verified: false, error: message });
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                {busy ? "מנפיק קוד…" : "אישור והנפקת קוד"}
+              </Button>
+            )}
+          </DialogActions>
+        </Dialog>
         <Dialog
           open={!!password}
           onClose={() => {
