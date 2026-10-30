@@ -422,7 +422,7 @@ function ApplicantWorkspace({
             >
               {branches.map((b) => (
                 <MenuItem key={b.id} value={b.id}>
-                  {b.name} · {b.city}
+                  {b.name}
                 </MenuItem>
               ))}
             </TextField>
