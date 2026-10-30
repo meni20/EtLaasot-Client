@@ -1,6 +1,7 @@
 const railwayDevApi = "https://etlaasot-server-dev-dev.up.railway.app";
+const railwayProductionApi = "https://etlaasot-server-main-main.up.railway.app";
 
-/** Explicit local/DEV targets only. Never infer a target or use a fallback. */
+/** Explicit environment/origin pairs only. Never infer a target or fall back. */
 export function registrationApiUrl(
   registrationUrl: string | undefined,
   applicationUrl: string | undefined,
@@ -20,9 +21,18 @@ export function registrationApiUrl(
         return null;
     }
     if (requested.origin !== configured.origin) return null;
-    if (requested.protocol === "http:" && requested.hostname === "127.0.0.1")
+    if (
+      [undefined, "local", "dev"].includes(environment) &&
+      requested.protocol === "http:" &&
+      requested.hostname === "127.0.0.1"
+    )
       return requested.origin;
     if (environment === "dev" && requested.origin === railwayDevApi)
+      return requested.origin;
+    if (
+      environment === "production" &&
+      requested.origin === railwayProductionApi
+    )
       return requested.origin;
     return null;
   } catch {
