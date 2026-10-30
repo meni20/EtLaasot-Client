@@ -14,42 +14,42 @@ export const validateFormVolunteer = (form: IUser): ValidationErrors => {
   const newErrors: ValidationErrors = {};
 
   if (!form.name.trim()) {
-    newErrors.name = "Name is required";
+    newErrors.name = "יש להזין שם מלא";
   }
 
   if (!isValidIsraeliId(form.id)) {
-    newErrors.id = "Invalid Israeli ID";
+    newErrors.id = "תעודת הזהות אינה תקינה";
   }
 
   if (!isValidIsraeliPhone(form.phoneNumber)) {
-    newErrors.phoneNumber = "Invalid Israeli phone number";
+    newErrors.phoneNumber = "מספר הטלפון אינו תקין";
   }
 
   if (!form.gender) {
-    newErrors.gender = "Gender is required";
+    newErrors.gender = "יש לבחור מגדר";
   }
 
   if (!form.dateOfBirth || !isValidDateOfBirth(form.dateOfBirth)) {
-    newErrors.dateOfBirth = "Valid date of birth is required";
+    newErrors.dateOfBirth = "יש להזין תאריך לידה תקין";
   }
 
   if (form.customShirtSize && form.customShirtSize.trim().length > 50) {
-    newErrors.customShirtSize = "Custom shirt size is too long";
+    newErrors.customShirtSize = "מידה אחרת יכולה להכיל עד 50 תווים";
   }
 
   if (form.notes && form.notes.trim().length > 2000) {
-    newErrors.notes = "Notes cannot exceed 2000 characters";
+    newErrors.notes = "הערות יכולות להכיל עד 2000 תווים";
   }
 
   if (form.parentName && form.parentName.trim().length > 100) {
-    newErrors.parentName = "Parent name cannot exceed 100 characters";
+    newErrors.parentName = "שם הורה יכול להכיל עד 100 תווים";
   }
 
   if (
     form.email &&
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())
   ) {
-    newErrors.email = "Invalid email address";
+    newErrors.email = "כתובת האימייל אינה תקינה";
   }
 
   return newErrors;
@@ -59,7 +59,7 @@ export const validateFormEvent = (form: IEvent): EventValidationErrors => {
   const newErrors: EventValidationErrors = {};
 
   if (!form.name.trim()) {
-    newErrors.name = "Name is required";
+    newErrors.name = "יש להזין שם מלא";
   }
 
   if (

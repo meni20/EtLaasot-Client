@@ -13,8 +13,16 @@ import {
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { PwaInstallButton } from "../../../components/PwaInstallButton/PwaInstallButton";
+import { TwoStepLogin } from "../../../features/parent-admission/TwoStepLogin";
 
-export const LoginPage: React.FC = () => {
+export const LoginPage: React.FC = () =>
+  import.meta.env.VITE_ID_FIRST_LOGIN_ENABLED === "true" ? (
+    <TwoStepLogin />
+  ) : (
+    <LegacyLoginPage />
+  );
+
+const LegacyLoginPage: React.FC = () => {
   const styles = useStyles();
   const { login } = useAuth();
   const [identifyId, setIdentifyId] = useState<string>("");

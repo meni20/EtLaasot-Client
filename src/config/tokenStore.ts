@@ -3,12 +3,12 @@ const STORAGE_KEY = "access_token";
 let inMemoryToken: string | null = null;
 
 export const getToken = (): string | null => {
-  if (inMemoryToken) return inMemoryToken;
-
   try {
-    inMemoryToken = localStorage.getItem(STORAGE_KEY);
+    // Discard legacy browser-persisted credentials. Reloads use the existing
+    // HttpOnly session cookie; the bearer fallback remains memory-only.
+    localStorage.removeItem(STORAGE_KEY);
   } catch {
-    inMemoryToken = null;
+    // Storage may be disabled. Authentication does not depend on it.
   }
 
   return inMemoryToken;
@@ -18,7 +18,7 @@ export const setToken = (token: string): void => {
   inMemoryToken = token;
 
   try {
-    localStorage.setItem(STORAGE_KEY, token);
+    localStorage.removeItem(STORAGE_KEY);
   } catch {
     // The HttpOnly cookie remains available where persistent storage is blocked.
   }

@@ -3,6 +3,7 @@ import { Box, Stack, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/useAuth";
 import { useMobileEvents } from "../../../hooks/mobile/useMobileEvents";
+import { EventListFeedback } from "../../../components/EventListFeedback";
 import { EventSummaryCard } from "../../../components/mobile/EventSummaryCard";
 import { useStyles } from "./EventMobile.styles";
 import type { AttendanceIntent, IEvent } from "../../../interfaces/event.interface";
@@ -15,7 +16,7 @@ const monthFormatter = new Intl.DateTimeFormat("he-IL", {
 export const EventMobile: React.FC = () => {
   const styles = useStyles();
   const navigate = useNavigate();
-  const { upcomingEvents } = useMobileEvents();
+  const { upcomingEvents, isLoading, error, refetch } = useMobileEvents();
   const { user } = useAuth();
 
   const getAttendanceIntent = (event: IEvent): AttendanceIntent => {
@@ -45,7 +46,8 @@ export const EventMobile: React.FC = () => {
     <Box className={styles.root}>
       <Typography className={styles.header}>אירועים</Typography>
 
-      {!hasVisibleEvents && (
+      <EventListFeedback loading={isLoading} error={error} retry={refetch} />
+      {!isLoading && !error && !hasVisibleEvents && (
         <Typography className={styles.empty}>אין אירועים להצגה</Typography>
       )}
 

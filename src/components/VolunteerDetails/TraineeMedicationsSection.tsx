@@ -1,3 +1,4 @@
+import { useReloadGuard } from "../../hooks/useReloadGuard";
 import * as React from "react";
 import {
   Alert,
@@ -149,6 +150,7 @@ export const TraineeMedicationsSection: React.FC<
   const [form, setForm] = React.useState<MedicationFormState>(EMPTY_FORM);
   const [formError, setFormError] = React.useState("");
   const [deleteError, setDeleteError] = React.useState("");
+  useReloadGuard(isFormOpen || !!pendingDelete);
 
   const {
     data: medications = [],

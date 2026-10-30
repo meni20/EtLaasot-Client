@@ -1,3 +1,4 @@
+import { useReloadGuard } from "../../hooks/useReloadGuard";
 import { useState } from "react";
 import {
   Alert,
@@ -53,6 +54,7 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
   const [isSavingPassword, setIsSavingPassword] = useState(false);
   const [showPasswords, setShowPasswords] = useState(false);
 
+  useReloadGuard(open || isSavingPassword);
   const closeDialog = () => {
     if (isSavingPassword) return;
     setPasswordForm(INITIAL_PASSWORD_FORM);

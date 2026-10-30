@@ -26,3 +26,9 @@ dist-ssr
 .env
 .env.example
 
+
+# Local registration QA artifacts; may contain form data in real testing
+/test-results/
+/playwright-report/
+/.registration-qa/
+.env.*

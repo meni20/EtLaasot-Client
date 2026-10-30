@@ -8,7 +8,16 @@
     "build": "tsc -b && vite build",
     "generate:pwa-assets": "pwa-assets-generator --config pwa-assets.config.ts",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:registration": "vite --config vite.registration.config.ts",
+    "test:registration": "node --experimental-strip-types --test tests/registration.model.test.ts",
+    "test:registration:ui": "playwright test --config playwright.registration.config.ts",
+    "typecheck": "tsc -b",
+    "typecheck:registration": "tsc -p tsconfig.registration.json",
+    "test:registration:build": "node scripts/check-registration-build.mjs",
+    "dev:phase4": "vite --config vite.phase4.config.ts",
+    "test:phase4": "node --experimental-strip-types --test tests/phase4.model.test.ts",
+    "test:phase4:ui": "playwright test --config playwright.phase4.config.ts"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
@@ -36,6 +45,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@playwright/test": "1.58.2",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",

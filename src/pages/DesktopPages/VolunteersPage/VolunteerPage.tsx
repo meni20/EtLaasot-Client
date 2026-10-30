@@ -31,6 +31,7 @@ import {
   formatMaskedNationalId,
 } from "../../../utils/data.utillity";
 import { formatShirtSize } from "../../../constants/user.constants";
+import { ApprovedRegistrationPdfButton } from "../../../components/ApprovedRegistrationPdfButton/ApprovedRegistrationPdfButton";
 
 const avatarLetter = (name?: string) => name?.trim()?.[0]?.toUpperCase() || "?";
 const DEFAULT_PEOPLE_PAGE_SIZE = 100;
@@ -42,6 +43,7 @@ type VolunteerTableRow = Pick<
   nationalIdMasked: string;
   shirtSizeDisplay: string;
   originalVolunteer: IUser;
+  volunteerRegistrationPdf: IUser["volunteerRegistrationPdf"];
 };
 
 const getOriginalVolunteer = (row: VolunteerTableRow | IUser) =>
@@ -51,11 +53,9 @@ export const VolunteerPage: React.FC = () => {
   const styles = useVolunteerPageStyles();
   const { activeBranch } = useBranch();
   const [open, setOpen] = useState<boolean>(false);
-  const [isDetailsPanelOpen, setIsDetailsPanelOpen] =
-    useState<boolean>(false);
+  const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] =
-    useState<UserListStatus>("active");
+  const [statusFilter, setStatusFilter] = useState<UserListStatus>("active");
   const [selectedVolunteer, setSelectedVolunteer] = useState<IUser | null>(
     null,
   );
@@ -92,6 +92,7 @@ export const VolunteerPage: React.FC = () => {
     return (
       allVolunteers?.map((volunteer: IUser) => ({
         id: volunteer.id,
+        volunteerRegistrationPdf: volunteer.volunteerRegistrationPdf,
         nationalIdMasked: formatMaskedNationalId(
           volunteer.nationalIdMasked,
           volunteer.nationalIdLast4,
@@ -125,7 +126,9 @@ export const VolunteerPage: React.FC = () => {
         volunteer.address,
       ]
         .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(normalizedSearch)),
+        .some((value) =>
+          String(value).toLowerCase().includes(normalizedSearch),
+        ),
     );
   }, [rowsData, searchTerm]);
 
@@ -197,6 +200,24 @@ export const VolunteerPage: React.FC = () => {
           </Tooltip>
         ),
       },
+      // The final column is the physical leftmost column in this RTL grid.
+      {
+        field: "registrationPdf",
+        headerName: "PDF",
+        width: 76,
+        align: "center",
+        headerAlign: "center",
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        renderCell: (params) => (
+          <ApprovedRegistrationPdfButton
+            reference={params.row.volunteerRegistrationPdf}
+            name={params.row.name}
+            tabIndex={params.hasFocus ? 0 : -1}
+          />
+        ),
+      },
     ],
     [],
   );
@@ -212,9 +233,6 @@ export const VolunteerPage: React.FC = () => {
       <Box className={styles.header}>
         <Box>
           <Typography className={styles.pageTitle}>מתנדבים</Typography>
-          <Typography className={styles.pageSubtitle}>
-            ניהול וצפייה בפרטי המתנדבים בסניף הנוכחי
-          </Typography>
         </Box>
         <Button
           className={styles.createButton}
@@ -231,7 +249,7 @@ export const VolunteerPage: React.FC = () => {
           className={styles.searchField}
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="חיפוש לפי שם, 4 ספרות ת.ז, טלפון, אימייל או כתובת"
+          placeholder="חיפוש מתנדבים"
           aria-label="חיפוש מתנדבים"
           size="small"
           type="search"
@@ -276,6 +294,7 @@ export const VolunteerPage: React.FC = () => {
             onClose={closeVolunteerDetails}
             volunteerData={selectedVolunteer}
             onUserUpdated={setSelectedVolunteer}
+            allowBranchAdminPromotion
           />
         )}
 

@@ -13,7 +13,7 @@ export const useMobileEvents = () => {
 
   const {
     data: fetchedEvents = EMPTY_EVENTS,
-    isLoading,
+    isPending: isLoading,
     error,
     refetch,
   } = useQuery<IEvent[]>({

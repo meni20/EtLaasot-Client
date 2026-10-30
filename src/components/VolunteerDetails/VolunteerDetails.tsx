@@ -1,3 +1,4 @@
+import { useReloadGuard } from "../../hooks/useReloadGuard";
 import {
   Box,
   Stack,
@@ -18,6 +19,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import React from "react";
+import { isAxiosError } from "axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Row } from "./Row/RowDetails";
 import { copy, initials } from "./utilities/data.util";
@@ -187,6 +189,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
   entityLabel = "מתנדב",
   onUserUpdated,
   showParentName = false,
+  allowBranchAdminPromotion = false,
 }) => {
   const classes = useVolunteerDetailsStyles();
   const queryClient = useQueryClient();
@@ -207,6 +210,9 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
     address: "",
   });
   const [formError, setFormError] = React.useState("");
+  const [isPromotionOpen, setIsPromotionOpen] = React.useState(false);
+  const [promotionError, setPromotionError] = React.useState("");
+  const [promotionSuccess, setPromotionSuccess] = React.useState("");
   const [revealedNationalId, setRevealedNationalId] = React.useState<
     string | null
   >(null);
@@ -216,6 +222,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
     temporaryPassword: string;
     temporaryPasswordExpiresAt: string;
   } | null>(null);
+  useReloadGuard(open && (isEditOpen || !!passwordResetInfo));
   const [passwordResetError, setPasswordResetError] = React.useState("");
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = React.useState(false);
   const [archiveError, setArchiveError] = React.useState("");
@@ -252,6 +259,8 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
 
   React.useEffect(() => {
     setSelectedUser(volunteerData);
+    setIsPromotionOpen(false);
+    setPromotionError("");
     clearRevealedNationalId();
     setPasswordResetInfo(null);
     setPasswordResetError("");
@@ -266,6 +275,9 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
 
   React.useEffect(() => {
     if (!open) {
+      setIsPromotionOpen(false);
+      setPromotionError("");
+      setPromotionSuccess("");
       clearRevealedNationalId();
       setPasswordResetInfo(null);
       setPasswordResetError("");
@@ -333,15 +345,27 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
     selectedUser.userRoles?.some(
       (role) => role.roleId === AUTH_ROLES.TRAINEE.id,
     );
+  const canPromote =
+    allowBranchAdminPromotion &&
+    !isSelectedUserTrainee &&
+    authUser?.roles.some((role) => role.roleId === AUTH_ROLES.SUPER_ADMIN.id) &&
+    selectedUser.isActive !== false &&
+    !!selectedUser.branchId &&
+    selectedUser.userRoles?.length === 1 &&
+    selectedUser.userRoles[0].roleId === AUTH_ROLES.VOLUNTEER.id;
   const canManageTraineeMedications =
     Boolean(isSelectedUserTrainee) && canResetPassword;
   const targetBranches = [
     volunteerData.branchId,
-    ...(volunteerData.userRoles?.map((role) => role.resourceId ?? role.branchId) ?? []),
+    ...(volunteerData.userRoles?.map(
+      (role) => role.resourceId ?? role.branchId,
+    ) ?? []),
   ];
   const canManageTraineeDocuments =
     (showParentName ||
-      volunteerData.userRoles?.some((role) => role.roleId === AUTH_ROLES.TRAINEE.id)) &&
+      volunteerData.userRoles?.some(
+        (role) => role.roleId === AUTH_ROLES.TRAINEE.id,
+      )) &&
     authUser?.roles.some(
       (role) =>
         role.roleId === AUTH_ROLES.SUPER_ADMIN.id ||
@@ -515,6 +539,36 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
     await copy(passwordResetInfo.temporaryPassword);
   };
 
+  const promoteMutation = useMutation({
+    mutationFn: () =>
+      userService.promoteToBranchAdmin(selectedUser.id, selectedUser.branchId!),
+    onSuccess: (updatedUser) => {
+      const nextUser = { ...selectedUser, ...updatedUser };
+      setSelectedUser(nextUser);
+      onUserUpdated?.(nextUser);
+      setIsPromotionOpen(false);
+      setPromotionError("");
+      setPromotionSuccess("המשתמש קודם למנהל סניף בהצלחה");
+      queryClient.setQueriesData<IUser[]>({ queryKey: ["volunteers"] }, (users) =>
+        users?.filter((user) => user.id !== updatedUser.id),
+      );
+      // Keep unsaved profile fields in the edit dialog; this action changes roles only.
+      for (const key of ["volunteers", "trainees", "users", "dashboard"]) {
+        void queryClient.invalidateQueries({ queryKey: [key] }).catch(() => {});
+      }
+    },
+    onError: (error) => {
+      const status = isAxiosError(error) ? error.response?.status : undefined;
+      setPromotionError(
+        status === 403
+          ? "רק מנהל מערכת רשאי להפוך מתנדב למנהל סניף."
+          : status === 409
+            ? "התפקיד, הסניף או מצב המשתמש אינם מאפשרים קידום. יש לרענן את הפרטים ולבדוק שוב."
+            : "לא התקבל אישור לשינוי התפקיד. יש לרענן את הרשימה לפני ניסיון נוסף.",
+      );
+    },
+  });
+
   const updateUserMutation = useMutation({
     mutationFn: (payload: IUpdateUserPayload) =>
       userService.updateUser(selectedUser.id, payload),
@@ -551,7 +605,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
       setSelectedUser(nextUser);
       onUserUpdated?.(nextUser);
       setArchiveError("");
-      setArchiveSuccess("המשתמש הוסר מהמערכת");
+      setArchiveSuccess("המשתמש הועבר לארכיון");
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["volunteers"] }),
         queryClient.invalidateQueries({ queryKey: ["trainees"] }),
@@ -566,11 +620,11 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
         ?.status;
 
       if (status === 403) {
-        setArchiveError("אין לך הרשאה להסיר משתמש זה");
+        setArchiveError("אין לך הרשאה להעביר משתמש זה לארכיון");
       } else if (status === 409) {
-        setArchiveError("המשתמש כבר הוסר מהמערכת");
+        setArchiveError("המשתמש כבר בארכיון");
       } else {
-        setArchiveError("לא הצלחנו להסיר את המשתמש");
+        setArchiveError("לא הצלחנו להעביר את המשתמש לארכיון");
       }
     },
   });
@@ -668,6 +722,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
   };
 
   const openEditDialog = () => {
+    setPromotionSuccess("");
     setForm({
       name: selectedUser.name ?? "",
       dateOfBirth: selectedUser.dateOfBirth ?? "",
@@ -686,7 +741,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
   };
 
   const closeEditDialog = () => {
-    if (updateUserMutation.isPending) return;
+    if (updateUserMutation.isPending || promoteMutation.isPending) return;
     setIsEditOpen(false);
     setFormError("");
   };
@@ -748,10 +803,18 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
   };
 
   const handleCloseDetails = () => {
+    if (promoteMutation.isPending) return;
     clearRevealedNationalId();
     onClose();
   };
 
+  useReloadGuard(
+    resetPasswordMutation.isPending ||
+      updateUserMutation.isPending ||
+      archiveUserMutation.isPending ||
+      restoreUserMutation.isPending ||
+      promoteMutation.isPending,
+  );
   if (!open) return null;
 
   return (
@@ -811,7 +874,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
                   </Stack>
                 )}
                 <Chip
-                  label={selectedUser.isActive === false ? "הוסר" : "פעיל"}
+                  label={selectedUser.isActive === false ? "בארכיון" : "פעיל"}
                   size="small"
                   className={`${classes.statusChip} ${
                     selectedUser.isActive === false
@@ -941,7 +1004,10 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
           )}
 
           {open && canManageTraineeDocuments && (
-            <TraineeDocumentsSection mode="admin" traineeUuid={volunteerData.id} />
+            <TraineeDocumentsSection
+              mode="admin"
+              traineeUuid={volunteerData.id}
+            />
           )}
 
           <Box className={classes.section}>
@@ -1121,10 +1187,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
         PaperProps={{ sx: detailsDialogPaperSx }}
         aria-labelledby="registered-events-title"
       >
-        <DialogTitle
-          id="registered-events-title"
-          sx={detailsDialogTitleSx}
-        >
+        <DialogTitle id="registered-events-title" sx={detailsDialogTitleSx}>
           אירועים שנרשם אליהם
         </DialogTitle>
         <DialogContent>
@@ -1160,7 +1223,10 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
                 const isUpcoming = !Number.isNaN(startDate.getTime())
                   ? startDate.getTime() >= Date.now()
                   : false;
-                const timeRange = [formatEventTime(event.startDate), formatEventTime(event.endDate)]
+                const timeRange = [
+                  formatEventTime(event.startDate),
+                  formatEventTime(event.endDate),
+                ]
                   .filter(Boolean)
                   .join(" - ");
                 const locationText =
@@ -1271,7 +1337,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
         aria-labelledby="archive-user-title"
       >
         <DialogTitle id="archive-user-title" sx={detailsDialogTitleSx}>
-          הסרת משתמש מהמערכת
+          העברת משתמש לארכיון
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
@@ -1280,8 +1346,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
             ) : (
               <Typography sx={{ fontFamily: "inherit" }}>
                 המשתמש לא יוכל להתחבר או להשתמש במערכת. הרשומות ההיסטוריות שלו
-                באירועים, שיוכים ודוחות יישמרו. האם אתה בטוח שברצונך להסיר את
-                המשתמש מהמערכת?
+                באירועים, שיוכים ודוחות יישמרו. האם להעביר את המשתמש לארכיון?
               </Typography>
             )}
             {archiveError && (
@@ -1310,10 +1375,10 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               {archiveUserMutation.isPending ? (
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <CircularProgress size={18} color="inherit" />
-                  <span>מסיר...</span>
+                  <span>מעביר לארכיון...</span>
                 </Stack>
               ) : (
-                "הסר משתמש"
+                "העברה לארכיון"
               )}
             </Button>
           )}
@@ -1375,6 +1440,51 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
       </Dialog>
 
       <Dialog
+        open={isPromotionOpen}
+        onClose={() => {
+          if (!promoteMutation.isPending) setIsPromotionOpen(false);
+        }}
+        PaperProps={{ sx: { ...detailsDialogPaperSx, maxWidth: 460 } }}
+        aria-labelledby="promote-volunteer-title"
+      >
+        <DialogTitle id="promote-volunteer-title" sx={detailsDialogTitleSx}>
+          הפיכת מתנדב למנהל סניף
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            האם להפוך את {selectedUser.name} למנהל הסניף המשויך אליו? תפקיד
+            המתנדב יוחלף בתפקיד מנהל סניף. הפעולה אינה שומרת שינויים שטרם נשמרו
+            בפרטים האישיים.
+          </Typography>
+          {promotionError && (
+            <Alert severity="error" role="alert" sx={{ mt: 2 }}>
+              {promotionError}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions sx={detailsDialogActionsSx}>
+          <Button
+            disabled={promoteMutation.isPending}
+            onClick={() => setIsPromotionOpen(false)}
+          >
+            ביטול
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!canPromote || promoteMutation.isPending}
+            onClick={() => {
+              if (canPromote && !promoteMutation.isPending)
+                promoteMutation.mutate();
+            }}
+          >
+            {promoteMutation.isPending
+              ? "משנה תפקיד…"
+              : "אישור והפיכה למנהל סניף"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
         open={isEditOpen}
         onClose={closeEditDialog}
         PaperProps={{ sx: { ...detailsDialogPaperSx, maxWidth: 640 } }}
@@ -1385,6 +1495,11 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={editFormSx}>
+            {promotionSuccess && (
+              <Alert severity="success" role="status">
+                {promotionSuccess}
+              </Alert>
+            )}
             {formError && (
               <Alert severity="error" sx={{ borderRadius: 3 }}>
                 {formError}
@@ -1511,14 +1626,29 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
         <DialogActions
           sx={{ ...detailsDialogActionsSx, justifyContent: "space-between" }}
         >
-          <Box>
+          <Stack direction="row" spacing={1}>
+            {canPromote && (
+              <Button
+                disabled={
+                  updateUserMutation.isPending || promoteMutation.isPending
+                }
+                onClick={() => {
+                  setPromotionError("");
+                  setIsPromotionOpen(true);
+                }}
+              >
+                הפוך למנהל סניף
+              </Button>
+            )}
             {canArchiveUser && (
-              <Tooltip title="הסרת משתמש">
+              <Tooltip title="העברה לארכיון">
                 <span>
                   <IconButton
-                    aria-label="הסרת משתמש"
+                    aria-label="העברה לארכיון"
                     onClick={openArchiveDialogFromEdit}
-                    disabled={updateUserMutation.isPending}
+                    disabled={
+                      updateUserMutation.isPending || promoteMutation.isPending
+                    }
                     className={classes.deleteIconButton}
                   >
                     <DeleteOutlineOutlinedIcon />
@@ -1526,11 +1656,13 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
                 </span>
               </Tooltip>
             )}
-          </Box>
+          </Stack>
           <Stack direction="row" spacing={1}>
             <Button
               onClick={closeEditDialog}
-              disabled={updateUserMutation.isPending}
+              disabled={
+                updateUserMutation.isPending || promoteMutation.isPending
+              }
               sx={{ minHeight: 44, borderRadius: 3 }}
             >
               ביטול
@@ -1538,7 +1670,9 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
             <Button
               variant="contained"
               onClick={handleSave}
-              disabled={updateUserMutation.isPending}
+              disabled={
+                updateUserMutation.isPending || promoteMutation.isPending
+              }
               className={classes.buttonContained}
             >
               {updateUserMutation.isPending ? (

@@ -58,9 +58,6 @@ export const SettingsPage: React.FC = () => {
           <Typography component="h1" className={classes.title}>
             הגדרות
           </Typography>
-          <Typography className={classes.subtitle}>
-            ניהול החשבון והעדפות המערכת
-          </Typography>
         </Box>
 
         <Box className={classes.sections}>
@@ -68,13 +65,11 @@ export const SettingsPage: React.FC = () => {
             <SettingsRow
               icon={<PersonOutlineRoundedIcon />}
               title="פרטים אישיים"
-              description="צפייה בפרטי החשבון והקשר שלך"
               onClick={() => setIsProfileOpen(true)}
             />
             <SettingsRow
               icon={<LockResetRoundedIcon />}
               title="שינוי סיסמה"
-              description="עדכון מאובטח של סיסמת הכניסה"
               onClick={() => setIsPasswordOpen(true)}
             />
           </SettingsSection>
@@ -84,7 +79,6 @@ export const SettingsPage: React.FC = () => {
               <SettingsRow
                 icon={<BusinessOutlinedIcon />}
                 title="מעבר בין סניפים"
-                description="בחירת הסניף הפעיל במערכת"
                 trailing={<BranchSelector variant="dialog" />}
               />
             </SettingsSection>
@@ -103,8 +97,8 @@ export const SettingsPage: React.FC = () => {
           <SettingsSection id="help" title="עזרה ומשוב" classes={classes}>
             <SettingsRow
               icon={<TipsAndUpdatesOutlinedIcon />}
-              title="בקשה לפיצ'ר"
-              description="בקשה לפיצ'ר / דיווח על בעיה / הצעה לשיפור עיצוב, או כל דבר אחר"
+              title="עזרה ומשוב"
+              description="דיווח על בעיה או הצעה לשיפור"
               onClick={() => setIsFeatureRequestOpen(true)}
             />
           </SettingsSection>
@@ -113,7 +107,6 @@ export const SettingsPage: React.FC = () => {
             <SettingsRow
               icon={<InfoOutlinedIcon />}
               title="אודות המערכת"
-              description="מידע על עת לעשות"
               onClick={() => setIsAboutOpen(true)}
             />
           </SettingsSection>
@@ -123,7 +116,6 @@ export const SettingsPage: React.FC = () => {
               <SettingsRow
                 icon={<LogoutRoundedIcon />}
                 title="התנתקות"
-                description="יציאה מאובטחת מהחשבון"
                 onClick={handleLogout}
                 destructive
               />
@@ -181,7 +173,7 @@ export const SettingsPage: React.FC = () => {
           variant="filled"
           onClose={() => setShowFeedbackSuccess(false)}
         >
-          הבקשה נשלחה בהצלחה, תודה על המשוב!
+          המשוב נשלח. תודה!
         </Alert>
       </Snackbar>
     </Box>

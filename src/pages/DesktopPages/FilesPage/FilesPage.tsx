@@ -253,9 +253,6 @@ export const FilesPage: React.FC = () => {
               <Typography component="h1" className={classes.pageTitle}>
                 קבצים
               </Typography>
-              <Typography className={classes.subtitle}>
-                צפייה מרוכזת במסמכי החניכים לפי סוג מסמך
-              </Typography>
             </Box>
           </Box>
         </Box>
@@ -343,7 +340,7 @@ export const FilesPage: React.FC = () => {
               לא הצלחנו לטעון את הקבצים
             </Typography>
             <Typography className={classes.stateText}>
-              ניתן לנסות שוב. אם הבעיה נמשכת, יש לבדוק את החיבור לשרת.
+              נסו שוב. אם הבעיה נמשכת, פנו למנהל הסניף.
             </Typography>
             <Button variant="outlined" onClick={() => void documents.refetch()}>
               ניסיון נוסף

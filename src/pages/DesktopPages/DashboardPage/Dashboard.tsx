@@ -142,9 +142,6 @@ export const DashboardPage: React.FC = () => {
         <Typography component="h1" variant="h4" className={classes.title}>
           {branchName} - בית
         </Typography>
-        <Typography className={classes.subtitle}>
-          מבט מהיר על מתנדבים, חניכים ואירועים קרובים
-        </Typography>
       </Box>
 
       <Box className={classes.summaryGrid}>

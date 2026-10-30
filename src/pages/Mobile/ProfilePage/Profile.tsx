@@ -1,3 +1,5 @@
+import { useReloadGuard } from "../../../hooks/useReloadGuard";
+import { apiErrorMessage } from "../../../utils/api-error";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -138,6 +140,7 @@ export const ProfilePage: React.FC = () => {
   } = useCurrentUserProfile();
 
   const updateProfileMutation = useUpdateCurrentUserProfile();
+  useReloadGuard(isEditDialogOpen || isPasswordDialogOpen || updateProfileMutation.isPending || isPasswordSaving);
 
   const { data: myTrainees = [] } = useQuery<IMentorAssignment[]>({
     queryKey: ["myTrainees"],
@@ -261,8 +264,8 @@ export const ProfilePage: React.FC = () => {
         onSuccess: () => {
           setIsEditDialogOpen(false);
         },
-        onError: () => {
-          setFormError("לא הצלחנו לעדכן את הפרטים");
+        onError: (error) => {
+          setFormError(apiErrorMessage(error, "לא הצלחנו לעדכן את הפרטים"));
         },
       },
     );
@@ -436,6 +439,16 @@ export const ProfilePage: React.FC = () => {
         </Box>
       )}
 
+      {isTrainee && import.meta.env.VITE_PARENT_REGISTRATION_ENABLED === "true" && (
+        <Button
+          fullWidth
+          variant="outlined"
+          sx={{ my: 3 }}
+          onClick={() => navigate("/parent-registration")}
+        >
+          רישום חניכים לפעילויות
+        </Button>
+      )}
       {isTrainee && <TraineeMedicationsSection mode="self" />}
       {isTrainee && <TraineeDocumentsSection mode="self" />}
 

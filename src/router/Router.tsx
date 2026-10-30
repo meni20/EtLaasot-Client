@@ -1,6 +1,6 @@
-import { Suspense, useMemo } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import { Box, CircularProgress } from "@mui/material";
-import { Route, Routes, Navigate } from "react-router-dom";
+import { Route, Routes, Navigate, useLocation } from "react-router-dom";
 import {
   DESKTOP_ROUTES,
   MOBILE_ROUTES,
@@ -12,9 +12,22 @@ import { PasswordChangePage } from "../pages/Mobile/PasswordChangePage/PasswordC
 import { AppShell } from "../components/Shell/AppShell";
 import { BottomNav } from "../components/BottomNav/BottomNav";
 import { PwaUpdatePrompt } from "../components/PwaUpdatePrompt/PwaUpdatePrompt";
+import { RegistrationBoundary } from "../features/parent-admission/RegistrationBoundary";
+const ApplicantPage = lazy(() =>
+  import("../features/parent-admission/ApplicantPage").then((module) => ({
+    default: module.ApplicantPage,
+  })),
+);
+const ApprovedRegistrationPdfPage = lazy(
+  () =>
+    import(
+      "../features/parent-registration/ApprovedRegistrationPdfPage"
+    ),
+);
 
 const AppRouter: React.FC = () => {
   const { isAuthenticated, loading, user, mustChangePassword } = useAuth();
+  const location = useLocation();
 
   // Determine if user is a desktop role (admin) based on their highest-privilege role
   const isDesktopUser = useMemo(() => {
@@ -66,6 +79,16 @@ const AppRouter: React.FC = () => {
       <>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          {import.meta.env.VITE_APPLICANT_REGISTRATION_ENABLED === "true" && (
+            <Route
+              path="/apply"
+              element={
+                <Suspense fallback={<RouteLoading />}>
+                  <ApplicantPage />
+                </Suspense>
+              }
+            />
+          )}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
         <PwaUpdatePrompt />
@@ -79,7 +102,10 @@ const AppRouter: React.FC = () => {
       <>
         <Routes>
           <Route path="/change-password" element={<PasswordChangePage />} />
-          <Route path="*" element={<Navigate to="/change-password" replace />} />
+          <Route
+            path="*"
+            element={<Navigate to="/change-password" replace />}
+          />
         </Routes>
         <PwaUpdatePrompt />
       </>
@@ -87,6 +113,12 @@ const AppRouter: React.FC = () => {
   }
 
   if (isDesktopUser) {
+    if (location.pathname === "/registration-pdf")
+      return (
+        <Suspense fallback={<RouteLoading />}>
+          <ApprovedRegistrationPdfPage />
+        </Suspense>
+      );
     return (
       <>
         <AppShell>
@@ -106,30 +138,37 @@ const AppRouter: React.FC = () => {
 
   // Volunteer / Trainee → always mobile layout
   return (
-    <Box
-      dir="rtl"
-      sx={{
-        minHeight: "100dvh",
-        backgroundColor: "var(--color-canvas)",
-        paddingBottom: "var(--shell-bottom-inset)",
-      }}
-    >
-      <Suspense fallback={<RouteLoading />}>
-        <Routes>
-          {filteredMobileRoutes.map(({ path, element }) => (
-            <Route key={path} path={path} element={element} />
-          ))}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
-      <BottomNav />
-      <PwaUpdatePrompt hasBottomNavigation />
-    </Box>
+    <RegistrationBoundary>
+      <Box
+        dir="rtl"
+        sx={{
+          minHeight: "100dvh",
+          backgroundColor: "var(--color-canvas)",
+          paddingBottom: "var(--shell-bottom-inset)",
+        }}
+      >
+        <Suspense fallback={<RouteLoading />}>
+          <Routes>
+            {filteredMobileRoutes.map(({ path, element }) => (
+              <Route key={path} path={path} element={element} />
+            ))}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+        <BottomNav />
+        <PwaUpdatePrompt hasBottomNavigation />
+      </Box>
+    </RegistrationBoundary>
   );
 };
 
 const RouteLoading = () => (
-  <Box display="flex" justifyContent="center" alignItems="center" minHeight="60dvh">
+  <Box
+    display="flex"
+    justifyContent="center"
+    alignItems="center"
+    minHeight="60dvh"
+  >
     <CircularProgress color="primary" />
   </Box>
 );

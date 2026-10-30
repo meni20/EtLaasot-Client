@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Box, Button, Tooltip, Typography } from "@mui/material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import { useNavigate } from "react-router-dom";
+import { EventListFeedback } from "../../../components/EventListFeedback";
 import { BasicCard } from "../../../components/Card/Card";
 import { CreateEvent } from "../../../components/CreateEvent/CreateEvent";
 import { useAdminRouteAction } from "../../../components/AdminActionSearch/useAdminRouteAction";
@@ -14,7 +15,7 @@ export const EventPage: React.FC = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState<boolean>(false);
   const [selectedEvent, setSelectedEvent] = useState<IEvent | null>(null);
-  const { events } = useDataContext();
+  const { events, isLoading, isError, error, refetch } = useDataContext();
   const allEvents = useMemo(() => events ?? [], [events]);
 
   useAdminRouteAction("create-event", () => {
@@ -93,28 +94,36 @@ export const EventPage: React.FC = () => {
         </Box>
       </Box>
 
-      <Box className={styles.section}>
-        <Typography className={styles.sectionTitle}>אירועים קרובים</Typography>
-        {upcomingEvents.length > 0 ? (
-          renderEventCards(upcomingEvents)
-        ) : (
-          <Typography className={styles.emptyState}>
-            אין כרגע אירועים קרובים.
-          </Typography>
-        )}
-      </Box>
+      <EventListFeedback loading={isLoading} error={error || isError} retry={refetch} />
+      {!isLoading && !isError && (
+        <>
+          <Box className={styles.section}>
+            <Typography className={styles.sectionTitle}>
+              אירועים קרובים
+            </Typography>
+            {upcomingEvents.length > 0 ? (
+              renderEventCards(upcomingEvents)
+            ) : (
+              <Typography className={styles.emptyState}>
+                אין כרגע אירועים קרובים.
+              </Typography>
+            )}
+          </Box>
 
-      <Box className={styles.section}>
-        <Typography className={styles.sectionTitle}>אירועים שהיו</Typography>
-        {pastEvents.length > 0 ? (
-          renderEventCards(pastEvents)
-        ) : (
-          <Typography className={styles.emptyState}>
-            אין אירועים קודמים להצגה.
-          </Typography>
-        )}
-      </Box>
-
+          <Box className={styles.section}>
+            <Typography className={styles.sectionTitle}>
+              אירועים שהיו
+            </Typography>
+            {pastEvents.length > 0 ? (
+              renderEventCards(pastEvents)
+            ) : (
+              <Typography className={styles.emptyState}>
+                אין אירועים קודמים להצגה.
+              </Typography>
+            )}
+          </Box>
+        </>
+      )}
       {open && (
         <CreateEvent
           open={open}

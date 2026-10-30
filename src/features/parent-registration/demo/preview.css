@@ -1,0 +1,21 @@
+/* Outside Stylis: the shared CssBaseline direction declarations are mirrored by
+   its RTL plugin. Match the document's explicit direction without mirroring it. */
+html[dir="rtl"],
+html[dir="rtl"] body {
+  direction: rtl;
+}
+html,
+body {
+  min-width: 320px;
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}

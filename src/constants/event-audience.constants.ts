@@ -1,3 +1,4 @@
+import { apiErrorMessage } from "../utils/api-error";
 import { isAxiosError } from "axios";
 import type { IUserRole } from "../interfaces/user.interface";
 import { AUTH_ROLES } from "./auth.const";
@@ -28,8 +29,10 @@ export function isEligibleForAudience(
 
 export function eventAccessError(error: unknown, fallback: string) {
   if (!isAxiosError(error)) return fallback;
+  const code = error.response?.data?.code;
+  if (typeof code === "string" && code.startsWith("ACTIVITY_")) return apiErrorMessage(error, fallback);
   if (error.response?.status === 403)
-    return "אין הרשאה לפעולה זו עבור קהל היעד או הסניף של האירוע. יש לרענן ולנסות שוב.";
+    return "אין הרשאה לפעולה זו עבור קהל היעד או הסניף של האירוע. פנו למנהל הסניף.";
   if (error.response?.status === 409) {
     const data = error.response.data;
     if (data?.code === "EVENT_AUDIENCE_CONFLICT") {
@@ -37,5 +40,5 @@ export function eventAccessError(error: unknown, fallback: string) {
     }
     return "הנתונים השתנו או שהפעולה מתנגשת בנתונים קיימים. יש לרענן ולנסות שוב.";
   }
-  return fallback;
+  return apiErrorMessage(error, fallback);
 }

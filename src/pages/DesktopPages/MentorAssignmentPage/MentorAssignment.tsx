@@ -1,3 +1,4 @@
+import { useReloadGuard } from "../../../hooks/useReloadGuard";
 import React, { useState, useMemo } from "react";
 import {
   Avatar,
@@ -35,6 +36,7 @@ export const MentorAssignmentPage: React.FC = () => {
   const { activeBranch } = useBranch();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
+  useReloadGuard(dialogOpen);
   const [selectedMentor, setSelectedMentor] = useState("");
   const [selectedTrainee, setSelectedTrainee] = useState("");
 

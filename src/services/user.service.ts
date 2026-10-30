@@ -79,6 +79,14 @@ export class UserService {
     return res.data;
   }
 
+  async promoteToBranchAdmin(userId: string, branchId: string): Promise<IUser> {
+    const res = await this.api.post<IUser>(
+      `/${userId}/promote-to-branch-admin`,
+      { branchId },
+    );
+    return res.data;
+  }
+
   async archiveUser(userId: string, reason?: string | null) {
     const res = await this.api.patch<IArchiveUserResponse>(
       `/${userId}/archive`,

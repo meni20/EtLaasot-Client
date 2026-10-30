@@ -178,7 +178,7 @@ export const EventAiSummaryDialog: React.FC<EventAiSummaryDialogProps> = ({
             <CircularProgress />
           </Box>
         ) : isError ? (
-          <Alert severity="error">לא ניתן לטעון את נתוני סיכום ה-AI.</Alert>
+          <Alert severity="error">לא ניתן לטעון את הסיכום. נסו שוב.</Alert>
         ) : activeTab === 0 ? (
           <Stack spacing={2}>
             {data?.isAiSummaryOutdated && (
@@ -189,7 +189,7 @@ export const EventAiSummaryDialog: React.FC<EventAiSummaryDialogProps> = ({
 
             {generateMutation.isError && (
               <Alert severity="error">
-                יצירת הסיכום נכשלה. ודא שיש הערות פעילות ושמפתח ה-AI מוגדר בשרת.
+                לא ניתן ליצור סיכום כרגע. ודאו שיש הערות פעילות ונסו שוב.
               </Alert>
             )}
 
@@ -211,7 +211,7 @@ export const EventAiSummaryDialog: React.FC<EventAiSummaryDialogProps> = ({
               </Box>
             ) : (
               <Alert severity="info">
-                עדיין אין סיכום AI. אפשר ליצור אחד מהכפתור למטה.
+                עדיין אין סיכום.
               </Alert>
             )}
 

@@ -31,6 +31,7 @@ import {
   formatMaskedNationalId,
 } from "../../../utils/data.utillity";
 import { formatShirtSize } from "../../../constants/user.constants";
+import { ApprovedRegistrationPdfButton } from "../../../components/ApprovedRegistrationPdfButton/ApprovedRegistrationPdfButton";
 
 const avatarLetter = (name?: string) => name?.trim()?.[0]?.toUpperCase() || "?";
 const DEFAULT_PEOPLE_PAGE_SIZE = 100;
@@ -47,6 +48,8 @@ type TraineeTableRow = Pick<
   | "address"
 > & {
   nationalIdMasked: string;
+  parentRegistrationStatus: IUser["parentRegistrationStatus"];
+  parentRegistrationPdf: IUser["parentRegistrationPdf"];
   shirtSizeDisplay: string;
   originalTrainee: IUser;
 };
@@ -58,11 +61,9 @@ export const TraineePage: React.FC = () => {
   const styles = useTraineePageStyles();
   const { activeBranch } = useBranch();
   const [open, setOpen] = useState<boolean>(false);
-  const [isDetailsPanelOpen, setIsDetailsPanelOpen] =
-    useState<boolean>(false);
+  const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] =
-    useState<UserListStatus>("active");
+  const [statusFilter, setStatusFilter] = useState<UserListStatus>("active");
   const [selectedTrainee, setSelectedTrainee] = useState<IUser | null>(null);
 
   useAdminRouteAction("create-trainee", () => setOpen(true));
@@ -97,6 +98,8 @@ export const TraineePage: React.FC = () => {
     return (
       allTrainees?.map((trainee: IUser) => ({
         id: trainee.id,
+        parentRegistrationStatus: trainee.parentRegistrationStatus,
+        parentRegistrationPdf: trainee.parentRegistrationPdf,
         nationalIdMasked: formatMaskedNationalId(
           trainee.nationalIdMasked,
           trainee.nationalIdLast4,
@@ -132,7 +135,9 @@ export const TraineePage: React.FC = () => {
         trainee.address,
       ]
         .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(normalizedSearch)),
+        .some((value) =>
+          String(value).toLowerCase().includes(normalizedSearch),
+        ),
     );
   }, [rowsData, searchTerm]);
 
@@ -204,6 +209,28 @@ export const TraineePage: React.FC = () => {
           </Tooltip>
         ),
       },
+      // The final column is the physical leftmost column in this RTL grid.
+      {
+        field: "registrationPdf",
+        headerName: "PDF",
+        width: 76,
+        align: "center",
+        headerAlign: "center",
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        renderCell: (params) => (
+          <ApprovedRegistrationPdfButton
+            reference={
+              params.row.parentRegistrationStatus === "APPROVED"
+                ? params.row.parentRegistrationPdf
+                : null
+            }
+            name={params.row.name}
+            tabIndex={params.hasFocus ? 0 : -1}
+          />
+        ),
+      },
     ],
     [],
   );
@@ -219,9 +246,6 @@ export const TraineePage: React.FC = () => {
       <Box className={styles.header}>
         <Box>
           <Typography className={styles.pageTitle}>חניכים</Typography>
-          <Typography className={styles.pageSubtitle}>
-            ניהול וצפייה בפרטי החניכים בסניף הנוכחי
-          </Typography>
         </Box>
         <Button
           className={styles.createButton}
@@ -238,7 +262,7 @@ export const TraineePage: React.FC = () => {
           className={styles.searchField}
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="חיפוש לפי שם, שם הורה, 4 ספרות ת.ז, טלפון, אימייל או כתובת"
+          placeholder="חיפוש חניכים"
           aria-label="חיפוש חניכים"
           size="small"
           type="search"
