@@ -1,7 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Box,
+  Button,
   CircularProgress,
   Dialog,
   DialogContent,
@@ -22,6 +23,7 @@ import {
 } from "../../utils/data.utillity";
 import { decodeUnicodeEscapes } from "../../utils/text.util";
 import { useNavbarStyles } from "../Navbar/Navbar.styles";
+import { AdminProfileEditDialog } from "./AdminProfileEditDialog";
 
 interface PersonalDetailsDialogProps {
   open: boolean;
@@ -41,6 +43,18 @@ export const PersonalDetailsDialog: React.FC<PersonalDetailsDialogProps> = ({
 }) => {
   const classes = useNavbarStyles();
   const { user } = useAuth();
+  const [editing, setEditing] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const canEdit = user?.roles.some(
+    (role) =>
+      role.roleId === AUTH_ROLES.BRANCH_ADMIN.id ||
+      role.roleId === AUTH_ROLES.SUPER_ADMIN.id,
+  );
+  const close = () => {
+    setEditing(false);
+    setSaved(false);
+    onClose();
+  };
   const { activeBranch, availableBranches } = useBranch();
   const {
     data: currentProfile,
@@ -78,7 +92,7 @@ export const PersonalDetailsDialog: React.FC<PersonalDetailsDialogProps> = ({
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={close}
       aria-labelledby="profile-dialog-title"
       fullWidth
       maxWidth="xs"
@@ -88,7 +102,7 @@ export const PersonalDetailsDialog: React.FC<PersonalDetailsDialogProps> = ({
         הפרטים שלי
         <IconButton
           aria-label="סגירת הפרטים שלי"
-          onClick={onClose}
+          onClick={close}
           className={classes.profileClose}
         >
           <CloseIcon fontSize="small" />
@@ -105,9 +119,11 @@ export const PersonalDetailsDialog: React.FC<PersonalDetailsDialogProps> = ({
           </Alert>
         ) : (
           <Stack className={classes.profileBody}>
+            {saved && <Alert severity="success">הפרטים נשמרו בהצלחה</Alert>}
             <Box className={classes.profileHero}>
               <Box className={classes.profileAvatar}>
-                {(currentProfile?.name ?? user?.name)?.[0]?.toUpperCase() ?? "?"}
+                {(currentProfile?.name ?? user?.name)?.[0]?.toUpperCase() ??
+                  "?"}
               </Box>
               <Box>
                 <Typography className={classes.profileName}>
@@ -122,8 +138,16 @@ export const PersonalDetailsDialog: React.FC<PersonalDetailsDialogProps> = ({
             </Box>
 
             <Box className={classes.profileInfoList}>
-              <ProfileInfoRow label="תעודת זהות" value={nationalId} classes={classes} />
-              <ProfileInfoRow label="סניף פעיל" value={branchName || "-"} classes={classes} />
+              <ProfileInfoRow
+                label="תעודת זהות"
+                value={nationalId}
+                classes={classes}
+              />
+              <ProfileInfoRow
+                label="סניף פעיל"
+                value={branchName || "-"}
+                classes={classes}
+              />
               <ProfileInfoRow
                 label="טלפון"
                 value={decodeUnicodeEscapes(currentProfile?.phoneNumber) || "-"}
@@ -139,16 +163,41 @@ export const PersonalDetailsDialog: React.FC<PersonalDetailsDialogProps> = ({
                 value={decodeUnicodeEscapes(currentProfile?.address) || "-"}
                 classes={classes}
               />
-              <ProfileInfoRow label="תאריך לידה" value={dateOfBirth || "-"} classes={classes} />
+              <ProfileInfoRow
+                label="תאריך לידה"
+                value={dateOfBirth || "-"}
+                classes={classes}
+              />
               <ProfileInfoRow
                 label="גיל"
                 value={age === null || age === undefined ? "-" : `${age}`}
                 classes={classes}
               />
             </Box>
+            {canEdit && currentProfile && (
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  setSaved(false);
+                  setEditing(true);
+                }}
+              >
+                עריכת פרטים
+              </Button>
+            )}
           </Stack>
         )}
       </DialogContent>
+      {open && editing && canEdit && currentProfile && (
+        <AdminProfileEditDialog
+          profile={currentProfile}
+          onClose={() => setEditing(false)}
+          onSaved={() => {
+            setEditing(false);
+            setSaved(true);
+          }}
+        />
+      )}
     </Dialog>
   );
 };

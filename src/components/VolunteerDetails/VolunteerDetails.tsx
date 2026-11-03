@@ -348,7 +348,12 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
   const canPromote =
     allowBranchAdminPromotion &&
     !isSelectedUserTrainee &&
-    authUser?.roles.some((role) => role.roleId === AUTH_ROLES.SUPER_ADMIN.id) &&
+    authUser?.roles.some(
+      (role) =>
+        role.roleId === AUTH_ROLES.SUPER_ADMIN.id ||
+        (role.roleId === AUTH_ROLES.BRANCH_ADMIN.id &&
+          role.branchId === selectedUser.branchId),
+    ) &&
     selectedUser.isActive !== false &&
     !!selectedUser.branchId &&
     selectedUser.userRoles?.length === 1 &&
@@ -561,7 +566,7 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
       const status = isAxiosError(error) ? error.response?.status : undefined;
       setPromotionError(
         status === 403
-          ? "רק מנהל מערכת רשאי להפוך מתנדב למנהל סניף."
+          ? "רק מנהל מערכת או מנהל הסניף של המתנדב רשאי לבצע קידום."
           : status === 409
             ? "התפקיד, הסניף או מצב המשתמש אינם מאפשרים קידום. יש לרענן את הפרטים ולבדוק שוב."
             : "לא התקבל אישור לשינוי התפקיד. יש לרענן את הרשימה לפני ניסיון נוסף.",
