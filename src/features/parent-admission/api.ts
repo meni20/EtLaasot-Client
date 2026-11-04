@@ -300,7 +300,15 @@ export function applicantFormApi(
     renew: unsupported,
   };
 }
+export interface WelcomeEmailStatus {
+  status: string;
+  recipient?: string;
+  reason?: string | null;
+  passwordSet?: boolean;
+  retryable?: boolean;
+}
 export interface ApplicationDetail<T extends RegistrationType = "TRAINEE"> {
+  welcomeEmail?: WelcomeEmailStatus;
   application: ApplicationSummary<T>;
   recoveryEligible?: boolean;
   branch?: { id: string; name: string; isActive: boolean } | null;
@@ -387,6 +395,8 @@ export function createApplicationAdminApi() {
         ),
       ),
     retryPdf: (id: string) => safe(http.post(`/${id}/pdf/retry`)),
+    retryWelcomeEmail: (id: string) =>
+      safe(http.post<WelcomeEmailStatus>(`/${id}/welcome-email/retry`)),
     document: (id: string, documentId: string) =>
       safe(
         http.get<Blob>(`/${id}/documents/${documentId}`, {
@@ -399,13 +409,22 @@ export function createApplicationAdminApi() {
       reason: string,
       expectedVersionId: string,
     ) => safe(http.post(`/${id}/${action}`, { reason, expectedVersionId })),
-    approve: (id: string, expectedVersionId: string) =>
+    approve: (
+      id: string,
+      expectedVersionId: string,
+      welcomeEmailConfirmed = false,
+    ) =>
       safe(
         http.post<{
           temporaryPassword?: string;
           temporaryPasswordExpiresAt?: string;
           idempotent?: boolean;
-        }>(`/${id}/approve`, { expectedVersionId, identityVerified: true }),
+          welcomeEmail?: WelcomeEmailStatus;
+        }>(`/${id}/approve`, {
+          expectedVersionId,
+          identityVerified: true,
+          welcomeEmailConfirmed,
+        }),
       ),
   };
 }

@@ -72,6 +72,7 @@ export interface ICurrentUserProfile {
 }
 
 export interface IUpdateCurrentUserProfilePayload {
+  name?: string;
   email?: string | null;
   phoneNumber?: string;
   address?: string | null;

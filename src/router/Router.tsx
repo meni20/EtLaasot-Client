@@ -18,11 +18,11 @@ const ApplicantPage = lazy(() =>
     default: module.ApplicantPage,
   })),
 );
+const PasswordSetupPage = lazy(
+  () => import("../features/parent-admission/PasswordSetupPage"),
+);
 const ApprovedRegistrationPdfPage = lazy(
-  () =>
-    import(
-      "../features/parent-registration/ApprovedRegistrationPdfPage"
-    ),
+  () => import("../features/parent-registration/ApprovedRegistrationPdfPage"),
 );
 
 const AppRouter: React.FC = () => {
@@ -61,6 +61,15 @@ const AppRouter: React.FC = () => {
     [userRoleIds],
   );
 
+  // Onboarding is available even if another account is already signed in.
+  if (location.pathname === "/setup-password") {
+    return (
+      <Suspense fallback={<RouteLoading />}>
+        <PasswordSetupPage />
+        <PwaUpdatePrompt />
+      </Suspense>
+    );
+  }
   if (loading) {
     return (
       <Box

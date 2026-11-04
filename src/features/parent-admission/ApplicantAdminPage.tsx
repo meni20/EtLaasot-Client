@@ -26,7 +26,13 @@ import {
   IdentityStage,
   MedicalStage,
 } from "../parent-registration/Stages";
-import { createApplicationAdminApi, type ApplicationDetail } from "./api";
+import {
+  createApplicationAdminApi,
+  type ApplicationDetail,
+  type WelcomeEmailStatus,
+} from "./api";
+import type { RegistrationData } from "../parent-registration/contracts";
+import type { VolunteerData } from "../volunteer-registration/contracts";
 import { RegistrationError } from "../parent-registration/api";
 import {
   normalizeRegistrationType,
@@ -73,6 +79,11 @@ function ApplicantAdminWorkspace() {
     id: string;
     versionId: string;
     reason: string;
+    welcomeEmailConfirmed?: boolean;
+  } | null>(null);
+  const [welcomeResult, setWelcomeResult] = useState<{
+    id: string;
+    value: WelcomeEmailStatus;
   } | null>(null);
   const [passwordExpires, setPasswordExpires] = useState("");
   const [recovery, setRecovery] = useState<{
@@ -117,6 +128,12 @@ function ApplicantAdminWorkspace() {
     enabled: !!selected,
     retry: false,
     gcTime: 0,
+    refetchInterval: (query) =>
+      ["PENDING", "PROCESSING"].includes(
+        query.state.data?.welcomeEmail?.status ?? "",
+      )
+        ? 3000
+        : false,
   });
   const setVerified = (value: boolean) =>
     setVerifiedVersion(value ? (detail.data?.versions[0]?.id ?? "") : "");
@@ -168,12 +185,42 @@ function ApplicantAdminWorkspace() {
     ? volunteerApprovalBlockers(doc as ApplicationDetail<"VOLUNTEER">)
     : [];
   const canApprove = !!doc && canApproveApplication(doc) && !blockers.length;
+  const recipient = isVolunteer
+    ? (latest?.data as VolunteerData | undefined)?.volunteer?.email
+    : (latest?.data as RegistrationData | undefined)?.trainee?.email;
+  const emailEnabled =
+    !!doc?.welcomeEmail && doc.welcomeEmail.status !== "DISABLED";
+  const welcome =
+    doc?.application.status === "APPROVED"
+      ? doc.welcomeEmail
+      : welcomeResult?.id === selected
+        ? welcomeResult.value
+        : undefined;
   return (
     <Box dir="rtl" p={5}>
       <Stack gap={3}>
         <Typography component="h1" variant="h5" color="primary">
           בקשות הרשמה
         </Typography>
+        {welcome && (
+          <Alert severity={welcome.status === "FAILED" ? "warning" : "info"}>
+            החשבון אושר. {welcomeLabel(welcome)}{" "}
+            {welcome.recipient && `(${welcome.recipient})`}
+            {welcome.retryable && (
+              <Button
+                disabled={busy}
+                onClick={() =>
+                  void run(async () => {
+                    const value = await api.retryWelcomeEmail(selected);
+                    setWelcomeResult({ id: selected, value });
+                  })
+                }
+              >
+                ניסיון שליחה נוסף
+              </Button>
+            )}
+          </Alert>
+        )}
         <Alert severity="warning">
           {volunteerEnabled
             ? "אלה בקשות ללא חשבון מאומת. אישור דורש אימות ידני, את כל הראיות הנדרשות ו-PDF חתום מאומת של הגרסה שנבדקה. הקבצים נשמרים באחסון פרטי."
@@ -734,7 +781,8 @@ function ApplicantAdminWorkspace() {
             <Stack gap={2}>
               <Alert severity="warning">
                 הסיסמה מוצגת פעם אחת למנהל לצורך מסירה ידנית. אין לשמור אותה
-                בהערות או לשלוח בדואר אוטומטי.
+                בהערות או לשלוח אותה באימייל. אם נשלח קישור לבחירת סיסמה, מסירה
+                ידנית היא גיבוי בלבד.
               </Alert>
               <TextField
                 label="סיסמה זמנית למסירה"
@@ -773,9 +821,44 @@ function ApplicantAdminWorkspace() {
           <DialogContent>
             <Typography>
               {confirmation?.action === "approve"
-                ? "הפעולה תיצור חשבון עבור הגרסה שנבדקה. יש למסור את הסיסמה הזמנית ידנית."
+                ? "הפעולה תיצור חשבון עבור הגרסה שנבדקה. סיסמה זמנית תוצג פעם אחת כגיבוי למסירה ידנית."
                 : `הבקשה תידחה. סיבה: ${confirmation?.reason ?? ""}`}
             </Typography>
+            {confirmation?.action === "approve" &&
+              emailEnabled &&
+              recipient &&
+              (isVolunteer ? (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  לאחר האישור תישלח הודעת ברוכים הבאים וקישור לבחירת סיסמה
+                  לכתובת {recipient}. באישורכם אתם מאשרים שזו כתובת מורשית של
+                  המבקש. סיסמה זמנית לא תישלח באימייל.
+                </Alert>
+              ) : (
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={confirmation.welcomeEmailConfirmed === true}
+                      onChange={(e) =>
+                        setConfirmation(
+                          (current) =>
+                            current && {
+                              ...current,
+                              welcomeEmailConfirmed: e.target.checked,
+                            },
+                        )
+                      }
+                    />
+                  }
+                  label={`אימתתי שהכתובת ${recipient} מורשית לקבל קישור לבחירת סיסמה עבור החניך, ואני מאשר/ת שליחה אליה`}
+                />
+              ))}
+            {confirmation?.action === "approve" &&
+              (!emailEnabled || !recipient) && (
+                <Typography sx={{ mt: 1 }}>
+                  שליחת קישור אינה זמינה לבקשה זו. יש למסור את הסיסמה הזמנית
+                  ידנית.
+                </Typography>
+              )}
           </DialogContent>
           <DialogActions>
             <Button disabled={busy} onClick={() => setConfirmation(null)}>
@@ -793,7 +876,13 @@ function ApplicantAdminWorkspace() {
                     const result = await api.approve(
                       decision.id,
                       decision.versionId,
+                      decision.welcomeEmailConfirmed === true,
                     );
+                    if (result.welcomeEmail)
+                      setWelcomeResult({
+                        id: decision.id,
+                        value: result.welcomeEmail,
+                      });
                     setPassword(result.temporaryPassword ?? "");
                     setPasswordExpires(result.temporaryPasswordExpiresAt ?? "");
                   } else
@@ -818,6 +907,25 @@ function ApplicantAdminWorkspace() {
       </Stack>
     </Box>
   );
+}
+function welcomeLabel(value: WelcomeEmailStatus) {
+  if (value.passwordSet) return "הסיסמה האישית כבר נבחרה.";
+  const text: Record<string, string> = {
+    PENDING: "הודעת ברוכים הבאים ממתינה לשליחה; החשבון כבר אושר.",
+    PROCESSING: "הודעת ברוכים הבאים נשלחת כעת.",
+    SENT: "ההודעה נמסרה לשרת הדואר. קבלת ההודעה בתיבה אינה מובטחת.",
+    FAILED:
+      "שליחת האימייל נכשלה. האישור נשמר; אפשר לנסות שליחה שוב או להשתמש במסירה ידנית.",
+    SKIPPED:
+      "לא נשלח אימייל: חסרה כתובת מורשית ומאושרת או שהנמען חסום בסביבת הבדיקה. יש להשתמש במסירה ידנית.",
+    CANCELLED:
+      "קישור בחירת הסיסמה בוטל. השתמשו באיפוס הסיסמה הקיים במידת הצורך.",
+    EXPIRED: "תוקף הקישור פג. השתמשו באיפוס הסיסמה הקיים במידת הצורך.",
+    DISABLED: "שליחת אימייל אינה פעילה. יש למסור את הסיסמה הזמנית ידנית.",
+    NOT_QUEUED:
+      "לא נוצרה הודעת ברוכים הבאים לבקשה זו. אין לאשר את הבקשה שוב לצורך שליחה.",
+  };
+  return text[value.status] ?? "יש לרענן את פרטי השליחה.";
 }
 function canApproveApplication(d: ApplicationDetail<RegistrationType>) {
   const latest = d.versions[0];
