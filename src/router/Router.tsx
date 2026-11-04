@@ -13,6 +13,7 @@ import { AppShell } from "../components/Shell/AppShell";
 import { BottomNav } from "../components/BottomNav/BottomNav";
 import { PwaUpdatePrompt } from "../components/PwaUpdatePrompt/PwaUpdatePrompt";
 import { RegistrationBoundary } from "../features/parent-admission/RegistrationBoundary";
+import { AUTH_ROLES } from "../constants/auth.const";
 const ApplicantPage = lazy(() =>
   import("../features/parent-admission/ApplicantPage").then((module) => ({
     default: module.ApplicantPage,
@@ -134,7 +135,18 @@ const AppRouter: React.FC = () => {
           <Suspense fallback={<RouteLoading />}>
             <Routes>
               {filteredDesktopRoutes.map(({ path, element }) => (
-                <Route key={path} path={path} element={element} />
+                <Route
+                  key={path}
+                  path={path}
+                  element={
+                    userRoleIds.includes(AUTH_ROLES.SUPER_ADMIN.id) &&
+                    (path === "/" || path === "/home") ? (
+                      <Navigate to="/super-admin-dashboard" replace />
+                    ) : (
+                      element
+                    )
+                  }
+                />
               ))}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

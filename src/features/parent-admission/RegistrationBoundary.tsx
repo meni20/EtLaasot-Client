@@ -26,7 +26,8 @@ function TraineeBoundary({ children }: { children: ReactNode }) {
     createServerAxiosInstance("/parent-registration"),
   );
   const enabled =
-    import.meta.env.VITE_PARENT_REGISTRATION_BLOCKING_ENABLED === "true";
+    import.meta.env.VITE_PARENT_REGISTRATION_BLOCKING_ENABLED === "true" ||
+    import.meta.env.VITE_PARENT_REGISTRATION_ENABLED === "true";
   useEffect(() => {
     const required = () => setEpoch((v) => v + 1);
     window.addEventListener("registration:required", required);
@@ -34,8 +35,12 @@ function TraineeBoundary({ children }: { children: ReactNode }) {
   }, []);
   const status = useQuery({
     queryKey: ["registration", "access", user?.userId, sessionId, epoch],
-    queryFn: async () =>
-      (await http.get<{ accessBlocked: boolean }>("/me/status")).data,
+    queryFn: async () => {
+      const { data } = await http.get<{ accessBlocked: boolean }>("/me/status");
+      if (typeof data?.accessBlocked !== "boolean")
+        throw new Error("לא ניתן לאמת את מצב הרישום. נסו שוב.");
+      return data;
+    },
     enabled: enabled || epoch > 0,
     retry: false,
     refetchInterval: 15000,
