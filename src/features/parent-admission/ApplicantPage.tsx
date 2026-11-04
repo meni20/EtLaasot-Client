@@ -235,17 +235,50 @@ function ApplicantWorkspace({
     <Box
       dir="rtl"
       sx={{
-        position: "relative",
         maxWidth: 820,
         mx: "auto",
         p: { xs: 3, sm: 5 },
-        pt:
-          volunteerPreparationEnabled && !snapshot
-            ? { xs: "88px", sm: "88px" }
-            : undefined,
       }}
     >
       <Stack gap={3}>
+        {!loading && !snapshot && volunteerPreparationEnabled && (
+          <Stack
+            role="group"
+            aria-label="סוג הרשמה"
+            direction="row"
+            gap={2}
+            sx={{ width: "100%", maxWidth: 640, alignSelf: "center", mb: 2 }}
+          >
+            {([
+              { value: "TRAINEE", label: "הרשמה לחניך" },
+              { value: "VOLUNTEER", label: "הרשמה למתנדב" },
+            ] as const).map(({ value, label }) => (
+              <Button
+                key={value}
+                type="button"
+                variant={registrationType === value ? "contained" : "outlined"}
+                aria-pressed={registrationType === value}
+                disabled={busy}
+                onClick={() => {
+                  if (registrationType === value) return;
+                  clear();
+                  setRegistrationType(normalizeRegistrationType(value));
+                }}
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  minHeight: { xs: 76, sm: 88 },
+                  px: { xs: 2, sm: 4 },
+                  borderRadius: 3,
+                  fontSize: { xs: "1rem", sm: "1.125rem" },
+                  fontWeight: 700,
+                }}
+              >
+                {label}
+              </Button>
+            ))}
+          </Stack>
+        )}
         <Typography variant="h5" component="h1" color="primary">
           {(snapshot
             ? normalizeRegistrationType(snapshot.application.registrationType)
@@ -379,26 +412,6 @@ function ApplicantWorkspace({
           </>
         ) : (
           <>
-            {volunteerPreparationEnabled && (
-              <Box style={{ position: "absolute", left: 24, top: 16 }}>
-                <TextField
-                  select
-                  size="small"
-                  label="סוג הרשמה"
-                  value={registrationType}
-                  disabled={busy}
-                  onChange={(e) => {
-                    clear();
-                    setRegistrationType(
-                      normalizeRegistrationType(e.target.value),
-                    );
-                  }}
-                >
-                  <MenuItem value="TRAINEE">הרשמה לחניך</MenuItem>
-                  <MenuItem value="VOLUNTEER">הרשמה למתנדב</MenuItem>
-                </TextField>
-              </Box>
-            )}
             <Typography variant="h6">בקשה חדשה</Typography>
 
             <TextField
@@ -468,10 +481,6 @@ function ApplicantWorkspace({
             >
               שחזור גישה מאובטח
             </Button>
-            <Typography variant="body2">
-              אין שחזור לפי תעודת זהות. אם הקוד אבד, פנו למנהל הסניף לאימות
-              ידני; אין מסלול אוטומטי העוקף את האימות.
-            </Typography>
           </>
         )}
       </Stack>

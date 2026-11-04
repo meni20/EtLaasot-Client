@@ -155,7 +155,7 @@ async function harness(page: Page, { minor = false, conflict = false } = {}) {
   async function start() {
     await page.goto("/phase4-demo.html?screen=apply");
     await page.getByLabel("תעודת זהות חניך").fill("123456782");
-    await select(page, "סוג הרשמה", "הרשמה למתנדב");
+    await page.getByRole("button", { name: "הרשמה למתנדב", exact: true }).click();
     await select(page, "סניף פעיל", "סניף בדיקה מקומי · עיר בדיקה");
     await page.getByRole("button", { name: "יצירת בקשה ללא חשבון" }).click();
     await page

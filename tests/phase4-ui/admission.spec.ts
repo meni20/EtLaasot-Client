@@ -439,7 +439,7 @@ test("registration preparation is hidden by default; enabled selector preserves 
   await page.getByRole("button", { name: "להתחלת הרשמה" }).click();
   await page.getByLabel("סניף פעיל").click();
   await page.getByRole("option").first().click();
-  const selector = page.getByRole("combobox", { name: /^סוג הרשמה/ });
+  const selector = page.getByRole("group", { name: "סוג הרשמה" });
   if (process.env.PHASE1_UI_VOLUNTEER_PREPARATION !== "true") {
     await expect(selector).toHaveCount(0);
     await expect(
@@ -447,13 +447,13 @@ test("registration preparation is hidden by default; enabled selector preserves 
     ).toBeEnabled();
     return;
   }
-  await expect(selector).toHaveText("הרשמה לחניך");
+  await expect(selector.getByRole("button", { name: "הרשמה לחניך", exact: true })).toHaveAttribute("aria-pressed", "true");
   const rect = await selector.boundingBox();
-  expect(rect!.x).toBeLessThan(100);
+  expect(rect!.width).toBeGreaterThan(250);
   const heading = await page.getByRole("heading", { level: 1 }).boundingBox();
   expect(heading!.y).toBeGreaterThan(rect!.y + rect!.height);
-  await selector.click();
-  await page.getByRole("option", { name: "הרשמה למתנדב" }).click();
+  await selector.getByRole("button", { name: "הרשמה למתנדב", exact: true }).click();
+  await expect(selector.getByRole("button", { name: "הרשמה למתנדב", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("listbox")).toBeHidden();
   await expect(page.locator(".MuiPopover-root")).toHaveCount(0);
   await expect(page.getByLabel("תעודת זהות מתנדב")).toHaveValue("123456782");
@@ -466,8 +466,7 @@ test("registration preparation is hidden by default; enabled selector preserves 
     fullPage: true,
   });
   expect(calls.filter((c) => c.url.endsWith("/start"))).toHaveLength(0);
-  await selector.click();
-  await page.getByRole("option", { name: "הרשמה לחניך" }).click();
+  await selector.getByRole("button", { name: "הרשמה לחניך", exact: true }).click();
   await expect(page.getByLabel("תעודת זהות חניך")).toHaveValue("123456782");
   await page.getByRole("button", { name: "יצירת בקשה ללא חשבון" }).click();
   expect(calls.find((c) => c.url.endsWith("/start"))?.body).toEqual({
