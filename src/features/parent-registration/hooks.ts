@@ -7,6 +7,10 @@ export function useRegistration(api: RegistrationApi) {
     queryFn: () => api.me(),
     retry: false,
     staleTime: Infinity,
+    // Submitted forms are read-only. Follow manager decisions without polling
+    // or replacing an editable draft (including unsaved signatures).
+    refetchInterval: (query) =>
+      query.state.data?.form?.status === "PENDING_REVIEW" ? 3000 : false,
     gcTime: 0,
   });
 }
@@ -18,9 +22,9 @@ export function useRegistrationStatus(api: RegistrationApi) {
     gcTime: 0,
   });
 }
-export function useRegistrationFeedback(api: RegistrationApi) {
+export function useRegistrationFeedback(api: RegistrationApi, status?: string) {
   return useQuery({
-    queryKey: ["registration", ...(api.queryScope ?? []), "feedback"],
+    queryKey: ["registration", ...(api.queryScope ?? []), "feedback", status],
     queryFn: () => api.feedback(),
     retry: false,
     gcTime: 0,

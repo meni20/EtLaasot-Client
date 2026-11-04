@@ -58,7 +58,7 @@ export function RegistrationMobile({
 }) {
   const draft = useRegistration(api);
   const status = useRegistrationStatus(api);
-  const feedback = useRegistrationFeedback(api);
+  const feedback = useRegistrationFeedback(api, draft.data?.form?.status);
   const [epoch, setEpoch] = useState(0);
   const reload = async () => {
     await Promise.all([draft.refetch(), status.refetch(), feedback.refetch()]);
@@ -82,7 +82,7 @@ export function RegistrationMobile({
     );
   return (
     <MobileForm
-      key={`${draft.data.form?.id ?? "new"}-${epoch}`}
+      key={`${draft.data.form?.id ?? "new"}-${draft.data.form?.status ?? "new"}-${epoch}`}
       api={api}
       initial={draft.data}
       profile={profile}
@@ -299,13 +299,6 @@ function MobileForm({
         <Typography color="text.secondary">
           אפשר לעבור בין השלבים ולחזור להשלמה.
         </Typography>
-        {status.wouldBlockAccess && (
-          <Alert severity="info">
-            {status.accessBlocked
-              ? "נדרש אישור לרישום זה. הגישה לאפליקציה מוגבלת עד לקבלת האישור."
-              : "נדרש אישור לרישום זה. חסימת השימוש באפליקציה עדיין אינה מופעלת."}
-          </Alert>
-        )}
         {formStatus === "CHANGES_REQUESTED" && (
           <Alert severity="warning">
             <b>הטופס הוחזר לתיקון</b>

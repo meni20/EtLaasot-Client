@@ -32,10 +32,12 @@ async function mock(
     restricted?: boolean;
     pdfAvailable?: boolean;
     submitted?: boolean;
+    renewalStatus?: "DRAFT" | "PENDING_REVIEW" | "CHANGES_REQUESTED";
   } = {},
 ) {
   let authorized = options.submitted ?? false;
   let blocked = options.restricted ?? false;
+  let renewalStatus = options.renewalStatus;
   let state = {
     application: {
       id,
@@ -170,7 +172,11 @@ async function mock(
       });
     if (path === "/parent-registration/me")
       return reply({
-        form: null,
+        form: renewalStatus ? {
+          id, branchId: branch, activityYearId: id, requestType: "YEARLY",
+          status: renewalStatus, revision: 0, currentStep: 1,
+          blocksAccess: true, documentStatus: "PENDING",
+        } : null,
         data: {},
         contentHash: "a".repeat(64),
         declarations: state.declarations,
@@ -181,7 +187,7 @@ async function mock(
       return reply({
         formId: null,
         status: null,
-        reason: null,
+        reason: renewalStatus === "CHANGES_REQUESTED" ? "יש לתקן את הפרטים" : null,
         requestReason: null,
       });
     if (path === "/user/me")
@@ -196,6 +202,9 @@ async function mock(
     calls,
     approve: () => {
       blocked = false;
+    },
+    requestCorrections: () => {
+      renewalStatus = "CHANGES_REQUESTED";
     },
   };
 }
@@ -395,9 +404,6 @@ test("old bookmarks become registration-only and approval restores normal naviga
     page.getByRole("heading", { name: "רישום חניכים לפעילויות", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText("הגישה לאפליקציה מוגבלת עד לקבלת האישור.", { exact: false }),
-  ).toBeVisible();
-  await expect(
     page.getByText("חסימת השימוש באפליקציה עדיין אינה מופעלת.", {
       exact: false,
     }),
@@ -407,8 +413,20 @@ test("old bookmarks become registration-only and approval restores normal naviga
     fullPage: true,
   });
   state.approve();
-  await page.getByRole("button", { name: "בדיקת אישור מחדש" }).click();
-  await expect(page.getByText("גישה רגילה לדוגמה")).toBeVisible();
+  await expect(page.getByText("גישה רגילה לדוגמה")).toBeVisible({ timeout: 20000 });
+});
+
+test("pending review stays blocked and manager corrections unlock the existing form automatically", async ({ page }) => {
+  const state = await mock(page, { restricted: true, renewalStatus: "PENDING_REVIEW" });
+  await page.goto("/phase4-demo.html?screen=restricted");
+  await expect(page.getByText("הטופס נשלח וממתין לאישור מנהל/ת", { exact: true })).toBeVisible();
+  await expect(page.getByText("גישה רגילה לדוגמה")).toHaveCount(0);
+  state.requestCorrections();
+  await expect(page.getByText("הטופס הוחזר לתיקון", { exact: true })).toBeVisible({ timeout: 10000 });
+  await expect(page.getByRole("alert").filter({ hasText: "יש לתקן את הפרטים" })).toBeVisible();
+  await page.getByRole("button", { name: "קראתי, המשך למילוי הטופס" }).click();
+  await expect(page.getByRole("textbox", { name: "שם פרטי", exact: true })).toBeEnabled();
+  await expect(page.getByText("גישה רגילה לדוגמה")).toHaveCount(0);
 });
 
 test("registration preparation is hidden by default; enabled selector preserves ID/branch without volunteer creation", async ({
