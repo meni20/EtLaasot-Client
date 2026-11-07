@@ -1,5 +1,5 @@
 import { useReloadGuard } from "../../hooks/useReloadGuard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Alert,
@@ -86,6 +86,13 @@ function ApplicantAdminWorkspace() {
     value: WelcomeEmailStatus;
   } | null>(null);
   const [passwordExpires, setPasswordExpires] = useState("");
+  const [deletion, setDeletion] = useState<{
+    id: string;
+    revision: number;
+    confirmed: boolean;
+    status?: string;
+    error?: string;
+  } | null>(null);
   const [recovery, setRecovery] = useState<{
     id: string;
     verified: boolean;
@@ -100,12 +107,31 @@ function ApplicantAdminWorkspace() {
     [error, setError] = useState("");
   useReloadGuard(
     busy ||
+      !!deletion ||
       !!password ||
       !!confirmation ||
       !!recovery ||
       (!!selected && !!reason),
   );
   const cache = useQueryClient();
+  const deletionStatus = useQuery({
+    queryKey: ["draft-deletion", sessionId, deletion?.id],
+    queryFn: () => api.draftDeletionStatus(deletion!.id),
+    enabled:
+      !!deletion?.status && !["COMPLETE", "FAILED"].includes(deletion.status),
+    retry: false,
+    gcTime: 0,
+    refetchInterval: 3000,
+  });
+  useEffect(() => {
+    const status = deletionStatus.data?.status;
+    if (!status) return;
+    setDeletion((current) => (current ? { ...current, status } : current));
+    if (status === "COMPLETE") {
+      setSelected("");
+      void cache.invalidateQueries({ queryKey: ["applications"] });
+    }
+  }, [deletionStatus.data, cache]);
   const list = useQuery({
     queryKey: [
       "applications",
@@ -311,6 +337,15 @@ function ApplicantAdminWorkspace() {
               disabled={busy}
               variant={selected === app.id ? "contained" : "outlined"}
               onClick={() => {
+                if (app.deletionPending) {
+                  setDeletion({
+                    id: app.id,
+                    revision: app.revision,
+                    confirmed: true,
+                    status: "PENDING",
+                  });
+                  return;
+                }
                 setSelected(app.id);
                 setReason("");
                 setVerified(false);
@@ -320,7 +355,8 @@ function ApplicantAdminWorkspace() {
                 setError("");
               }}
             >
-              {app.applicantName || "ללא שם"} · {labels[app.status]}
+              {app.applicantName || "ללא שם"} ·{" "}
+              {app.deletionPending ? "מחיקה בטיפול" : labels[app.status]}
             </Button>
             {volunteerEnabled && (
               <Chip
@@ -407,6 +443,22 @@ function ApplicantAdminWorkspace() {
                 }
               >
                 הנפקת קוד שחזור חדש
+              </Button>
+            )}
+            {doc.canDeleteDraft === true && (
+              <Button
+                color="error"
+                variant="outlined"
+                disabled={busy || !!deletion}
+                onClick={() =>
+                  setDeletion({
+                    id: doc.application.id,
+                    revision: doc.application.revision,
+                    confirmed: false,
+                  })
+                }
+              >
+                מחיקת טיוטה
               </Button>
             )}
             {isVolunteer ? (
@@ -632,6 +684,110 @@ function ApplicantAdminWorkspace() {
                 ))}
           </>
         )}
+        <Dialog
+          open={!!deletion}
+          onClose={() => {
+            if (!busy) setDeletion(null);
+          }}
+          fullWidth
+          maxWidth="sm"
+          PaperProps={{ sx: { direction: "rtl" } }}
+        >
+          <DialogTitle>מחיקת טיוטה לצמיתות</DialogTitle>
+          <DialogContent>
+            <Stack gap={2}>
+              {!deletion?.status && (
+                <>
+                  <Typography>
+                    פעולה זו בלתי הפיכה במערכת הפעילה. פרטי הטיוטה, החתימות,
+                    המסמכים וקודי הגישה יימחקו. רק לאחר השלמת המחיקה ניתן יהיה
+                    להתחיל הרשמה חדשה עם אותה תעודת זהות. גיבויים היסטוריים אינם
+                    נמחקים בפעולה זו.
+                  </Typography>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={deletion?.confirmed ?? false}
+                        disabled={busy}
+                        onChange={(_, confirmed) =>
+                          setDeletion((d) => (d ? { ...d, confirmed } : d))
+                        }
+                      />
+                    }
+                    label="אני מאשר/ת מחיקה בלתי הפיכה של הטיוטה במערכת הפעילה"
+                  />
+                </>
+              )}
+              {deletion?.status === "COMPLETE" ? (
+                <Alert severity="success">
+                  הטיוטה וקבציה נמחקו מהמערכת הפעילה. ניתן להתחיל הרשמה חדשה.
+                </Alert>
+              ) : deletion?.status === "FAILED" ? (
+                <Alert severity="error">
+                  המחיקה טרם הושלמה. הגישה לבקשה חסומה ותעודת הזהות טרם שוחררה.
+                  יש לנסות שוב.
+                </Alert>
+              ) : deletion?.status ? (
+                <Alert severity="info" role="status">
+                  המחיקה בטיפול. הגישה לבקשה נחסמה. אין להתחיל הרשמה חדשה עד
+                  לאישור השלמת המחיקה.
+                </Alert>
+              ) : null}
+              {(deletion?.error || deletionStatus.isError) && (
+                <Alert severity="error">
+                  {deletion?.error ||
+                    "לא ניתן לבדוק אם המחיקה הושלמה. יש לבדוק שוב; אין אישור למחיקה מלאה."}
+                </Alert>
+              )}
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button disabled={busy} onClick={() => setDeletion(null)}>
+              {deletion?.status ? "סגירה" : "ביטול"}
+            </Button>
+            {(!deletion?.status || deletion.status === "FAILED") && (
+              <Button
+                color="error"
+                variant="contained"
+                disabled={busy || !deletion?.confirmed}
+                onClick={async () => {
+                  if (!deletion || busy || !deletion.confirmed) return;
+                  setBusy(true);
+                  try {
+                    const result = await api.deleteDraft(
+                      deletion.id,
+                      deletion.revision,
+                    );
+                    setDeletion((d) =>
+                      d ? { ...d, status: result.status, error: undefined } : d,
+                    );
+                    void cache.invalidateQueries({
+                      queryKey: ["applications"],
+                    });
+                  } catch {
+                    setDeletion((d) =>
+                      d
+                        ? {
+                            ...d,
+                            error:
+                              "לא ניתן למחוק את הטיוטה. יש לבדוק הרשאה, מצב בקשה וגרסה עדכנית.",
+                          }
+                        : d,
+                    );
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                {busy
+                  ? "שולח…"
+                  : deletion?.status === "FAILED"
+                    ? "ניסיון מחיקה נוסף"
+                    : "מחיקת טיוטה לצמיתות"}
+              </Button>
+            )}
+          </DialogActions>
+        </Dialog>
         <Dialog
           open={!!recovery}
           onClose={() => {

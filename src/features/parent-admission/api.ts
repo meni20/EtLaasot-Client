@@ -19,11 +19,7 @@ import { registrationApiUrl } from "../parent-registration/environment";
 import { normalizeRecoveryCode } from "./recovery-code";
 
 export type ApplicationStatus =
-  | "DRAFT"
-  | "PENDING_REVIEW"
-  | "CHANGES_REQUESTED"
-  | "APPROVED"
-  | "REJECTED";
+  "DRAFT" | "PENDING_REVIEW" | "CHANGES_REQUESTED" | "APPROVED" | "REJECTED";
 export interface ApplicationSummary<T extends RegistrationType = "TRAINEE"> {
   registrationType?: T; // Omitted by older servers/fixtures; defaults to TRAINEE.
   id: string;
@@ -32,6 +28,7 @@ export interface ApplicationSummary<T extends RegistrationType = "TRAINEE"> {
   pdfDocumentId?: string | null;
   status: ApplicationStatus;
   revision: number;
+  deletionPending?: boolean;
   currentStep: number;
   documentStatus: "PENDING" | "READY" | "FAILED";
   feedbackReason: string | null;
@@ -311,6 +308,7 @@ export interface ApplicationDetail<T extends RegistrationType = "TRAINEE"> {
   welcomeEmail?: WelcomeEmailStatus;
   application: ApplicationSummary<T>;
   recoveryEligible?: boolean;
+  canDeleteDraft?: boolean;
   branch?: { id: string; name: string; isActive: boolean } | null;
   history?: {
     id: string;
@@ -387,6 +385,15 @@ export function createApplicationAdminApi() {
       ),
     detail: (id: string) =>
       safe(http.get<ApplicationDetail<RegistrationType>>(`/${id}`)),
+    deleteDraft: (id: string, expectedRevision: number) =>
+      safe(
+        http.post<{ status: string }>(`/${id}/delete-draft`, {
+          expectedRevision,
+          confirmed: true,
+        }),
+      ),
+    draftDeletionStatus: (id: string) =>
+      safe(http.get<{ status: string }>(`/${id}/draft-deletion`)),
     reissueRecoveryCode: (id: string, identityVerified: boolean) =>
       safe(
         http.post<{ recoveryCode: string; recoveryExpiresAt: string }>(
