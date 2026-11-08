@@ -1,36 +1,7 @@
+import { branding } from "../config/branding";
+
 export const designTokens = {
-  color: {
-    canvas: "#F5F6F8",
-    canvasWarm: "#FAF9FB",
-    surface: "#FFFFFF",
-    surfaceMuted: "#F0F2F4",
-    surfaceElevated: "rgba(255, 255, 255, 0.82)",
-    text: "#1D1D1F",
-    textSecondary: "#51565C",
-    textMuted: "#6E737A",
-    border: "#DADDE3",
-    borderSubtle: "#E9EBEF",
-    brandInk: "#303050",
-    primary: "#7A3E6B",
-    primaryHover: "#6A345D",
-    primaryPressed: "#57294C",
-    primarySoft: "#F7F1F5",
-    primarySelected: "#EFE3EB",
-    primaryBorder: "#D9BFD2",
-    brand: "#B85090",
-    brandHover: "#9E417C",
-    brandSoft: "#FAEEF5",
-    info: "#2563EB",
-    infoSoft: "#EFF6FF",
-    success: "#2E7D32",
-    successSoft: "#EDF7ED",
-    successBorder: "#CFE8D1",
-    warning: "#A8610A",
-    warningSoft: "#FFF7E8",
-    danger: "#B42318",
-    dangerSoft: "#FFF1F0",
-    scrim: "rgba(17, 24, 39, 0.44)",
-  },
+  color: branding.colors,
   radius: {
     control: 10,
     card: 14,
@@ -63,7 +34,7 @@ export const designTokens = {
     mobileHeader: 60,
     mobileNav: 72,
   },
-  chart: ["#7A3E6B", "#3A6EA5", "#B85090", "#C78B2A", "#C25A5A"],
+  chart: branding.chart,
 } as const;
 
 export const appFontFamily =

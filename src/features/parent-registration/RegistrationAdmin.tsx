@@ -182,7 +182,7 @@ export function RegistrationAdmin({
   return (
     <Box
       dir="rtl"
-      sx={{ maxWidth: 1250, mx: "auto", p: { xs: 3, md: 6 }, color: "#303050" }}
+      sx={{ maxWidth: 1250, mx: "auto", p: { xs: 3, md: 6 }, color: "var(--color-brand-ink, #303050)" }}
     >
       <Stack gap={5}>
         <Typography variant="overline" color="primary" fontWeight={700}>
@@ -218,7 +218,7 @@ export function RegistrationAdmin({
         {success && <Alert severity="success">{success}</Alert>}
         <Paper
           variant="outlined"
-          sx={{ p: 4, borderColor: "#D9BFD2", borderRadius: 4 }}
+          sx={{ p: 4, borderColor: "var(--color-primary-border, #D9BFD2)", borderRadius: 4 }}
         >
           <Stack direction={{ xs: "column", sm: "row" }} gap={4}>
             <TextField
@@ -277,9 +277,9 @@ export function RegistrationAdmin({
               key={key}
               sx={{
                 p: 4,
-                borderColor: status === key ? "#7A3E6B" : "#D9BFD2",
+                borderColor: status === key ? "var(--color-primary, #7A3E6B)" : "var(--color-primary-border, #D9BFD2)",
                 borderRadius: 4,
-                bgcolor: status === key ? "#F7F1F5" : "white",
+                bgcolor: status === key ? "var(--color-primary-soft, #F7F1F5)" : "white",
               }}
             >
               <Typography color="text.secondary">{statuses[key]}</Typography>
@@ -342,7 +342,7 @@ export function RegistrationAdmin({
         <TableContainer
           component={Paper}
           variant="outlined"
-          sx={{ borderRadius: 4, borderColor: "#D9BFD2" }}
+          sx={{ borderRadius: 4, borderColor: "var(--color-primary-border, #D9BFD2)" }}
         >
           <Table aria-label="טפסי רישום חניכים">
             <TableHead>
@@ -450,7 +450,7 @@ export function RegistrationAdmin({
             sx={{
               p: { xs: 4, md: 6 },
               borderRadius: 4,
-              borderColor: "#D9BFD2",
+              borderColor: "var(--color-primary-border, #D9BFD2)",
             }}
           >
             <Stack gap={4}>

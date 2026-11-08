@@ -1,3 +1,4 @@
+import { branding } from "../config/branding";
 import { alpha, createTheme } from "@mui/material/styles";
 import type {} from "@mui/x-data-grid/themeAugmentation";
 import { appFontFamily, designTokens } from "./tokens";
@@ -9,7 +10,7 @@ export const theme = createTheme({
   palette: {
     mode: "light",
     primary: { main: color.primary, dark: color.primaryHover, light: color.primarySoft, contrastText: "#FFFFFF" },
-    secondary: { main: color.brand, dark: color.brandHover, light: color.brandSoft, contrastText: "#FFFFFF" },
+    secondary: branding.secondary,
     background: { default: color.canvas, paper: color.surface },
     text: { primary: color.text, secondary: color.textSecondary },
     divider: color.borderSubtle,

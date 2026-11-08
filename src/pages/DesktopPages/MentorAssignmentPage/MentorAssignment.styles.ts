@@ -39,7 +39,7 @@ export const useMentorAssignmentStyles = makeStyles<
     direction: "rtl",
     minHeight: "100dvh",
     background:
-      "linear-gradient(180deg, var(--app-canvas, #F5F6F8) 0%, rgba(255,255,255,0.94) 100%)",
+      "linear-gradient(180deg, var(--color-canvas, #F5F6F8) 0%, rgba(255,255,255,0.94) 100%)",
     color: theme.palette.text.primary,
     animation: "fadeIn 180ms var(--ease-out, ease-out)",
   },

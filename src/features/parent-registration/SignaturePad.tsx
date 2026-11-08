@@ -69,7 +69,7 @@ export function SignaturePad({
             width: "100%",
             height: 150,
             objectFit: "contain",
-            border: "1px solid #D9BFD2",
+            border: "1px solid var(--color-primary-border, #D9BFD2)",
             borderRadius: 2,
           }}
         />
@@ -89,7 +89,7 @@ export function SignaturePad({
             height: 150,
             touchAction: "none",
             bgcolor: "#FCFAFC",
-            border: "1px dashed #7A3E6B",
+            border: "1px dashed var(--color-primary, #7A3E6B)",
             borderRadius: 2,
           }}
           onPointerDown={(e) => {
