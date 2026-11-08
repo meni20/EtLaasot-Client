@@ -11,8 +11,6 @@ import {
   Alert,
   Box,
   Button,
-  IconButton,
-  InputAdornment,
   MenuItem,
   Stack,
   TextField,
@@ -305,31 +303,28 @@ function ApplicantWorkspace({
             </Typography>
             {newCode && !ack ? (
               <Stack gap={2}>
+                <Typography variant="h6" component="h2">קוד השחזור שלך</Typography>
                 <TextField
                   fullWidth
-                  label="קוד שחזור"
-                  helperText="שמרו את הקוד במקום פרטי. הוא נדרש להמשך הרשמה ממכשיר אחר."
                   value={newCode}
                   InputProps={{
                     readOnly: true,
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          type="button"
-                          edge="end"
-                          aria-label="העתקת קוד השחזור"
-                          onClick={() => void copyRecovery()}
-                        >
-                          <ContentCopyOutlined fontSize="small" />
-                        </IconButton>
-                      </InputAdornment>
-                    ),
                   }}
                   inputProps={{
+                    "aria-label": "קוד שחזור",
                     dir: "ltr",
                     style: { fontFamily: "monospace", letterSpacing: "0.04em" },
                   }}
                 />
+                <Button
+                  variant="outlined"
+                  startIcon={<ContentCopyOutlined />}
+                  aria-label="העתקת קוד השחזור"
+                  onClick={() => void copyRecovery()}
+                >
+                  העתקה
+                </Button>
+                <Typography variant="body2">שמור את הקוד כדי שתוכל לחזור לבקשה בהמשך</Typography>
                 {copied && (
                   <Alert severity="success" role="status">
                     קוד השחזור הועתק
@@ -456,12 +451,10 @@ function ApplicantWorkspace({
                 )
               }
             >
-              יצירת בקשה ללא חשבון
+              המשך
             </Button>
-            <Typography variant="h6">המשך בקשה קיימת או תיקונים</Typography>
             <TextField
               label="קוד שחזור פרטי"
-              helperText="קוד חדש: XXXX-XXXX-XXXX-XXXX. גם קוד שחזור ישן שנשמר תקף."
               type="password"
               autoComplete="off"
               value={code}

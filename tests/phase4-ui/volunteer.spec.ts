@@ -156,8 +156,11 @@ async function harness(page: Page, { minor = false, conflict = false } = {}) {
     await page.goto("/phase4-demo.html?screen=apply");
     await page.getByLabel("תעודת זהות חניך").fill("123456782");
     await page.getByRole("button", { name: "הרשמה למתנדב", exact: true }).click();
-    await select(page, "סניף פעיל", "סניף בדיקה מקומי · עיר בדיקה");
-    await page.getByRole("button", { name: "יצירת בקשה ללא חשבון" }).click();
+    await select(page, "סניף פעיל", "סניף בדיקה מקומי");
+    await page.getByRole("button", { name: "המשך", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "קוד השחזור שלך", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "העתקת קוד השחזור" })).toBeVisible();
+    await expect(page.getByText("שמור את הקוד כדי שתוכל לחזור לבקשה בהמשך", { exact: true })).toHaveCount(1);
     await page
       .getByRole("button", { name: "שמרתי את קוד השחזור במקום בטוח" })
       .click();
