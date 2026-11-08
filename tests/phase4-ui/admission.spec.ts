@@ -249,12 +249,17 @@ test("unknown ID starts an independent branch-selected application, with mandato
   ).toHaveCount(0);
   await page.getByRole("button", { name: "להתחלת הרשמה" }).click();
   await expect(page.getByText("בקשה חדשה", { exact: true })).toBeVisible();
+  await expect(page.getByText("המשך בקשה קיימת או תיקונים", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("קוד חדש:", { exact: false })).toHaveCount(0);
   await expect(
     page.getByText("הבקשה אינה חשבון משתמש.", { exact: false }),
   ).toHaveCount(0);
   await page.getByLabel("סניף פעיל").click();
   await page.getByRole("option").first().click();
-  await page.getByRole("button", { name: "יצירת בקשה ללא חשבון" }).click();
+  await page.getByRole("button", { name: "המשך", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "קוד השחזור שלך", exact: true })).toBeVisible();
+  await expect(page.getByText("שמור את הקוד כדי שתוכל לחזור לבקשה בהמשך", { exact: true })).toHaveCount(1);
+  await expect(page.getByLabel("קוד שחזור", { exact: true })).toHaveAttribute("readonly", "");
   await expect(
     page.getByText("קוד השחזור מוצג פעם אחת.", { exact: false }),
   ).toHaveCount(0);
@@ -268,12 +273,19 @@ test("unknown ID starts an independent branch-selected application, with mandato
     "r".repeat(43),
   );
   await page.evaluate(() => {
+    let copied = "";
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
-      value: { writeText: async () => undefined },
+      value: {
+        writeText: async (value: string) => { copied = value; },
+        readText: async () => copied,
+      },
     });
   });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: ".registration-qa/recovery-code-minimal.png", fullPage: true });
   await page.getByRole("button", { name: "העתקת קוד השחזור" }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("r".repeat(43));
   await expect(
     page.getByText("קוד השחזור הועתק", { exact: true }),
   ).toBeVisible();
@@ -443,7 +455,7 @@ test("registration preparation is hidden by default; enabled selector preserves 
   if (process.env.PHASE1_UI_VOLUNTEER_PREPARATION !== "true") {
     await expect(selector).toHaveCount(0);
     await expect(
-      page.getByRole("button", { name: "יצירת בקשה ללא חשבון" }),
+      page.getByRole("button", { name: "המשך", exact: true }),
     ).toBeEnabled();
     return;
   }
@@ -459,7 +471,7 @@ test("registration preparation is hidden by default; enabled selector preserves 
   await expect(page.getByLabel("תעודת זהות מתנדב")).toHaveValue("123456782");
   await expect(page.getByLabel("סניף פעיל")).toContainText("סניף בדיקה מקומי");
   await expect(
-    page.getByRole("button", { name: "יצירת בקשה ללא חשבון" }),
+    page.getByRole("button", { name: "המשך", exact: true }),
   ).toBeEnabled();
   await page.screenshot({
     path: ".registration-qa/phase1-selector.png",
@@ -468,7 +480,7 @@ test("registration preparation is hidden by default; enabled selector preserves 
   expect(calls.filter((c) => c.url.endsWith("/start"))).toHaveLength(0);
   await selector.getByRole("button", { name: "הרשמה לחניך", exact: true }).click();
   await expect(page.getByLabel("תעודת זהות חניך")).toHaveValue("123456782");
-  await page.getByRole("button", { name: "יצירת בקשה ללא חשבון" }).click();
+  await page.getByRole("button", { name: "המשך", exact: true }).click();
   expect(calls.find((c) => c.url.endsWith("/start"))?.body).toEqual({
     identifier: "123456782",
     branchId: branch,

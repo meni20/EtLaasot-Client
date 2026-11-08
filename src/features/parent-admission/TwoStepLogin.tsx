@@ -182,11 +182,6 @@ export function TwoStepLogin({
               {busy ? "ממשיך…" : step === "ID" ? "המשך" : "התחבר"}
             </Button>
           )}
-          {import.meta.env.VITE_APPLICANT_REGISTRATION_ENABLED === "true" && (
-            <Button type="button" onClick={() => navigate("/apply")}>
-              המשך בקשה עם קוד שחזור
-            </Button>
-          )}
           <PwaInstallButton />
         </Stack>
       </Box>
