@@ -266,7 +266,7 @@ function MobileForm({
         mx: "auto",
         p: { xs: 3, sm: 6 },
         pb: 10,
-        color: "#303050",
+        color: "var(--color-brand-ink, #303050)",
       }}
     >
       <Stack gap={4}>
@@ -335,7 +335,7 @@ function MobileForm({
             variant="outlined"
             sx={{
               p: { xs: 4, sm: 6 },
-              borderColor: "#D9BFD2",
+              borderColor: "var(--color-primary-border, #D9BFD2)",
               borderRadius: 4,
             }}
           >
@@ -352,7 +352,7 @@ function MobileForm({
         ) : !initial.form && (approved || noRequest) ? (
           <Paper
             variant="outlined"
-            sx={{ p: 5, borderColor: "#D9BFD2", borderRadius: 4 }}
+            sx={{ p: 5, borderColor: "var(--color-primary-border, #D9BFD2)", borderRadius: 4 }}
           >
             <Typography>
               אין טופס פעיל לעריכה.
@@ -450,7 +450,7 @@ function MobileForm({
               sx={{
                 p: { xs: 4, sm: 6 },
                 borderRadius: 4,
-                borderColor: "#D9BFD2",
+                borderColor: "var(--color-primary-border, #D9BFD2)",
                 minWidth: 0,
               }}
             >

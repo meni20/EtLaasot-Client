@@ -99,7 +99,7 @@ export function YesNo<T extends object = RegistrationData>({
   const error = props.issues.find((i) => i.path === path);
   return (
     <FormControl error={!!error} disabled={props.disabled}>
-      <FormLabel sx={{ color: "#303050", lineHeight: 1.6 }}>
+      <FormLabel sx={{ color: "var(--color-brand-ink, #303050)", lineHeight: 1.6 }}>
         {label} *
       </FormLabel>
       <RadioGroup

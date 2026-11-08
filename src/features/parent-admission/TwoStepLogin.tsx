@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { branding } from "../../config/branding";
 import {
   Alert,
   Box,
@@ -85,9 +86,10 @@ export function TwoStepLogin({
       >
         <Box
           component="img"
-          src="/etlaasot-favicon.png"
+          src={branding.loginLogo}
           alt="עת לעשות"
           className={styles.logo}
+          style={branding.production ? { width: "min(100%, 300px)" } : undefined}
         />
         <Typography component="h1" className={styles.subtitle}>
           {step === "ID"

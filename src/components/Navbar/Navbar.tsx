@@ -18,6 +18,7 @@ import { PersonalDetailsDialog } from "../AccountSettings/PersonalDetailsDialog"
 import { useAuth } from "../../contexts/useAuth";
 import type { NavbarProps } from "./Navbar.interface";
 import { useNavbarStyles } from "./Navbar.styles";
+import { branding } from "../../config/branding";
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title, menuOpen }) => {
   const classes = useNavbarStyles();
@@ -69,9 +70,15 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, title, menuOpen }) => {
           <Box className={classes.navbarLogoSlot} aria-label={title}>
             <Box
               component="img"
-              src="/et-laasot-bat-yam-logo.png"
-              alt="עת לעשות בת ים"
+              src={branding.navbarLogo}
+              alt={branding.navbarAlt}
               className={classes.navbarLogo}
+              style={branding.production ? {
+                backgroundColor: branding.colors.surface,
+                borderRadius: 8,
+                padding: 4,
+                transform: "none",
+              } : undefined}
             />
           </Box>
           <Tooltip title="הפרטים שלי">

@@ -1,5 +1,6 @@
 ﻿import { useState } from "react";
 import { useStyles } from "./Login.styles";
+import { branding } from "../../../config/branding";
 import { useAuth } from "../../../contexts/useAuth";
 import { isValidIsraeliId } from "../../../utils/data.utillity";
 import {
@@ -64,9 +65,10 @@ const LegacyLoginPage: React.FC = () => {
       <Box className={styles.card}>
         <Box
           component="img"
-          src="/etlaasot-favicon.png"
+          src={branding.loginLogo}
           alt="עת לעשות"
           className={styles.logo}
+          style={branding.production ? { width: "min(100%, 300px)" } : undefined}
         />
         <Typography className={styles.subtitle}>
           הזן תעודת זהות וסיסמה
