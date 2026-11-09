@@ -389,3 +389,11 @@ test("revision conflict freezes editing and never overwrites the draft", async (
   await expect(page.getByLabel("שם פרטי", { exact: false })).toBeDisabled();
   expect(h.calls.filter((c) => c.method === "PATCH")).toHaveLength(1);
 });
+
+test("no preference choices save and restore", async ({ page }) => {
+ const h=await harness(page); await h.start(); await stage(page,2);
+ for(const label of ["קטן/בוגר","מדבר/לא מתקשר","עם טיטול/ללא טיטול"]) await select(page,label,"לא משנה לי");
+ await expect.poll(()=>h.getData().questionnaire?.diaper).toBe("לא משנה לי");
+ await page.waitForTimeout(1000); await page.reload(); await stage(page,2);
+ for(const label of ["קטן/בוגר","מדבר/לא מתקשר","עם טיטול/ללא טיטול"]) await expect(page.getByRole("combobox",{name:new RegExp('^'+label)})).toHaveText("לא משנה לי");
+});
