@@ -1,3 +1,4 @@
+import { PasswordRecoveryRequest } from "./PasswordRecovery";
 import { useRef, useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import {
@@ -48,6 +49,7 @@ export function UnifiedEntry({
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const inFlight = useRef(false);
+  const [forgot, setForgot] = useState(false);
   const reset = () => {
     setStep("ID");
     setPassword("");
@@ -152,6 +154,13 @@ export function UnifiedEntry({
       </IconButton>
     </InputAdornment>
   );
+  if (forgot)
+    return (
+      <PasswordRecoveryRequest
+        identifier={identifier}
+        onBack={() => setForgot(false)}
+      />
+    );
   return (
     <Box className={styles.container} dir="rtl">
       <Box
@@ -258,6 +267,18 @@ export function UnifiedEntry({
                   : undefined
               }
             />
+          )}
+          {["PASSWORD", "APPLICANT_PASSWORD"].includes(step) && (
+            <Button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                setPassword("");
+                setForgot(true);
+              }}
+            >
+              שכחתי סיסמה
+            </Button>
           )}
           {step === "REGISTER" && (
             <TextField
