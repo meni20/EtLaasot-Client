@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { passwordFlowEnabled } from "./password-flow";
+import { UnifiedEntry } from "./UnifiedEntry";
 import { useNavigate } from "react-router-dom";
 import { branding } from "../../config/branding";
 import {
@@ -24,7 +26,16 @@ import {
   setPendingApplicantId,
 } from "./api";
 
-export function TwoStepLogin({
+export function TwoStepLogin(props: {
+  identify?: (id: string) => Promise<{ next: "PASSWORD" | "REGISTER" }>;
+}) {
+  return passwordFlowEnabled() ? (
+    <UnifiedEntry />
+  ) : (
+    <LegacyTwoStepLogin {...props} />
+  );
+}
+function LegacyTwoStepLogin({
   identify,
 }: {
   identify?: (id: string) => Promise<{ next: "PASSWORD" | "REGISTER" }>;
@@ -89,7 +100,9 @@ export function TwoStepLogin({
           src={branding.loginLogo}
           alt="עת לעשות"
           className={styles.logo}
-          style={branding.production ? { width: "min(100%, 300px)" } : undefined}
+          style={
+            branding.production ? { width: "min(100%, 300px)" } : undefined
+          }
         />
         <Typography component="h1" className={styles.subtitle}>
           {step === "ID"

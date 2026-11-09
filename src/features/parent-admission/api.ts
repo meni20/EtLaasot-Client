@@ -23,7 +23,7 @@ export type ApplicationStatus =
 export interface ApplicationSummary<T extends RegistrationType = "TRAINEE"> {
   registrationType?: T; // Omitted by older servers/fixtures; defaults to TRAINEE.
   id: string;
-  branchId: string;
+  branchId: string | null;
   applicantName?: string;
   pdfDocumentId?: string | null;
   status: ApplicationStatus;
@@ -55,7 +55,23 @@ export interface ApplicantCredentials<T extends RegistrationType = "TRAINEE"> {
   expiresAt: string;
 }
 export interface ApplicantClient<T extends RegistrationType = "TRAINEE"> {
-  identify(identifier: string): Promise<{ next: "PASSWORD" | "REGISTER" }>;
+  identify(
+    identifier: string,
+    passwordFlow?: boolean,
+  ): Promise<{
+    next: "PASSWORD" | "REGISTER" | "APPLICANT_PASSWORD" | "LEGACY_RECOVERY";
+  }>;
+  passwordSignup?(input: {
+    identifier: string;
+    email: string;
+    password: string;
+    passwordConfirmation: string;
+    registrationType: RegistrationType;
+  }): Promise<{ sessionToken: string; expiresAt: string }>;
+  passwordLogin?(input: {
+    identifier: string;
+    password: string;
+  }): Promise<{ sessionToken: string; expiresAt: string }>;
   branches(): Promise<{ id: string; name: string; city: string }[]>;
   start(
     identifier: string,
@@ -65,6 +81,7 @@ export interface ApplicantClient<T extends RegistrationType = "TRAINEE"> {
   recover(code: string): Promise<ApplicantCredentials<T>>;
   me(): Promise<ApplicationSnapshot<T>>;
   save(body: {
+    branchId?: string | null;
     revision: number;
     currentStep: number;
     data: ApplicationFormData<T>;
@@ -128,6 +145,7 @@ export function createApplicantClient<T extends RegistrationType = "TRAINEE">(
     path: string,
     body?: unknown,
   ): Promise<T> => {
+    const sentToken = token;
     try {
       return (
         await http.request<T>({
@@ -138,8 +156,14 @@ export function createApplicantClient<T extends RegistrationType = "TRAINEE">(
         })
       ).data;
     } catch (error) {
-      if (axios.isAxiosError(error))
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401 && token === sentToken) {
+          token = undefined;
+          if (typeof window !== "undefined")
+            window.dispatchEvent(new Event("applicant-session-expired"));
+        }
         throw new RegistrationError(error.response?.status ?? 0);
+      }
       throw new RegistrationError(0);
     }
   };
@@ -149,7 +173,29 @@ export function createApplicantClient<T extends RegistrationType = "TRAINEE">(
     return result;
   };
   return {
-    identify: (id) => call("POST", "/auth/identify", { identifier: id }),
+    passwordSignup: async (input) => {
+      const result = await call<{ sessionToken: string; expiresAt: string }>(
+        "POST",
+        "/parent-applications/password/signup",
+        input,
+      );
+      token = result.sessionToken;
+      return result;
+    },
+    passwordLogin: async (input) => {
+      const result = await call<{ sessionToken: string; expiresAt: string }>(
+        "POST",
+        "/parent-applications/password/login",
+        input,
+      );
+      token = result.sessionToken;
+      return result;
+    },
+    identify: (id, passwordFlow = false) =>
+      call("POST", "/auth/identify", {
+        identifier: id,
+        ...(passwordFlow ? { flow: "PASSWORD" } : {}),
+      }),
     branches: () => call("GET", "/parent-applications/branches"),
     start: (id, branchId, registrationType = type) =>
       receive(
@@ -212,7 +258,7 @@ export function applicationForm(
   if (app.status === "REJECTED") throw new RegistrationError(409);
   return {
     id: app.id,
-    branchId: app.branchId,
+    branchId: app.branchId ?? "",
     activityYearId: null,
     requestType: "APPLICATION",
     status: app.status as FormStatus,
@@ -303,11 +349,14 @@ export interface WelcomeEmailStatus {
   reason?: string | null;
   passwordSet?: boolean;
   retryable?: boolean;
+  notificationOnly?: boolean;
 }
 export interface ApplicationDetail<T extends RegistrationType = "TRAINEE"> {
   welcomeEmail?: WelcomeEmailStatus;
   application: ApplicationSummary<T>;
   recoveryEligible?: boolean;
+  authentication?: "EXISTING_PASSWORD";
+  approvalNotificationEmail?: string;
   canDeleteDraft?: boolean;
   branch?: { id: string; name: string; isActive: boolean } | null;
   history?: {
@@ -426,6 +475,7 @@ export function createApplicationAdminApi() {
           temporaryPassword?: string;
           temporaryPasswordExpiresAt?: string;
           idempotent?: boolean;
+          authentication?: "EXISTING_PASSWORD";
           welcomeEmail?: WelcomeEmailStatus;
         }>(`/${id}/approve`, {
           expectedVersionId,

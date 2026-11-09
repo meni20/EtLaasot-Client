@@ -129,6 +129,7 @@ export interface RegistrationApi {
   status(): Promise<RegistrationStatus>;
   feedback(): Promise<Feedback>;
   save(payload: {
+    branchId?: string | null;
     revision: number;
     currentStep: number;
     data: RegistrationData;

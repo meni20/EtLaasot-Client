@@ -6,6 +6,10 @@
     "noEmit": true
   },
   "include": [
+    "tests/password-ui",
+    "vite.password.config.ts",
+    "playwright.password.config.ts",
+    "playwright.password-legacy.config.ts",
     "src/features/parent-registration",
     "src/features/parent-admission",
     "tests/phase4.model.test.ts",

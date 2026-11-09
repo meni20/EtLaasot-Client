@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:password": "vite --config vite.password.config.ts",
+    "test:password:ui": "playwright test --config playwright.password.config.ts",
     "build": "tsc -b && vite build",
     "generate:pwa-assets": "pwa-assets-generator --config pwa-assets.config.ts",
     "lint": "eslint .",

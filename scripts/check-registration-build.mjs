@@ -4,6 +4,11 @@ import { join } from "node:path";
 
 assert.ok(existsSync("dist/index.html"), "Run npm run build first");
 assert.equal(
+  existsSync("dist/password-demo.html"),
+  false,
+  "Password UI QA must not be published",
+);
+assert.equal(
   existsSync("dist/parent-registration-demo.html"),
   false,
   "Demo entry must not be published",

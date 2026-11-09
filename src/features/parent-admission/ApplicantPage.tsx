@@ -6,7 +6,9 @@ import {
   type RegistrationType,
 } from "./registration-type";
 import { useEffect, useMemo, useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useLocation } from "react-router-dom";
+import { passwordFlowEnabled } from "./password-flow";
+import { PasswordApplicantPage } from "./PasswordApplicantPage";
 import {
   Alert,
   Box,
@@ -32,10 +34,24 @@ import {
   type ApplicationSnapshot,
 } from "./api";
 
-export function ApplicantPage({
+export function ApplicantPage(props: {
+  client?: ApplicantClient<RegistrationType>;
+}) {
+  const location = useLocation();
+  const password = passwordFlowEnabled();
+  return password &&
+    new URLSearchParams(location.search).get("legacy") !== "1" ? (
+    <PasswordApplicantPage client={props.client} />
+  ) : (
+    <LegacyApplicantPage {...props} recoveryOnly={password} />
+  );
+}
+function LegacyApplicantPage({
   client: injected,
+  recoveryOnly = false,
 }: {
   client?: ApplicantClient<RegistrationType>;
+  recoveryOnly?: boolean;
 }) {
   const [client] = useState(
     () =>
@@ -58,16 +74,22 @@ export function ApplicantPage({
     );
   return (
     <QueryClientProvider client={queries}>
-      <ApplicantWorkspace client={client} clear={() => queries.clear()} />
+      <ApplicantWorkspace
+        client={client}
+        clear={() => queries.clear()}
+        recoveryOnly={recoveryOnly}
+      />
     </QueryClientProvider>
   );
 }
 function ApplicantWorkspace({
   client,
   clear,
+  recoveryOnly,
 }: {
   client: ApplicantClient<RegistrationType>;
   clear: () => void;
+  recoveryOnly: boolean;
 }) {
   const volunteerPreparationEnabled =
     import.meta.env.VITE_VOLUNTEER_REGISTRATION_ENABLED === "true";
@@ -247,10 +269,12 @@ function ApplicantWorkspace({
             gap={2}
             sx={{ width: "100%", maxWidth: 640, alignSelf: "center", mb: 2 }}
           >
-            {([
-              { value: "TRAINEE", label: "הרשמה לחניך" },
-              { value: "VOLUNTEER", label: "הרשמה למתנדב" },
-            ] as const).map(({ value, label }) => (
+            {(
+              [
+                { value: "TRAINEE", label: "הרשמה לחניך" },
+                { value: "VOLUNTEER", label: "הרשמה למתנדב" },
+              ] as const
+            ).map(({ value, label }) => (
               <Button
                 key={value}
                 type="button"
@@ -303,7 +327,9 @@ function ApplicantWorkspace({
             </Typography>
             {newCode && !ack ? (
               <Stack gap={2}>
-                <Typography variant="h6" component="h2">קוד השחזור שלך</Typography>
+                <Typography variant="h6" component="h2">
+                  קוד השחזור שלך
+                </Typography>
                 <TextField
                   fullWidth
                   value={newCode}
@@ -324,7 +350,9 @@ function ApplicantWorkspace({
                 >
                   העתקה
                 </Button>
-                <Typography variant="body2">שמור את הקוד כדי שתוכל לחזור לבקשה בהמשך</Typography>
+                <Typography variant="body2">
+                  שמור את הקוד כדי שתוכל לחזור לבקשה בהמשך
+                </Typography>
                 {copied && (
                   <Alert severity="success" role="status">
                     קוד השחזור הועתק
@@ -407,52 +435,56 @@ function ApplicantWorkspace({
           </>
         ) : (
           <>
-            <Typography variant="h6">בקשה חדשה</Typography>
+            {!recoveryOnly && (
+              <>
+                <Typography variant="h6">בקשה חדשה</Typography>
 
-            <TextField
-              label={
-                registrationType === "TRAINEE"
-                  ? "תעודת זהות חניך"
-                  : "תעודת זהות מתנדב"
-              }
-              autoComplete="off"
-              value={id}
-              onChange={(e) =>
-                setId(e.target.value.replace(/\D/g, "").slice(0, 9))
-              }
-              inputProps={{ inputMode: "numeric", maxLength: 9 }}
-            />
-            <TextField
-              select
-              label="סניף פעיל"
-              value={branch}
-              onChange={(e) => setBranch(e.target.value)}
-            >
-              {branches.map((b) => (
-                <MenuItem key={b.id} value={b.id}>
-                  {b.name}
-                </MenuItem>
-              ))}
-            </TextField>
-            <Button
-              variant="contained"
-              disabled={
-                busy ||
-                !id ||
-                !branch ||
-                !canStartRegistration(
-                  registrationType,
-                  volunteerPreparationEnabled,
-                )
-              }
-              onClick={() =>
-                void run(async () =>
-                  accept(await client.start(id, branch, registrationType)),
-                )
-              }
-            >
-              המשך
-            </Button>
+                <TextField
+                  label={
+                    registrationType === "TRAINEE"
+                      ? "תעודת זהות חניך"
+                      : "תעודת זהות מתנדב"
+                  }
+                  autoComplete="off"
+                  value={id}
+                  onChange={(e) =>
+                    setId(e.target.value.replace(/\D/g, "").slice(0, 9))
+                  }
+                  inputProps={{ inputMode: "numeric", maxLength: 9 }}
+                />
+                <TextField
+                  select
+                  label="סניף פעיל"
+                  value={branch}
+                  onChange={(e) => setBranch(e.target.value)}
+                >
+                  {branches.map((b) => (
+                    <MenuItem key={b.id} value={b.id}>
+                      {b.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <Button
+                  variant="contained"
+                  disabled={
+                    busy ||
+                    !id ||
+                    !branch ||
+                    !canStartRegistration(
+                      registrationType,
+                      volunteerPreparationEnabled,
+                    )
+                  }
+                  onClick={() =>
+                    void run(async () =>
+                      accept(await client.start(id, branch, registrationType)),
+                    )
+                  }
+                >
+                  המשך
+                </Button>
+              </>
+            )}
             <TextField
               label="קוד שחזור פרטי"
               type="password"

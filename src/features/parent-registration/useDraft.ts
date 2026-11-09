@@ -8,11 +8,16 @@ interface DraftTransport<T> {
     data: T;
     currentStep: number;
     revision: number;
+    branchId?: string | null;
   }): Promise<{ data: T; form: { revision: number } }>;
 }
 interface DraftInitial<T> {
   data: T;
-  form: { currentStep: number; revision: number } | null;
+  form: {
+    currentStep: number;
+    revision: number;
+    branchId?: string | null;
+  } | null;
 }
 export function useDraft<T = import("./contracts").RegistrationData>(
   api: DraftTransport<T>,
@@ -20,6 +25,7 @@ export function useDraft<T = import("./contracts").RegistrationData>(
   profile: ProfilePrefill,
   readOnly = false,
   model?: { setField(data: T, path: string, value: unknown): T },
+  branchSelection = false,
 ) {
   const [data, setData] = useState(() =>
     initial.form || model
@@ -31,16 +37,21 @@ export function useDraft<T = import("./contracts").RegistrationData>(
   );
   const [step, setStep] = useState(initial.form?.currentStep ?? 1);
   const [revision, setRevision] = useState(initial.form?.revision ?? 0);
+  const [branchId, setBranchId] = useState(initial.form?.branchId || null);
   const [saveState, setSaveState] = useState<
     "saved" | "dirty" | "saving" | "error" | "conflict"
   >("saved");
-  useReloadGuard(!readOnly && saveState !== "saved", "יש להמתין לשמירת הטיוטה או לנסות לשמור שוב לפני העדכון.");
+  useReloadGuard(
+    !readOnly && saveState !== "saved",
+    "יש להמתין לשמירת הטיוטה או לנסות לשמור שוב לפני העדכון.",
+  );
   const [error, setError] = useState<Error | null>(null);
   const [signatureGeneration, setSignatureGeneration] = useState(0);
   const state = useRef({
     data,
     step,
     revision,
+    branchId,
     generation: 0,
     saved: 0,
     blocked: false,
@@ -66,6 +77,7 @@ export function useDraft<T = import("./contracts").RegistrationData>(
             data: snapshot.data,
             currentStep: snapshot.step,
             revision: snapshot.revision,
+            ...(branchSelection ? { branchId: snapshot.branchId } : {}),
           });
           state.current.revision = result.form.revision;
           state.current.saved = snapshot.generation;
@@ -95,7 +107,7 @@ export function useDraft<T = import("./contracts").RegistrationData>(
     } finally {
       pending.current = null;
     }
-  }, [api, readOnly]);
+  }, [api, readOnly, branchSelection]);
   useEffect(() => {
     if (saveState !== "dirty") return;
     const timer = window.setTimeout(() => {
@@ -137,6 +149,20 @@ export function useDraft<T = import("./contracts").RegistrationData>(
     }
   };
   return {
+    branchId,
+    changeBranch: (value: string) => {
+      if (!branchSelection || readOnly || saveState === "conflict") return;
+      const next = structuredClone(state.current.data);
+      delete (next as { signatures?: unknown }).signatures;
+      state.current.data = next;
+      state.current.branchId = value || null;
+      state.current.blocked = false;
+      state.current.generation++;
+      setData(next);
+      setBranchId(value || null);
+      setSignatureGeneration((v) => v + 1);
+      setSaveState("dirty");
+    },
     data,
     step,
     revision,

@@ -1,4 +1,5 @@
 import { useReloadGuard } from "../../hooks/useReloadGuard";
+import { BranchSelection } from "../parent-admission/BranchSelection";
 import { useMemo, useRef, useState } from "react";
 import {
   Alert,
@@ -56,11 +57,13 @@ export function VolunteerRegistration({
   initial,
   onSubmitted,
   onReload,
+  branchOptions,
 }: {
   client: ApplicantClient<RegistrationType>;
   initial: ApplicationSnapshot<"VOLUNTEER">;
   onSubmitted: () => void;
   onReload?: () => void;
+  branchOptions?: { id: string; name: string }[];
 }) {
   const transport = useMemo(
     () => ({
@@ -68,6 +71,7 @@ export function VolunteerRegistration({
         data: VolunteerData;
         revision: number;
         currentStep: number;
+        branchId?: string | null;
       }) => {
         const result = await client.save(input);
         if (
@@ -89,6 +93,7 @@ export function VolunteerRegistration({
     {},
     false,
     { setField: volunteerSetField },
+    branchOptions !== undefined,
   );
   const [issues, setIssues] = useState<VolunteerIssue[]>([]),
     [message, setMessage] = useState(""),
@@ -96,7 +101,10 @@ export function VolunteerRegistration({
   const [inks, setInks] = useState<
     Partial<Record<VolunteerPurpose, CompletedSignature>>
   >({});
-  useReloadGuard(busy || Object.values(inks).some(Boolean), "יש להשלים את שמירת החתימות והמסמכים לפני העדכון.");
+  useReloadGuard(
+    busy || Object.values(inks).some(Boolean),
+    "יש להשלים את שמירת החתימות והמסמכים לפני העדכון.",
+  );
   const working = useRef(false),
     idempotency = useRef<{ revision: number; key: string } | undefined>(
       undefined,
@@ -133,7 +141,11 @@ export function VolunteerRegistration({
     try {
       await work();
     } catch (error) {
-      setMessage(error instanceof Error && /[\u0590-\u05ff]/.test(error.message) ? error.message : "הפעולה לא הושלמה. נסו שוב.");
+      setMessage(
+        error instanceof Error && /[\u0590-\u05ff]/.test(error.message)
+          ? error.message
+          : "הפעולה לא הושלמה. נסו שוב.",
+      );
     } finally {
       working.current = false;
       setBusy(false);
@@ -191,6 +203,11 @@ export function VolunteerRegistration({
     });
   const submit = () =>
     run(async () => {
+      if (branchOptions && !draft.branchId) {
+        draft.navigate(1);
+        setMessage("יש לבחור סניף לפני השליחה.");
+        return;
+      }
       if (!(await draft.flush())) return;
       const current = draft.current();
       const found = volunteerIssues(current.data, version);
@@ -367,6 +384,23 @@ export function VolunteerRegistration({
       </Typography>
       {draft.step === 1 && (
         <Stack gap={3}>
+          {branchOptions && (
+            <BranchSelection
+              branches={branchOptions}
+              value={draft.branchId}
+              disabled={disabled}
+              locked={
+                initial.application.status !== "DRAFT" ||
+                !!Object.keys(draft.data.signatures ?? {}).length
+              }
+              onChange={(id) => {
+                draft.changeBranch(id);
+                setInks({});
+                setIssues([]);
+                setMessage("");
+              }}
+            />
+          )}
           {field("volunteer.firstName", "שם פרטי")}
           {field("volunteer.lastName", "שם משפחה")}
           <Field

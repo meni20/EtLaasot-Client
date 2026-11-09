@@ -1,5 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { selectBranding, brandingCss } from "./branding.config";
+const qaBranding = selectBranding({ VITE_BRAND_THEME: "legacy" });
 // Isolated UI harness only: no .env, App, real authentication or PWA registration.
 export default defineConfig({
   envDir: false,
@@ -8,10 +10,12 @@ export default defineConfig({
     {
       name: "phase4-no-service-worker",
       resolveId(id) {
+        if (id === "virtual:brand.css") return "\0phase4-brand.css";
         if (id === "virtual:pwa-register/react")
           return "\0phase4-no-service-worker";
       },
       load(id) {
+        if (id === "\0phase4-brand.css") return brandingCss(qaBranding);
         if (id === "\0phase4-no-service-worker")
           return "export const useRegisterSW=()=>({needRefresh:[false,()=>{}],offlineReady:[false,()=>{}],updateServiceWorker:async()=>{}});";
       },
@@ -19,6 +23,7 @@ export default defineConfig({
   ],
   optimizeDeps: { entries: ["phase4-demo.html"] },
   define: {
+    __ETLAASOT_BRANDING__: JSON.stringify(qaBranding),
     "import.meta.env.VITE_VOLUNTEER_REGISTRATION_ENABLED": JSON.stringify(
       process.env.PHASE1_UI_VOLUNTEER_PREPARATION === "true" ? "true" : "false",
     ),

@@ -43,7 +43,9 @@ export function ParentLetter() {
     </Stack>
   );
 }
-export function IdentityStage(props: FieldProps & { profileName?: string }) {
+export function IdentityStage(
+  props: FieldProps & { profileName?: string; identityLocked?: boolean },
+) {
   return (
     <Stack gap={4}>
       {props.profileName && (
@@ -59,6 +61,7 @@ export function IdentityStage(props: FieldProps & { profileName?: string }) {
           {...props}
           path="trainee.nationalId"
           label="תעודת זהות של החניך/ה"
+          disabled={props.disabled || props.identityLocked}
           required
         />
         <Field {...props} path="trainee.nickname" label="כינוי" />
@@ -296,7 +299,12 @@ export function MedicalStage(props: FieldProps) {
           {(medical.medications ?? []).map((medication, index) => (
             <Box
               key={index}
-              sx={{ ...grid, p: 4, bgcolor: "var(--color-primary-soft, #F7F1F5)", borderRadius: 3 }}
+              sx={{
+                ...grid,
+                p: 4,
+                bgcolor: "var(--color-primary-soft, #F7F1F5)",
+                borderRadius: 3,
+              }}
             >
               {(["name", "dosage", "frequency", "instructions"] as const).map(
                 (key, i) => (
@@ -455,11 +463,16 @@ export function DeclarationsStage(
             p: 4,
             border: "1px solid var(--color-primary-border, #D9BFD2)",
             borderRadius: 3,
-            bgcolor: accepted[index] ? "var(--color-primary-soft, #F7F1F5)" : "white",
+            bgcolor: accepted[index]
+              ? "var(--color-primary-soft, #F7F1F5)"
+              : "white",
           }}
         >
           <Typography sx={{ lineHeight: 1.85 }}>
-            <Box component="b" sx={{ color: "var(--color-primary, #7A3E6B)", mr: 1 }}>
+            <Box
+              component="b"
+              sx={{ color: "var(--color-primary, #7A3E6B)", mr: 1 }}
+            >
               {index + 1}.
             </Box>{" "}
             <span>{text}</span>
@@ -554,7 +567,11 @@ export function SigningStage(
         <Stack
           gap={4}
           key={parent}
-          sx={{ border: "1px solid var(--color-primary-border, #D9BFD2)", p: 4, borderRadius: 3 }}
+          sx={{
+            border: "1px solid var(--color-primary-border, #D9BFD2)",
+            p: 4,
+            borderRadius: 3,
+          }}
         >
           <Typography variant="h6" component="h3">
             הורה {index + 1} —{" "}
