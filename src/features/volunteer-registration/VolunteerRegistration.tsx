@@ -457,14 +457,14 @@ export function VolunteerRegistration({
           <Typography>
             איזה גיל ורמה תפקודית של חניך נראים לך כמתאימים לך יותר:
           </Typography>
-          {field("questionnaire.age", "קטן/בוגר", ["קטן", "בוגר"])}
+          {field("questionnaire.age", "קטן/בוגר", ["קטן", "בוגר", "לא משנה לי"])}
           {field("questionnaire.communication", "מדבר/לא מתקשר", [
             "מדבר",
-            "לא מתקשר",
+            "לא מתקשר", "לא משנה לי",
           ])}
           {field("questionnaire.diaper", "עם טיטול/ללא טיטול", [
             "עם טיטול",
-            "ללא טיטול",
+            "ללא טיטול", "לא משנה לי",
           ])}
           <YesNo
             {...props}
