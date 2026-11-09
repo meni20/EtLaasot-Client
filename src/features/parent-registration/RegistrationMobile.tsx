@@ -1,4 +1,5 @@
 import { useReloadGuard } from "../../hooks/useReloadGuard";
+import { BranchSelection } from "../parent-admission/BranchSelection";
 import { stageNames } from "./stageNames";
 import { useRef, useState } from "react";
 import {
@@ -50,11 +51,13 @@ export function RegistrationMobile({
   profile,
   onDemoSubmit,
   onSubmitted,
+  branchOptions,
 }: {
   api: RegistrationApi;
   profile: ProfilePrefill;
   onDemoSubmit?: () => Promise<void>;
   onSubmitted?: () => void;
+  branchOptions?: { id: string; name: string }[];
 }) {
   const draft = useRegistration(api);
   const status = useRegistrationStatus(api);
@@ -91,6 +94,7 @@ export function RegistrationMobile({
       reload={reload}
       onDemoSubmit={onDemoSubmit}
       onSubmitted={onSubmitted}
+      branchOptions={branchOptions}
     />
   );
 }
@@ -103,6 +107,7 @@ function MobileForm({
   reload,
   onDemoSubmit,
   onSubmitted,
+  branchOptions,
 }: {
   api: RegistrationApi;
   initial: DraftResponse;
@@ -112,6 +117,7 @@ function MobileForm({
   reload: () => Promise<void>;
   onDemoSubmit?: () => Promise<void>;
   onSubmitted?: () => void;
+  branchOptions?: { id: string; name: string }[];
 }) {
   const draft = useDraft(
     api,
@@ -120,6 +126,8 @@ function MobileForm({
     initial.form?.status === "PENDING_REVIEW" ||
       initial.form?.status === "APPROVED" ||
       !status.registrationRequired,
+    undefined,
+    branchOptions !== undefined,
   );
   const [letterRead, setLetterRead] = useState(false);
   const [letterOpen, setLetterOpen] = useState(false);
@@ -131,7 +139,10 @@ function MobileForm({
   }>({});
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  useReloadGuard(submitting || !!file || !!signatures.parent1 || !!signatures.parent2, "יש להשלים את שמירת המסמכים והחתימות לפני העדכון.");
+  useReloadGuard(
+    submitting || !!file || !!signatures.parent1 || !!signatures.parent2,
+    "יש להשלים את שמירת המסמכים והחתימות לפני העדכון.",
+  );
   const inFlight = useRef(false);
   const [reloadConfirm, setReloadConfirm] = useState(false);
   const formStatus = initial.form?.status;
@@ -178,6 +189,11 @@ function MobileForm({
   };
   const submit = async () => {
     if (inFlight.current) return;
+    if (branchOptions && !draft.branchId) {
+      go(1);
+      setMessage("יש לבחור סניף לפני השליחה.");
+      return;
+    }
     inFlight.current = true;
     setSubmitting(true);
     setMessage("");
@@ -252,7 +268,11 @@ function MobileForm({
         setIssues([{ path, stage: stageFor(path), message: e.message }]);
         go(stageFor(path));
       }
-      setMessage(e instanceof Error && /[\u0590-\u05ff]/.test(e.message) ? e.message : "השליחה נכשלה. נסו שוב.");
+      setMessage(
+        e instanceof Error && /[\u0590-\u05ff]/.test(e.message)
+          ? e.message
+          : "השליחה נכשלה. נסו שוב.",
+      );
     } finally {
       inFlight.current = false;
       setSubmitting(false);
@@ -352,7 +372,11 @@ function MobileForm({
         ) : !initial.form && (approved || noRequest) ? (
           <Paper
             variant="outlined"
-            sx={{ p: 5, borderColor: "var(--color-primary-border, #D9BFD2)", borderRadius: 4 }}
+            sx={{
+              p: 5,
+              borderColor: "var(--color-primary-border, #D9BFD2)",
+              borderRadius: 4,
+            }}
           >
             <Typography>
               אין טופס פעיל לעריכה.
@@ -461,7 +485,29 @@ function MobileForm({
                 {stageNames[draft.step - 1]}
               </Typography>
               {draft.step === 1 && (
-                <IdentityStage {...props} profileName={profile.name} />
+                <Stack gap={4}>
+                  {branchOptions && (
+                    <BranchSelection
+                      branches={branchOptions}
+                      value={draft.branchId}
+                      disabled={locked}
+                      locked={
+                        formStatus !== "DRAFT" ||
+                        !!Object.keys(draft.data.signatures ?? {}).length
+                      }
+                      onChange={(id) => {
+                        draft.changeBranch(id);
+                        setSignatures({});
+                        setIssues([]);
+                      }}
+                    />
+                  )}
+                  <IdentityStage
+                    {...props}
+                    profileName={profile.name}
+                    identityLocked={branchOptions !== undefined}
+                  />
+                </Stack>
               )}
               {draft.step === 2 && <ContactsStage {...props} />}
               {draft.step === 3 && <MedicalStage {...props} />}

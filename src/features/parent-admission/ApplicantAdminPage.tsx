@@ -85,6 +85,8 @@ function ApplicantAdminWorkspace() {
     id: string;
     value: WelcomeEmailStatus;
   } | null>(null);
+  const [approvalConfirmation, setApprovalConfirmation] = useState("");
+  useEffect(() => setApprovalConfirmation(""), [selected]);
   const [passwordExpires, setPasswordExpires] = useState("");
   const [deletion, setDeletion] = useState<{
     id: string;
@@ -211,9 +213,12 @@ function ApplicantAdminWorkspace() {
     ? volunteerApprovalBlockers(doc as ApplicationDetail<"VOLUNTEER">)
     : [];
   const canApprove = !!doc && canApproveApplication(doc) && !blockers.length;
-  const recipient = isVolunteer
-    ? (latest?.data as VolunteerData | undefined)?.volunteer?.email
-    : (latest?.data as RegistrationData | undefined)?.trainee?.email;
+  const existingPassword = doc?.authentication === "EXISTING_PASSWORD";
+  const recipient = existingPassword
+    ? doc?.approvalNotificationEmail
+    : isVolunteer
+      ? (latest?.data as VolunteerData | undefined)?.volunteer?.email
+      : (latest?.data as RegistrationData | undefined)?.trainee?.email;
   const emailEnabled =
     !!doc?.welcomeEmail && doc.welcomeEmail.status !== "DISABLED";
   const welcome =
@@ -228,9 +233,14 @@ function ApplicantAdminWorkspace() {
         <Typography component="h1" variant="h5" color="primary">
           בקשות הרשמה
         </Typography>
+        {approvalConfirmation && (
+          <Alert severity="success" onClose={() => setApprovalConfirmation("")}>
+            {approvalConfirmation}
+          </Alert>
+        )}
         {welcome && (
           <Alert severity={welcome.status === "FAILED" ? "warning" : "info"}>
-            החשבון אושר. {welcomeLabel(welcome)}{" "}
+            החשבון אושר. {welcomeLabel(welcome, existingPassword)}{" "}
             {welcome.recipient && `(${welcome.recipient})`}
             {welcome.retryable && (
               <Button
@@ -977,13 +987,39 @@ function ApplicantAdminWorkspace() {
           <DialogContent>
             <Typography>
               {confirmation?.action === "approve"
-                ? "הפעולה תיצור חשבון עבור הגרסה שנבדקה. סיסמה זמנית תוצג פעם אחת כגיבוי למסירה ידנית."
+                ? existingPassword
+                  ? "הפעולה תיצור חשבון עבור הגרסה שנבדקה. המבקש יוכל להיכנס עם הסיסמה שבחר בעת ההרשמה."
+                  : "הפעולה תיצור חשבון עבור הגרסה שנבדקה. סיסמה זמנית תוצג פעם אחת כגיבוי למסירה ידנית."
                 : `הבקשה תידחה. סיבה: ${confirmation?.reason ?? ""}`}
             </Typography>
             {confirmation?.action === "approve" &&
               emailEnabled &&
               recipient &&
-              (isVolunteer ? (
+              (existingPassword ? (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  הודעת האישור תאפשר כניסה עם הסיסמה הקיימת. לא יישלח קישור
+                  לבחירת סיסמה.
+                  {!isVolunteer && (
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={confirmation.welcomeEmailConfirmed === true}
+                          onChange={(e) =>
+                            setConfirmation(
+                              (current) =>
+                                current && {
+                                  ...current,
+                                  welcomeEmailConfirmed: e.target.checked,
+                                },
+                            )
+                          }
+                        />
+                      }
+                      label={`אני מאשר/ת שליחת הודעת אישור לכתובת ההרשמה ${recipient}`}
+                    />
+                  )}
+                </Alert>
+              ) : isVolunteer ? (
                 <Alert severity="info" sx={{ mt: 2 }}>
                   לאחר האישור תישלח הודעת ברוכים הבאים וקישור לבחירת סיסמה
                   לכתובת {recipient}. באישורכם אתם מאשרים שזו כתובת מורשית של
@@ -1011,8 +1047,9 @@ function ApplicantAdminWorkspace() {
             {confirmation?.action === "approve" &&
               (!emailEnabled || !recipient) && (
                 <Typography sx={{ mt: 1 }}>
-                  שליחת קישור אינה זמינה לבקשה זו. יש למסור את הסיסמה הזמנית
-                  ידנית.
+                  {existingPassword
+                    ? "המבקש יוכל להיכנס עם הסיסמה שבחר בעת ההרשמה גם ללא הודעת אימייל."
+                    : "שליחת קישור אינה זמינה לבקשה זו. יש למסור את הסיסמה הזמנית ידנית."}
                 </Typography>
               )}
           </DialogContent>
@@ -1039,7 +1076,12 @@ function ApplicantAdminWorkspace() {
                         id: decision.id,
                         value: result.welcomeEmail,
                       });
-                    setPassword(result.temporaryPassword ?? "");
+                    if (result.authentication === "EXISTING_PASSWORD") {
+                      setApprovalConfirmation(
+                        "הבקשה אושרה. ניתן להיכנס למערכת עם הסיסמה שנבחרה בעת ההרשמה.",
+                      );
+                      setPassword("");
+                    } else setPassword(result.temporaryPassword ?? "");
                     setPasswordExpires(result.temporaryPasswordExpiresAt ?? "");
                   } else
                     await api.review(
@@ -1064,7 +1106,18 @@ function ApplicantAdminWorkspace() {
     </Box>
   );
 }
-function welcomeLabel(value: WelcomeEmailStatus) {
+function welcomeLabel(value: WelcomeEmailStatus, existingPassword = false) {
+  if (value.notificationOnly || existingPassword) {
+    const messages: Record<string, string> = {
+      DISABLED:
+        "שליחת אימייל אינה פעילה. המבקש יכול להיכנס עם הסיסמה שבחר בהרשמה.",
+      SKIPPED: "לא נשלח אימייל. המבקש יכול להיכנס עם הסיסמה שבחר בהרשמה.",
+      CANCELLED: "הודעת האישור בוטלה. המבקש יכול להיכנס עם הסיסמה שבחר בהרשמה.",
+      FAILED:
+        "שליחת הודעת האישור נכשלה. אפשר לנסות שוב; החשבון כבר פעיל עם הסיסמה הקיימת.",
+    };
+    if (messages[value.status]) return messages[value.status];
+  }
   if (value.passwordSet) return "הסיסמה האישית כבר נבחרה.";
   const text: Record<string, string> = {
     PENDING: "הודעת ברוכים הבאים ממתינה לשליחה; החשבון כבר אושר.",

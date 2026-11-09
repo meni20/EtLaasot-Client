@@ -25,6 +25,8 @@ async function harness(
     missingPdf = false,
     missingClearance = false,
     stale = false,
+    passwordBased = false,
+    emailEnabled = false,
   } = {},
 ) {
   let status = "PENDING_REVIEW";
@@ -196,6 +198,21 @@ async function harness(
     if (url.pathname === `${base}/${appId}`)
       return reply({
         application: summary(),
+        ...(emailEnabled
+          ? {
+              welcomeEmail: {
+                status: status === "APPROVED" ? "PENDING" : "NOT_QUEUED",
+                notificationOnly: true,
+              },
+            }
+          : {}),
+        ...(passwordBased
+          ? {
+              authentication: "EXISTING_PASSWORD",
+              approvalNotificationEmail: "f***@example.test",
+              recoveryEligible: false,
+            }
+          : {}),
         branch: { id: branch, name: "סניף בדיקה מקומי", isActive: true },
         versions: [
           {
@@ -234,6 +251,14 @@ async function harness(
         reason: null,
         createdAt: "2026-10-25T11:00:00Z",
       });
+      if (passwordBased)
+        return reply({
+          authentication: "EXISTING_PASSWORD",
+          welcomeEmail: {
+            status: emailEnabled ? "PENDING" : "DISABLED",
+            notificationOnly: true,
+          },
+        });
       return reply({
         temporaryPassword,
         temporaryPasswordExpiresAt: "2026-11-01T10:00:00Z",
@@ -335,7 +360,9 @@ test("approval requires confirmation, hands off the password once and removes it
     .check();
   await page.getByRole("button", { name: "אישור ויצירת חשבון מתנדב" }).click();
   expect(h.calls.filter((c) => c.path.endsWith("/approve"))).toHaveLength(0);
-  await page.getByRole("button", { name: "אישור ויצירת חשבון", exact: true }).click();
+  await page
+    .getByRole("button", { name: "אישור ויצירת חשבון", exact: true })
+    .click();
   const password = page.getByLabel("סיסמה זמנית למסירה");
   await expect(password).toHaveValue(temporaryPassword);
   await expect(password).toHaveAttribute("type", "password");
@@ -407,7 +434,9 @@ test("missing clearance and PDF block approval; stale approval exposes no passwo
     })
     .check();
   await page.getByRole("button", { name: "אישור ויצירת חשבון מתנדב" }).click();
-  await page.getByRole("button", { name: "אישור ויצירת חשבון", exact: true }).click();
+  await page
+    .getByRole("button", { name: "אישור ויצירת חשבון", exact: true })
+    .click();
   await expect(
     page.getByText(
       "הגרסה או מסמכי הבקשה השתנו. יש לבדוק מחדש את הבקשה לפני החלטה.",
@@ -415,3 +444,47 @@ test("missing clearance and PDF block approval; stale approval exposes no passwo
   ).toBeVisible();
   await expect(page.getByLabel("סיסמה זמנית למסירה")).toHaveCount(0);
 });
+
+for (const width of [390, 1440]) {
+  test(`password approval shows simple confirmation without temporary credentials (${width}px)`, async ({
+    page,
+  }) => {
+    const h = await harness(page, {
+      passwordBased: true,
+      emailEnabled: width === 1440,
+    });
+    await page.setViewportSize({ width, height: 900 });
+    await h.open();
+    await page
+      .getByRole("checkbox", {
+        name: "אימתתי ידנית את זהות המתנדב, המסמכים ושיוכו לסניף",
+      })
+      .check();
+    await page
+      .getByRole("button", { name: "אישור ויצירת חשבון מתנדב" })
+      .click();
+    await expect(
+      page.getByText(
+        "הפעולה תיצור חשבון עבור הגרסה שנבדקה. המבקש יוכל להיכנס עם הסיסמה שבחר בעת ההרשמה.",
+      ),
+    ).toBeVisible();
+    await expect(page.getByText(/סיסמה זמנית תוצג פעם אחת/)).toHaveCount(0);
+    await page
+      .getByRole("button", { name: "אישור ויצירת חשבון", exact: true })
+      .click();
+    await expect(
+      page.getByText(
+        "הבקשה אושרה. ניתן להיכנס למערכת עם הסיסמה שנבחרה בעת ההרשמה.",
+      ),
+    ).toBeVisible();
+    await expect(page.getByLabel("סיסמה זמנית למסירה")).toHaveCount(0);
+    const body = h.calls.find((c) => c.path.endsWith("/approve"))?.body;
+    expect(body).not.toHaveProperty("passwordHash");
+    expect(body).not.toHaveProperty("mustChangePassword");
+    await page.screenshot({
+      path: `.registration-qa/approval-password-${width}.png`,
+      fullPage: true,
+    });
+    expect(h.errors).toEqual([]);
+  });
+}
