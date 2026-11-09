@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import EditOutlined from "@mui/icons-material/EditOutlined";
 import { branding } from "../../config/branding";
 import { useAuth } from "../../contexts/useAuth";
 import { useStyles } from "../../pages/Mobile/LoginPage/Login.styles";
@@ -201,17 +202,28 @@ export function UnifiedEntry({
             label="תעודת זהות"
             autoComplete="username"
             value={identifier}
-            disabled={step !== "ID" || busy}
+            disabled={busy}
+            InputProps={{
+              readOnly: step !== "ID",
+              endAdornment: step !== "ID" && (
+                <InputAdornment position="end">
+                  <IconButton
+                    type="button"
+                    size="small"
+                    aria-label="שינוי תעודת זהות"
+                    disabled={busy}
+                    onClick={reset}
+                  >
+                    <EditOutlined fontSize="small" />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
             onChange={(e) =>
               setIdentifier(e.target.value.replace(/\D/g, "").slice(0, 9))
             }
             inputProps={{ inputMode: "numeric", maxLength: 9, dir: "ltr" }}
           />
-          {step !== "ID" && (
-            <Button type="button" disabled={busy} onClick={reset}>
-              שינוי תעודת זהות
-            </Button>
-          )}
           {step === "REGISTER" && (
             <>
               <TextField
@@ -320,11 +332,6 @@ export function UnifiedEntry({
               disabled={busy || !client}
             >
               {busy ? "ממשיך…" : "המשך"}
-            </Button>
-          )}
-          {step === "ID" && (
-            <Button component={RouterLink} to="/apply?legacy=1" disabled={busy}>
-              יש לי בקשה ישנה עם קוד שחזור
             </Button>
           )}
         </Stack>

@@ -379,3 +379,22 @@ test("expiry during autosave clears the applicant workspace", async ({
     page.getByRole("alert").filter({ hasText: "הגישה פגה" }),
   ).toBeVisible();
 });
+
+test("login ID edit icon stays left and unlocks the ID on mobile RTL", async ({ page }) => {
+  await mock(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/password-demo.html");
+  await expect(page.getByText("יש לי בקשה ישנה עם קוד שחזור", { exact: true })).toHaveCount(0);
+  await enterId(page);
+  const field = page.getByLabel(/^תעודת זהות/);
+  await expect(field).toHaveAttribute("readonly", "");
+  const edit = page.getByRole("button", { name: "שינוי תעודת זהות", exact: true });
+  await expect(edit.locator("svg")).toBeVisible();
+  const iconBox = await edit.boundingBox();
+  const fieldBox = await field.boundingBox();
+  expect(iconBox!.x).toBeLessThan(fieldBox!.x + fieldBox!.width / 2);
+  await edit.click();
+  await expect(field).not.toHaveAttribute("readonly", "");
+  await field.fill("000000018");
+  await expect(field).toHaveValue("000000018");
+});
