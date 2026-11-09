@@ -19,6 +19,9 @@ const ApplicantPage = lazy(() =>
     default: module.ApplicantPage,
   })),
 );
+const PasswordResetPage = lazy(
+  () => import("../features/parent-admission/PasswordRecovery"),
+);
 const PasswordSetupPage = lazy(
   () => import("../features/parent-admission/PasswordSetupPage"),
 );
@@ -61,6 +64,13 @@ const AppRouter: React.FC = () => {
       ),
     [userRoleIds],
   );
+
+  if (location.pathname === "/reset-password")
+    return (
+      <Suspense fallback={<RouteLoading />}>
+        <PasswordResetPage />
+      </Suspense>
+    );
 
   // Onboarding is available even if another account is already signed in.
   if (location.pathname === "/setup-password") {

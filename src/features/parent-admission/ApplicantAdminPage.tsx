@@ -1,3 +1,4 @@
+import { RecoveryAuthorization } from "./RecoveryAuthorization";
 import { useReloadGuard } from "../../hooks/useReloadGuard";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -233,6 +234,7 @@ function ApplicantAdminWorkspace() {
         <Typography component="h1" variant="h5" color="primary">
           בקשות הרשמה
         </Typography>
+        <RecoveryAuthorization />
         {approvalConfirmation && (
           <Alert severity="success" onClose={() => setApprovalConfirmation("")}>
             {approvalConfirmation}

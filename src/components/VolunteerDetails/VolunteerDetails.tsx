@@ -1,3 +1,4 @@
+import { RecoveryAuthorization } from "../../features/parent-admission/RecoveryAuthorization";
 import { useReloadGuard } from "../../hooks/useReloadGuard";
 import {
   Box,
@@ -554,8 +555,9 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
       setIsPromotionOpen(false);
       setPromotionError("");
       setPromotionSuccess("המשתמש קודם למנהל סניף בהצלחה");
-      queryClient.setQueriesData<IUser[]>({ queryKey: ["volunteers"] }, (users) =>
-        users?.filter((user) => user.id !== updatedUser.id),
+      queryClient.setQueriesData<IUser[]>(
+        { queryKey: ["volunteers"] },
+        (users) => users?.filter((user) => user.id !== updatedUser.id),
       );
       // Keep unsaved profile fields in the edit dialog; this action changes roles only.
       for (const key of ["volunteers", "trainees", "users", "dashboard"]) {
@@ -1135,6 +1137,13 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
             אירועים שנרשם אליהם
           </Button>
 
+          {canResetPassword && (
+            <RecoveryAuthorization
+              key={selectedUser.id}
+              subjectId={selectedUser.id}
+              subjectType="USER"
+            />
+          )}
           {canResetPassword && (
             <Button
               fullWidth

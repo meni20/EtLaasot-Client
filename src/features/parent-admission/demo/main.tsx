@@ -1,3 +1,5 @@
+import { RecoveryAuthorization } from "../RecoveryAuthorization";
+import PasswordResetPage from "../PasswordRecovery";
 /* eslint-disable react-refresh/only-export-components -- This isolated QA entry mounts its own harness. */
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -90,17 +92,26 @@ function Harness() {
               >
                 <MemoryRouter
                   initialEntries={[
-                    screen === "apply"
-                      ? "/apply"
-                      : screen === "restricted"
-                        ? "/old-bookmark"
-                        : "/login",
+                    screen === "reset"
+                      ? "/reset-password"
+                      : screen === "apply"
+                        ? "/apply"
+                        : screen === "restricted"
+                          ? "/old-bookmark"
+                          : "/login",
                   ]}
                 >
                   <Alert severity="warning">
                     Phase 4 QA · נתונים בדויים בלבד · ללא מערכת חיה
                   </Alert>
-                  {screen === "admin" ? (
+                  {screen === "recovery-admin-global" ? (
+                    <RecoveryAuthorization />
+                  ) : screen === "recovery-admin" ? (
+                    <RecoveryAuthorization
+                      subjectType="USER"
+                      subjectId="00000000-0000-4000-8000-000000000001"
+                    />
+                  ) : screen === "admin" ? (
                     <ApplicantAdminPage />
                   ) : screen === "restricted" ? (
                     <RegistrationBoundary>
@@ -111,6 +122,10 @@ function Harness() {
                   ) : (
                     <Routes>
                       <Route path="/login" element={<TwoStepLogin />} />
+                      <Route
+                        path="/reset-password"
+                        element={<PasswordResetPage />}
+                      />
                       <Route path="/apply" element={<ApplicantPage />} />
                     </Routes>
                   )}
