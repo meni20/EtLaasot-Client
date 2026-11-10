@@ -1,5 +1,6 @@
 // Mirrors the implemented Phase 2 DTOs; no storage paths or upload API are assumed.
 export type Person = {
+  notApplicable?: boolean;
   name?: string;
   nationalId?: string;
   phone?: string;

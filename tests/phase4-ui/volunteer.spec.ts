@@ -155,12 +155,22 @@ async function harness(page: Page, { minor = false, conflict = false } = {}) {
   async function start() {
     await page.goto("/phase4-demo.html?screen=apply");
     await page.getByLabel("תעודת זהות חניך").fill("123456782");
-    await page.getByRole("button", { name: "הרשמה למתנדב", exact: true }).click();
+    await page
+      .getByRole("button", { name: "הרשמה למתנדב", exact: true })
+      .click();
     await select(page, "סניף פעיל", "סניף בדיקה מקומי");
     await page.getByRole("button", { name: "המשך", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "קוד השחזור שלך", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "העתקת קוד השחזור" })).toBeVisible();
-    await expect(page.getByText("שמור את הקוד כדי שתוכל לחזור לבקשה בהמשך", { exact: true })).toHaveCount(1);
+    await expect(
+      page.getByRole("heading", { name: "קוד השחזור שלך", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "העתקת קוד השחזור" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("שמור את הקוד כדי שתוכל לחזור לבקשה בהמשך", {
+        exact: true,
+      }),
+    ).toHaveCount(1);
     await page
       .getByRole("button", { name: "שמרתי את קוד השחזור במקום בטוח" })
       .click();
@@ -301,7 +311,9 @@ test("complete adult volunteer form, exact legal content, RTL, autosave, current
     page.getByRole("button", { name: "הורדת PDF חתום" }),
   ).toBeDisabled();
   await page.getByRole("button", { name: "ניסיון נוסף להפקת PDF" }).click();
-  await expect(page.getByText("המסמך החתום מוכן", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("המסמך החתום מוכן", { exact: true }),
+  ).toBeVisible();
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "הורדת PDF חתום" }).click();
   expect((await download).suggestedFilename()).toBe(
@@ -391,9 +403,50 @@ test("revision conflict freezes editing and never overwrites the draft", async (
 });
 
 test("no preference choices save and restore", async ({ page }) => {
- const h=await harness(page); await h.start(); await stage(page,2);
- for(const label of ["קטן/בוגר","מדבר/לא מתקשר","עם טיטול/ללא טיטול"]) await select(page,label,"לא משנה לי");
- await expect.poll(()=>h.getData().questionnaire?.diaper).toBe("לא משנה לי");
- await page.waitForTimeout(1000); await page.reload(); await stage(page,2);
- for(const label of ["קטן/בוגר","מדבר/לא מתקשר","עם טיטול/ללא טיטול"]) await expect(page.getByRole("combobox",{name:new RegExp('^'+label)})).toHaveText("לא משנה לי");
+  const h = await harness(page);
+  await h.start();
+  await stage(page, 2);
+  for (const label of ["קטן/בוגר", "מדבר/לא מתקשר", "עם טיטול/ללא טיטול"])
+    await select(page, label, "לא משנה לי");
+  await expect.poll(() => h.getData().questionnaire?.diaper).toBe("לא משנה לי");
+  await page.waitForTimeout(1000);
+  await page.reload();
+  await stage(page, 2);
+  for (const label of ["קטן/בוגר", "מדבר/לא מתקשר", "עם טיטול/ללא טיטול"])
+    await expect(
+      page.getByRole("combobox", { name: new RegExp("^" + label) }),
+    ).toHaveText("לא משנה לי");
+});
+
+test("volunteer parent phone exemptions save independently and restore on refresh", async ({
+  page,
+}) => {
+  const h = await harness(page);
+  await h.start();
+  await h.personal();
+  const mother = () =>
+    page.getByRole("checkbox", {
+      name: "לא רלוונטי — פלאפון אמא",
+      exact: true,
+    });
+  const father = () =>
+    page.getByRole("checkbox", { name: "לא רלוונטי — פלאפון אב", exact: true });
+  const motherPhone = () => page.getByLabel(/^פלאפון אמא/).first();
+  const fatherPhone = () => page.getByLabel(/^פלאפון אב/).first();
+  await mother().check();
+  await expect(motherPhone()).toBeDisabled();
+  await expect(fatherPhone()).toBeEnabled();
+  await expect
+    .poll(() => h.getData().volunteer?.motherPhoneNotApplicable)
+    .toBe(true);
+  await page.reload();
+  await expect(mother()).toBeChecked();
+  await expect(father()).not.toBeChecked();
+  await expect(motherPhone()).toHaveValue("0500000000");
+  await mother().uncheck();
+  await expect(motherPhone()).toBeEnabled();
+  await expect(motherPhone()).toHaveAttribute("required", "");
+  await father().check();
+  await expect(fatherPhone()).toBeDisabled();
+  await expect(motherPhone()).toBeEnabled();
 });

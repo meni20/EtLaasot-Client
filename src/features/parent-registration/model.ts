@@ -43,6 +43,10 @@ export function setField(
     node = node[part] as Record<string, unknown>;
   }
   node[parts.at(-1)!] = value;
+  for (const key of ["parent1", "parent2"]) {
+    const person = (copy[key] ?? {}) as Record<string, unknown>;
+    copy[key] = { ...person, notApplicable: person.notApplicable === true };
+  }
   // Signatures attest the entire content, not just the currently visible stage.
   delete copy.signatures;
   return copy as RegistrationData;
@@ -108,8 +112,6 @@ export function validateForm(
     "trainee.healthFund",
     "trainee.school",
     "trainee.shirtSize",
-    "parent1.name",
-    "parent1.phone",
     "contacts.familyStatus",
     "contacts.emergencyName",
     "contacts.emergencyRelationship",
@@ -122,6 +124,7 @@ export function validateForm(
     if (!String(valueAt(data, path) ?? "").trim()) add(path);
   for (const person of ["trainee", "parent1", "parent2"] as const) {
     const value = data[person];
+    if (person !== "trainee" && value?.notApplicable) continue;
     if (value?.phone && !/^[+\d() -]{5,30}$/.test(value.phone))
       add(`${person}.phone`, "יש להזין מספר טלפון תקין");
     if (value?.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.email))
@@ -193,9 +196,13 @@ export function validateForm(
     add("declarationAcceptances", "יש לאשר את כל עשר ההצהרות");
   if (!local.physician && !data.medical?.physicianSummaryDocumentId)
     add("medical.physicianSummaryDocumentId", "יש לבחור סיכום רפואי");
+  if (data.parent1?.notApplicable && data.parent2?.notApplicable)
+    add("parent1.notApplicable", "יש להשאיר לפחות הורה רלוונטי אחד ולחתום");
   for (const parent of ["parent1", "parent2"] as const) {
     const signing = local[parent] || !!data.signatures?.[parent];
-    if (parent === "parent1" || signing || data[parent]?.nationalId) {
+    if (data[parent]?.notApplicable) continue;
+    {
+      if (!data[parent]?.phone?.trim()) add(`${parent}.phone`);
       if (!validId(data[parent]?.nationalId ?? ""))
         add(`${parent}.nationalId`, "יש להזין תעודת זהות תקינה");
       if (!signing) add(`signatures.${parent}`, "יש להשלים חתימה");
