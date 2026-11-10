@@ -13,18 +13,20 @@ async function mock(
     step?: number;
     failLogin?: boolean;
     expired?: boolean;
+    data?: Record<string, unknown>;
+    branchId?: string;
   } = {},
 ) {
   let authorized = !!options.status,
     revision = 0,
-    branchId: string | null = null;
-  let data: Record<string, unknown> =
+    branchId: string | null = options.branchId ?? null;
+  let data: Record<string, unknown> = options.data ?? (
     options.type === "VOLUNTEER"
       ? {
           volunteer: { nationalId: "123456782" },
           agreements: { version: "volunteer-v1" },
         }
-      : { trainee: { nationalId: "123456782" } };
+      : { trainee: { nationalId: "123456782" } });
   let step = options.step ?? 1;
   const calls: {
     path: string;
@@ -107,6 +109,10 @@ async function mock(
         authorized && !options.expired ? 200 : 401,
         authorized ? snapshot() : {},
       );
+    if (url.pathname.endsWith("/me/submit")) {
+      options.status = "PENDING_REVIEW";
+      return reply(201, { ...snapshot(), versionId: "00000000-0000-4000-8000-000000000003", versionNumber: 1 });
+    }
     if (url.pathname.endsWith("/me/draft")) {
       if (options.expired) return reply(401, {});
       if (body.revision !== revision) return reply(409, {});
@@ -251,19 +257,24 @@ for (const status of [
       await expect(
         page.getByRole("heading", { name: "הרשמת חניך", exact: true }),
       ).toBeVisible();
-    if (status === "CHANGES_REQUESTED")
-      await expect(
-        page.getByText("הבקשה הוחזרה לתיקון:", { exact: false }),
-      ).toBeVisible();
+    if (status === "CHANGES_REQUESTED") {
+      await expect(page.getByRole("heading", {name: "נדרשים תיקונים"})).toBeVisible();
+      await expect(page.getByText("נא להשלים את הפרטים",{exact:true})).toBeVisible();
+      await expect(page.getByLabel(/^שם פרטי/)).toHaveCount(0);
+      await page.getByRole("button",{name:"לתיקון הבקשה",exact:true}).click();
+      await personal(page);
+      await expect(page.getByLabel(/^שם פרטי/)).toBeVisible();
+    }
     if (status === "PENDING_REVIEW") {
-      await expect(page.getByRole("status")).toContainText("ממתינה לאישור");
+      await expect(page.getByRole("heading",{name:"הבקשה נשלחה!"})).toBeVisible();
+      await expect(page.getByText("הבקשה ממתינה לאישור מנהל.",{exact:true})).toBeVisible();
       await expect(page.getByLabel(/^סניף\s*\*?$/)).toHaveCount(0);
     }
     if (status === "REJECTED")
       await expect(page.getByRole("status")).toContainText("נדחתה");
     if (status === "APPROVED")
       await expect(
-        page.getByRole("link", { name: "לכניסה למערכת" }),
+        page.getByRole("link", { name: "כניסה למערכת", exact: true }),
       ).toBeVisible();
     expect(state.calls.some((c) => c.path.endsWith("/password/login"))).toBe(
       true,
@@ -443,4 +454,51 @@ test("parent exemptions retain values and validation through applicant draft ref
   await mother().check();
   await expect(page.getByLabel(/^טלפון האם/)).toBeDisabled();
   await expect(page.getByLabel(/^טלפון האב/)).toBeEnabled();
+});
+
+
+test("pending volunteer screen stays minimal on mobile, desktop and refresh", async ({page})=>{
+ const state=await mock(page,{type:"VOLUNTEER",status:"PENDING_REVIEW"});
+ await page.goto("/password-demo.html?screen=apply");
+ for(const width of [320,1440]){
+  await page.setViewportSize({width,height:900});
+  await expect(page.getByRole("heading",{name:"הבקשה נשלחה!"})).toBeVisible();
+  await expect(page.getByLabel(/^שם פרטי/)).toHaveCount(0);
+  await expect(page.getByRole("button",{name:/שליחת|PDF|רענון מצב/})).toHaveCount(0);
+  await expect(page.getByRole("combobox")).toHaveCount(0);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ }
+ await page.reload();await expect(page.getByRole("heading",{name:"הבקשה נשלחה!"})).toBeVisible();
+ expect(state.calls.some(x=>x.path.endsWith('/branches')||x.path.endsWith('/me/draft')||x.path.endsWith('/me/submit'))).toBe(false);
+});
+
+test("approval-revoked pending session returns to regular login without expiry error",async({page})=>{
+ const options={status:'PENDING_REVIEW',known:'account' as const,expired:false};
+ await mock(page,options);await page.goto('/password-demo.html?screen=apply');
+ await expect(page.getByRole('heading',{name:'הבקשה נשלחה!'})).toBeVisible();
+ options.status='APPROVED';options.expired=true;
+ await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+ await expect(page.getByRole('heading',{name:'כניסה והרשמה'})).toBeVisible();
+ await expect(page.getByText(/הגישה פגה/)).toHaveCount(0);
+ await enterId(page);await expect(page.getByRole('heading',{name:'הזנת סיסמה'})).toBeVisible();
+});
+
+
+test("successful trainee submission hides the form before a delayed status reload", async ({page})=>{
+ const data = {
+  trainee:{name:'בדיקה',familyName:'בדיקה',nationalId:'123456782',dateOfBirth:'2010-01-01',gender:'male',address:'בדיקה',healthFund:'מכבי',school:'בדיקה',shirtSize:'M'},
+  parent1:{name:'אב בדיקה',phone:'0500000001',nationalId:'000000018',notApplicable:false},parent2:{notApplicable:true},
+  contacts:{familyStatus:'נשואים',emergencyName:'בדיקה',emergencyRelationship:'משפחה',emergencyPhone:'0500000002'},
+  medical:{physicianName:'בדיקה',physicianPhone:'0500000003',physicianSummaryDocumentId:'00000000-0000-4000-8000-000000000004',hasConditions:false,participationRestricted:false,takesMedication:false,hasFoodAllergies:false,eatsIndependently:true,hasToiletingDifficulties:false,usesDiapers:false},
+  development:{level:'בדיקה'},declarationVersion:'volunteer-v1',declarationAcceptances:Array(10).fill(true),
+  signatures:{parent1:{documentId:'00000000-0000-4000-8000-000000000005',contentHash:'a'.repeat(64),signedAt:'2026-11-10T00:00:00Z'}}
+ };
+ const options={status:'DRAFT',step:5,branchId:'a',data};
+ await mock(page,options);
+ await page.route('**/parent-applications/me',async route=>{if(options.status==='PENDING_REVIEW')await new Promise(r=>setTimeout(r,2000));await route.fallback();});
+ await page.goto('/password-demo.html?screen=apply');await personal(page);
+ await page.getByRole('button',{name:'שליחת הטופס',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'הבקשה נשלחה!'})).toBeVisible({timeout:1500});
+ await expect(page.getByRole('navigation',{name:'שלבי הרישום'})).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'שליחת הטופס',exact:true})).toHaveCount(0);
 });

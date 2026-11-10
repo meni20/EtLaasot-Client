@@ -260,8 +260,8 @@ function MobileForm({
       }
       setSignatures({});
       setFile(undefined);
-      await reload();
-      onSubmitted?.();
+      if (onSubmitted) onSubmitted();
+      else await reload();
     } catch (e) {
       if (e instanceof RegistrationError && e.field) {
         const path = e.field.replace(/^data\./, "");
