@@ -78,6 +78,7 @@ export interface FieldIssue {
   message: string;
 }
 export function stageFor(path: string): number {
+  if (path === "trainee.healthFund") return 3;
   return path.startsWith("signatures") ||
     /parent[12]\.nationalId|physicianSummary/.test(path)
     ? 5
@@ -101,14 +102,12 @@ export function validateForm(
     "trainee.name",
     "trainee.familyName",
     "trainee.nationalId",
-    "trainee.phone",
     "trainee.dateOfBirth",
     "trainee.address",
     "trainee.gender",
     "trainee.healthFund",
     "trainee.school",
     "trainee.shirtSize",
-    "trainee.pantsSize",
     "parent1.name",
     "parent1.phone",
     "contacts.familyStatus",
@@ -117,7 +116,6 @@ export function validateForm(
     "contacts.emergencyPhone",
     "medical.physicianName",
     "medical.physicianPhone",
-    "medical.physicianHealthFund",
     "development.level",
   ];
   for (const path of required)

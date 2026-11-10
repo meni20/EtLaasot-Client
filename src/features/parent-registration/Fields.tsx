@@ -72,6 +72,13 @@ export function Field<T extends object = RegistrationData>({
         inputLabel: type === "date" ? { shrink: true } : undefined,
       }}
     >
+      {options &&
+        value !== undefined &&
+        value !== null &&
+        value !== "" &&
+        !options.includes(String(value)) && (
+          <MenuItem value={String(value)}>{String(value)}</MenuItem>
+        )}
       {options?.map((option) => (
         <MenuItem key={option} value={option}>
           {option === "male"
@@ -99,7 +106,9 @@ export function YesNo<T extends object = RegistrationData>({
   const error = props.issues.find((i) => i.path === path);
   return (
     <FormControl error={!!error} disabled={props.disabled}>
-      <FormLabel sx={{ color: "var(--color-brand-ink, #303050)", lineHeight: 1.6 }}>
+      <FormLabel
+        sx={{ color: "var(--color-brand-ink, #303050)", lineHeight: 1.6 }}
+      >
         {label} *
       </FormLabel>
       <RadioGroup

@@ -424,3 +424,20 @@ test("visual captures and preview makes no external requests or runtime errors",
     ),
   ).toBe(0);
 });
+
+test("updated trainee fields preserve family and health fund choices", async ({ page }) => {
+ await begin(page);
+ await expect(page.getByLabel('טלפון החניך/ה',{exact:true})).toHaveCount(0);
+ await expect(page.getByLabel('מידת מכנסיים',{exact:true})).toHaveCount(0);
+ await stage(page,2);
+ await select(page,'מצב משפחתי של ההורים','הורה יחיד/משפחה חד-הורית');
+ const family=page.getByRole('combobox',{name:/^מצב משפחתי/});
+ const emergency=page.getByRole('heading',{name:'קשר בשעת חירום ומסגרת חינוכית'});
+ expect((await family.boundingBox())!.y).toBeLessThan((await emergency.boundingBox())!.y);
+ await stage(page,3);await select(page,'קופת חולים','מכבי');
+ await expect(page.getByLabel(/^טלפון המרפאה/)).toBeVisible();
+ await stage(page,5);await expect(page.getByText('להעלאת הסיכום הרפואי',{exact:true})).toBeVisible();
+ await expect(page.getByRole('status')).toContainText('כל השינויים נשמרו');
+ await stage(page,2);await expect(page.getByRole('combobox',{name:/^מצב משפחתי/})).toHaveText('הורה יחיד/משפחה חד-הורית');
+ await stage(page,3);await expect(page.getByRole('combobox',{name:/^קופת חולים/})).toHaveText('מכבי');
+});

@@ -137,7 +137,7 @@ async function enterId(page: Page) {
 async function signup(page: Page, type = "TRAINEE") {
   await enterId(page);
   if (type === "VOLUNTEER") {
-    await page.getByLabel("סוג הרשמה").click();
+    await page.getByLabel("אני נרשם כ...").click();
     await page.getByRole("option", { name: "מתנדב", exact: true }).click();
   }
   await page.getByLabel(/^כתובת\ אימייל\s*\*?$/).fill("Family@Example.com");
