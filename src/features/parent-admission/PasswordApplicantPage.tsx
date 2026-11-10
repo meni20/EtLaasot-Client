@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { ApplicationStatusScreen } from "./ApplicationStatusScreen";
 import {
   Alert,
   Box,
@@ -26,6 +27,9 @@ export function PasswordApplicantPage({
 }: {
   client?: ApplicantClient<RegistrationType>;
 }) {
+  const navigate = useNavigate();
+  const [correcting, setCorrecting] = useState(false);
+  const requestInFlight = useRef(false);
   const [client] = useState(() => supplied ?? passwordApplicantClient());
   const [queries] = useState(
     () =>
@@ -41,38 +45,43 @@ export function PasswordApplicantPage({
     { id: string; name: string; city: string }[]
   >([]);
   const [loading, setLoading] = useState(true),
-    [error, setError] = useState(""),
-    [expired, setExpired] = useState(false);
+    [error, setError] = useState("");
   const [epoch, setEpoch] = useState(0);
-  const authenticated = useRef(false);
   const load = useCallback(async () => {
     if (!client) {
       setLoading(false);
       return;
     }
+    if (requestInFlight.current) return;
+    requestInFlight.current = true;
     setError("");
     try {
       const current = await client.me();
-      const list = await client.branches();
+      const list = ["DRAFT", "CHANGES_REQUESTED"].includes(
+        current.application.status,
+      )
+        ? await client.branches()
+        : [];
       setSnapshot(current);
-      authenticated.current = true;
       setBranches(list);
-      setExpired(false);
+      setCorrecting(false);
       setEpoch((v) => v + 1);
     } catch (e) {
       if (e instanceof RegistrationError && e.status === 401) {
         queries.clear();
         setSnapshot(null);
+        navigate("/login", { replace: true });
       } else setError("לא ניתן לטעון את הבקשה כרגע. נסו שוב.");
     } finally {
+      requestInFlight.current = false;
       setLoading(false);
     }
-  }, [client, queries]);
+  }, [client, queries, navigate]);
   useEffect(() => {
     const expire = () => {
       queries.clear();
       setSnapshot(null);
-      if (authenticated.current) setExpired(true);
+      navigate("/login", { replace: true });
     };
     window.addEventListener("applicant-session-expired", expire);
     void load();
@@ -80,7 +89,34 @@ export function PasswordApplicantPage({
       window.removeEventListener("applicant-session-expired", expire);
       queries.clear();
     };
-  }, [load, queries]);
+  }, [load, queries, navigate]);
+  useEffect(() => {
+    if (snapshot?.application.status !== "PENDING_REVIEW") return;
+    const refresh = () => {
+      void load();
+    };
+    const visible = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", visible);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", visible);
+    };
+  }, [snapshot?.application.status, load]);
+  const submitted = () => {
+    setCorrecting(false);
+    setSnapshot((current) =>
+      current
+        ? {
+            ...current,
+            application: { ...current.application, status: "PENDING_REVIEW" },
+          }
+        : current,
+    );
+    void load();
+  };
   const api = useMemo(
     () => (client ? applicantFormApi(client, snapshot?.application.id) : null),
     [client, snapshot?.application.id],
@@ -98,17 +134,24 @@ export function PasswordApplicantPage({
       <UnifiedEntry
         client={client}
         onApplicantAuthenticated={load}
-        notice={
-          expired
-            ? "הגישה פגה. יש להיכנס שוב כדי להמשיך בבקשה."
-            : error || undefined
-        }
+        notice={error || undefined}
       />
     );
   const application = snapshot.application;
-  const statusOnly = ["PENDING_REVIEW", "REJECTED", "APPROVED"].includes(
-    application.status,
-  );
+  const state = application.status;
+  if (
+    state === "PENDING_REVIEW" ||
+    state === "APPROVED" ||
+    state === "REJECTED" ||
+    (state === "CHANGES_REQUESTED" && !correcting)
+  )
+    return (
+      <ApplicationStatusScreen
+        status={state}
+        reason={application.feedbackReason}
+        onCorrect={() => setCorrecting(true)}
+      />
+    );
   return (
     <QueryClientProvider client={queries}>
       <Box dir="rtl" sx={{ minHeight: "100dvh", p: { xs: 2, md: 4 } }}>
@@ -148,36 +191,14 @@ export function PasswordApplicantPage({
               הבקשה הוחזרה לתיקון: {application.feedbackReason}
             </Alert>
           )}
-          {statusOnly ? (
-            <Stack gap={2} sx={{ py: 4 }}>
-              <Alert
-                severity={
-                  application.status === "REJECTED" ? "error" : "success"
-                }
-                role="status"
-              >
-                {application.status === "PENDING_REVIEW"
-                  ? "הבקשה נשלחה וממתינה לאישור מנהל. אין אפשרות לערוך כעת."
-                  : application.status === "REJECTED"
-                    ? `הבקשה נדחתה. ${application.feedbackReason ?? ""}`
-                    : "הבקשה אושרה. יש להיכנס באמצעות פרטי החשבון."}
-              </Alert>
-              {application.status === "APPROVED" ? (
-                <Button component={RouterLink} to="/login" variant="contained">
-                  לכניסה למערכת
-                </Button>
-              ) : (
-                <Button onClick={() => void load()}>רענון מצב הבקשה</Button>
-              )}
-            </Stack>
-          ) : application.registrationType === "VOLUNTEER" ? (
+          {application.registrationType === "VOLUNTEER" ? (
             <VolunteerRegistration
               key={`${application.id}-${epoch}`}
               client={client}
               initial={snapshot as ApplicationSnapshot<"VOLUNTEER">}
               branchOptions={branches}
               onReload={() => void load()}
-              onSubmitted={() => void load()}
+              onSubmitted={submitted}
             />
           ) : (
             <RegistrationMobile
@@ -185,7 +206,7 @@ export function PasswordApplicantPage({
               api={api}
               profile={{}}
               branchOptions={branches}
-              onSubmitted={() => void load()}
+              onSubmitted={submitted}
             />
           )}
         </Stack>
