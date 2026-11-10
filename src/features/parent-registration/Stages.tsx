@@ -81,24 +81,11 @@ export function IdentityStage(
         />
         <Field
           {...props}
-          path="trainee.phone"
-          label="טלפון החניך/ה"
-          type="tel"
-          required
-        />
-        <Field
-          {...props}
           path="trainee.email"
           label="דואר אלקטרוני"
           type="email"
         />
         <Field {...props} path="trainee.address" label="כתובת" required />
-        <Field
-          {...props}
-          path="trainee.healthFund"
-          label="קופת חולים"
-          required
-        />
         <Field
           {...props}
           path="trainee.shirtSize"
@@ -114,12 +101,6 @@ export function IdentityStage(
             required
           />
         )}
-        <Field
-          {...props}
-          path="trainee.pantsSize"
-          label="מידת מכנסיים"
-          required
-        />
         <Field
           {...props}
           path="trainee.siblings"
@@ -142,6 +123,26 @@ export function IdentityStage(
 export function ContactsStage(props: FieldProps) {
   return (
     <Stack gap={5}>
+      <Typography component="h3" variant="h6">
+        פרטי המשפחה
+      </Typography>
+      <Box sx={grid}>
+        <Field
+          {...props}
+          path="contacts.familyStatus"
+          label="מצב משפחתי של ההורים"
+          options={[
+            "נשואים",
+            "גרושים",
+            "רווקים",
+            "פרודים",
+            "אלמנים",
+            "הורה יחיד/משפחה חד-הורית",
+            "אחר",
+          ]}
+          required
+        />
+      </Box>
       {(["parent1", "parent2"] as const).map((parent, index) => (
         <Stack key={parent} gap={4}>
           <Typography component="h3" variant="h6">
@@ -185,12 +186,6 @@ export function ContactsStage(props: FieldProps) {
         קשר בשעת חירום ומסגרת חינוכית
       </Typography>
       <Box sx={grid}>
-        <Field
-          {...props}
-          path="contacts.familyStatus"
-          label="מצב משפחתי של ההורים"
-          required
-        />
         <Field
           {...props}
           path="contacts.emergencyName"
@@ -432,14 +427,15 @@ export function MedicalStage(props: FieldProps) {
         />
         <Field
           {...props}
-          path="medical.physicianHealthFund"
-          label="קופת חולים של הרופא/ה"
+          path="trainee.healthFund"
+          label="קופת חולים"
+          options={["כללית", "מכבי", "מאוחדת", "לאומית", "לא חבר בקופ״ח"]}
           required
         />
         <Field
           {...props}
           path="medical.physicianPhone"
-          label="טלפון הרופא/ה"
+          label="טלפון המרפאה"
           type="tel"
           required
         />
@@ -525,7 +521,7 @@ export function SigningStage(
           : "הדגמה בלבד: הקבצים והחתימות נשארים בזיכרון ולא מועלים."}
       </Alert>
       <Typography variant="h6" component="h3">
-        סיכום רפואי עדכני
+        להעלאת הסיכום הרפואי
       </Typography>
       <Typography>{parentLetter.medicalRequirement}</Typography>
       <Button component="label" variant="outlined" disabled={props.disabled}>
@@ -563,6 +559,26 @@ export function SigningStage(
           <Button onClick={() => props.onFile(undefined)}>הסרה</Button>
         </Alert>
       )}
+      <Typography component="h3" variant="h6">
+        פרטי המשפחה
+      </Typography>
+      <Box sx={grid}>
+        <Field
+          {...props}
+          path="contacts.familyStatus"
+          label="מצב משפחתי של ההורים"
+          options={[
+            "נשואים",
+            "גרושים",
+            "רווקים",
+            "פרודים",
+            "אלמנים",
+            "הורה יחיד/משפחה חד-הורית",
+            "אחר",
+          ]}
+          required
+        />
+      </Box>
       {(["parent1", "parent2"] as const).map((parent, index) => (
         <Stack
           gap={4}

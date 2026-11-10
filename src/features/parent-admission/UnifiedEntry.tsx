@@ -228,7 +228,7 @@ export function UnifiedEntry({
             <>
               <TextField
                 select
-                label="סוג הרשמה"
+                label="אני נרשם כ..."
                 value={type}
                 disabled={busy}
                 onChange={(e) => setType(e.target.value as RegistrationType)}

@@ -1,3 +1,4 @@
+import { fillVolunteerText } from "./fill-text";
 import { useReloadGuard } from "../../hooks/useReloadGuard";
 import { BranchSelection } from "../parent-admission/BranchSelection";
 import { useMemo, useRef, useState } from "react";
@@ -269,7 +270,7 @@ export function VolunteerRegistration({
   const paragraphs = (lines: readonly string[]) =>
     lines.map((line, index) => (
       <Typography key={index} sx={{ whiteSpace: "pre-wrap", lineHeight: 1.9 }}>
-        {line}
+        {fillVolunteerText(line, data.volunteer)}
       </Typography>
     ));
   const signature = (purpose: VolunteerPurpose) => (
@@ -521,7 +522,7 @@ export function VolunteerRegistration({
           </Alert>
         ) : needsParent(data) ? (
           <Stack gap={3}>
-            <Typography>{legal.parental}</Typography>
+            <Typography>{fillVolunteerText(legal.parental, data.volunteer)}</Typography>
             <Typography>
               שם הבן/הבת: {data.volunteer?.firstName} {data.volunteer?.lastName}
             </Typography>
