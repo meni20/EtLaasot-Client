@@ -38,8 +38,6 @@ export function ParentLetter() {
         ))}
       </Box>
       <Typography>{parentLetter.letterContact}</Typography>
-      <Typography>{parentLetter.attachmentLabel}</Typography>
-      <Alert severity="info">{parentLetter.medicalRequirement}</Alert>
     </Stack>
   );
 }
@@ -143,27 +141,43 @@ export function ContactsStage(props: FieldProps) {
           required
         />
       </Box>
+      {props.data.parent1?.notApplicable && props.data.parent2?.notApplicable && (
+        <Alert severity="warning">להגשה נדרשים לפחות הורה רלוונטי אחד וחתימתו.</Alert>
+      )}
       {(["parent1", "parent2"] as const).map((parent, index) => (
         <Stack key={parent} gap={4}>
           <Typography component="h3" variant="h6">
-            הורה {index + 1} —{" "}
-            {index === 0
-              ? "פרטי האב / ההורה הראשי"
-              : "פרטי האם / ההורה הנוסף (רשות)"}
+            {index === 0 ? "פרטי האב" : "פרטי האם"}
+            <FormControlLabel
+              control={
+                <Checkbox
+                  disabled={props.disabled}
+                  checked={props.data[parent]?.notApplicable === true}
+                  onChange={(_, checked) =>
+                    props.change(`${parent}.notApplicable`, checked)
+                  }
+                />
+              }
+              label="לא רלוונטי"
+            />
           </Typography>
-          <Box sx={grid}>
+          <Box
+            component="fieldset"
+            disabled={props.disabled || props.data[parent]?.notApplicable}
+            sx={{ ...grid, border: 0, p: 0, m: 0, minWidth: 0 }}
+          >
             <Field
               {...props}
               path={`${parent}.name`}
-              label={`שם הורה ${index + 1}`}
-              required={index === 0}
+              label={index === 0 ? "שם האב" : "שם האם"}
+              required={!props.data[parent]?.notApplicable}
             />
             <Field
               {...props}
               path={`${parent}.phone`}
-              label={`טלפון הורה ${index + 1}`}
+              label={index === 0 ? "טלפון האב" : "טלפון האם"}
               type="tel"
-              required={index === 0}
+              required={!props.data[parent]?.notApplicable}
             />
             <Field {...props} path={`${parent}.occupation`} label="עיסוק" />
             <Field
@@ -559,26 +573,6 @@ export function SigningStage(
           <Button onClick={() => props.onFile(undefined)}>הסרה</Button>
         </Alert>
       )}
-      <Typography component="h3" variant="h6">
-        פרטי המשפחה
-      </Typography>
-      <Box sx={grid}>
-        <Field
-          {...props}
-          path="contacts.familyStatus"
-          label="מצב משפחתי של ההורים"
-          options={[
-            "נשואים",
-            "גרושים",
-            "רווקים",
-            "פרודים",
-            "אלמנים",
-            "הורה יחיד/משפחה חד-הורית",
-            "אחר",
-          ]}
-          required
-        />
-      </Box>
       {(["parent1", "parent2"] as const).map((parent, index) => (
         <Stack
           gap={4}
@@ -590,25 +584,20 @@ export function SigningStage(
           }}
         >
           <Typography variant="h6" component="h3">
-            הורה {index + 1} —{" "}
-            {index === 0 ? "חתימה חובה" : "חתימה נוספת (רשות)"}
+            {index === 0 ? "חתימת האב" : "חתימת האם"}{" "}
+            {props.data[parent]?.notApplicable ? "— לא רלוונטי" : "— חובה"}
           </Typography>
           <Field
             {...props}
             path={`${parent}.nationalId`}
-            label={`תעודת זהות הורה ${index + 1}`}
-            required={index === 0 || !!props.signatures.parent2}
+            label={index === 0 ? "תעודת זהות האב" : "תעודת זהות האם"}
+            required={!props.data[parent]?.notApplicable}
+            disabled={props.disabled || props.data[parent]?.notApplicable}
           />
-          {index === 1 && (
-            <Typography variant="body2">
-              חתימה נוספת דורשת גם שם ותעודת זהות נפרדים של הורה 2. אפשר להשאיר
-              את שניהם ריקים.
-            </Typography>
-          )}
-          {!props.disabled && (
+          {!props.disabled && !props.data[parent]?.notApplicable && (
             <SignaturePad
               key={props.generation}
-              label={`הורה ${index + 1}`}
+              label={index === 0 ? "האב" : "האם"}
               value={props.signatures[parent]}
               onChange={(value) => props.onSignature(parent, value)}
             />

@@ -380,15 +380,22 @@ test("expiry during autosave clears the applicant workspace", async ({
   ).toBeVisible();
 });
 
-test("login ID edit icon stays left and unlocks the ID on mobile RTL", async ({ page }) => {
+test("login ID edit icon stays left and unlocks the ID on mobile RTL", async ({
+  page,
+}) => {
   await mock(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/password-demo.html");
-  await expect(page.getByText("יש לי בקשה ישנה עם קוד שחזור", { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByText("יש לי בקשה ישנה עם קוד שחזור", { exact: true }),
+  ).toHaveCount(0);
   await enterId(page);
   const field = page.getByLabel(/^תעודת זהות/);
   await expect(field).toHaveAttribute("readonly", "");
-  const edit = page.getByRole("button", { name: "שינוי תעודת זהות", exact: true });
+  const edit = page.getByRole("button", {
+    name: "שינוי תעודת זהות",
+    exact: true,
+  });
   await expect(edit.locator("svg")).toBeVisible();
   const iconBox = await edit.boundingBox();
   const fieldBox = await field.boundingBox();
@@ -397,4 +404,43 @@ test("login ID edit icon stays left and unlocks the ID on mobile RTL", async ({ 
   await expect(field).not.toHaveAttribute("readonly", "");
   await field.fill("000000018");
   await expect(field).toHaveValue("000000018");
+});
+
+test("parent exemptions retain values and validation through applicant draft refresh", async ({
+  page,
+}) => {
+  const state = await mock(page, { status: "DRAFT", step: 2 });
+  await page.goto("/password-demo.html?screen=apply");
+  await personal(page);
+  await page.getByLabel(/^שם האב/).fill("אב בדיקה");
+  await page.getByLabel(/^טלפון האב/).fill("0500000001");
+  await page.getByLabel(/^שם האם/).fill("אם בדיקה");
+  await page.getByLabel(/^טלפון האם/).fill("0500000002");
+  const father = () =>
+    page.getByRole("heading", { name: /פרטי האב/ }).getByRole("checkbox");
+  const mother = () =>
+    page.getByRole("heading", { name: /פרטי האם/ }).getByRole("checkbox");
+  await father().check();
+  await expect(page.getByLabel(/^שם האב/)).toBeDisabled();
+  await expect(page.getByLabel(/^שם האם/)).toBeEnabled();
+  await expect
+    .poll(
+      () =>
+        (
+          state.calls.filter((x) => x.path.endsWith("/me/draft")).at(-1)?.body
+            .data as any
+        )?.parent1?.notApplicable,
+    )
+    .toBe(true);
+  await page.reload();
+  await personal(page);
+  await expect(father()).toBeChecked();
+  await expect(mother()).not.toBeChecked();
+  await expect(page.getByLabel(/^שם האב/)).toHaveValue("אב בדיקה");
+  await father().uncheck();
+  await expect(page.getByLabel(/^שם האב/)).toBeEnabled();
+  await expect(page.getByLabel(/^שם האב/)).toHaveAttribute("required", "");
+  await mother().check();
+  await expect(page.getByLabel(/^טלפון האם/)).toBeDisabled();
+  await expect(page.getByLabel(/^טלפון האב/)).toBeEnabled();
 });

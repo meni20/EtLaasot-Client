@@ -611,8 +611,9 @@ export function RegistrationAdmin({
 }
 const fieldLabels: Record<string, string> = {
   trainee: "חניך/ה",
-  parent1: "הורה 1",
-  parent2: "הורה 2",
+  parent1: "אב",
+  parent2: "אם",
+  notApplicable: "לא רלוונטי",
   contacts: "אנשי קשר",
   medical: "רפואה",
   development: "התפתחות",

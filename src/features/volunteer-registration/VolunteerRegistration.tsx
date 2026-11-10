@@ -441,9 +441,41 @@ export function VolunteerRegistration({
           {data.volunteer?.shirtSize === "OTHER" &&
             field("volunteer.customShirtSize", "מידת חולצה אחרת")}
           {field("volunteer.motherName", "שם אמא")}
-          {field("volunteer.motherPhone", "פלאפון אמא")}
+          <Stack gap={1}>
+            <Field
+              {...props}
+              path="volunteer.motherPhone"
+              label="פלאפון אמא"
+              type="tel"
+              disabled={
+                disabled || data.volunteer?.motherPhoneNotApplicable === true
+              }
+              required={!data.volunteer?.motherPhoneNotApplicable}
+            />
+            {ack(
+              "volunteer.motherPhoneNotApplicable",
+              "לא רלוונטי — פלאפון אמא",
+              data.volunteer?.motherPhoneNotApplicable === true,
+            )}
+          </Stack>
           {field("volunteer.fatherName", "שם אב")}
-          {field("volunteer.fatherPhone", "פלאפון אב")}
+          <Stack gap={1}>
+            <Field
+              {...props}
+              path="volunteer.fatherPhone"
+              label="פלאפון אב"
+              type="tel"
+              disabled={
+                disabled || data.volunteer?.fatherPhoneNotApplicable === true
+              }
+              required={!data.volunteer?.fatherPhoneNotApplicable}
+            />
+            {ack(
+              "volunteer.fatherPhoneNotApplicable",
+              "לא רלוונטי — פלאפון אב",
+              data.volunteer?.fatherPhoneNotApplicable === true,
+            )}
+          </Stack>
         </Stack>
       )}
       {draft.step === 2 && (
@@ -458,14 +490,20 @@ export function VolunteerRegistration({
           <Typography>
             איזה גיל ורמה תפקודית של חניך נראים לך כמתאימים לך יותר:
           </Typography>
-          {field("questionnaire.age", "קטן/בוגר", ["קטן", "בוגר", "לא משנה לי"])}
+          {field("questionnaire.age", "קטן/בוגר", [
+            "קטן",
+            "בוגר",
+            "לא משנה לי",
+          ])}
           {field("questionnaire.communication", "מדבר/לא מתקשר", [
             "מדבר",
-            "לא מתקשר", "לא משנה לי",
+            "לא מתקשר",
+            "לא משנה לי",
           ])}
           {field("questionnaire.diaper", "עם טיטול/ללא טיטול", [
             "עם טיטול",
-            "ללא טיטול", "לא משנה לי",
+            "ללא טיטול",
+            "לא משנה לי",
           ])}
           <YesNo
             {...props}
@@ -522,7 +560,9 @@ export function VolunteerRegistration({
           </Alert>
         ) : needsParent(data) ? (
           <Stack gap={3}>
-            <Typography>{fillVolunteerText(legal.parental, data.volunteer)}</Typography>
+            <Typography>
+              {fillVolunteerText(legal.parental, data.volunteer)}
+            </Typography>
             <Typography>
               שם הבן/הבת: {data.volunteer?.firstName} {data.volunteer?.lastName}
             </Typography>
