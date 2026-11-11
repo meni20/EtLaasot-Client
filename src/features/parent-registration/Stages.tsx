@@ -141,9 +141,12 @@ export function ContactsStage(props: FieldProps) {
           required
         />
       </Box>
-      {props.data.parent1?.notApplicable && props.data.parent2?.notApplicable && (
-        <Alert severity="warning">להגשה נדרשים לפחות הורה רלוונטי אחד וחתימתו.</Alert>
-      )}
+      {props.data.parent1?.notApplicable &&
+        props.data.parent2?.notApplicable && (
+          <Alert severity="warning">
+            להגשה נדרשים לפחות הורה רלוונטי אחד וחתימתו.
+          </Alert>
+        )}
       {(["parent1", "parent2"] as const).map((parent, index) => (
         <Stack key={parent} gap={4}>
           <Typography component="h3" variant="h6">
@@ -518,6 +521,10 @@ export function SigningStage(
     live?: boolean;
     file?: File;
     onFile: (file?: File) => void;
+    readingFile: boolean;
+    fileReadError: string;
+    medicalUploadFailed: boolean;
+    onRetryMedical: () => void;
     signatures: { parent1?: CompletedSignature; parent2?: CompletedSignature };
     onSignature: (
       parent: "parent1" | "parent2",
@@ -543,6 +550,7 @@ export function SigningStage(
         <input
           hidden
           type="file"
+          disabled={props.disabled}
           accept="application/pdf,image/jpeg,image/png"
           aria-label="בחירת סיכום רפואי"
           onChange={(event) => {
@@ -560,19 +568,48 @@ export function SigningStage(
               return;
             }
             setFileError("");
-            props.onFile(file);
+            event.target.value = "";
+            if (file) props.onFile(file);
           }}
         />
       </Button>
       {fileError && <Alert severity="error">{fileError}</Alert>}
+      {props.readingFile && (
+        <Typography role="status">קורא את הסיכום הרפואי…</Typography>
+      )}
+      {props.fileReadError && (
+        <Alert severity="error">{props.fileReadError}</Alert>
+      )}
+      {props.medicalUploadFailed && (
+        <Alert
+          severity="error"
+          action={
+            <Button disabled={props.disabled} onClick={props.onRetryMedical}>
+              ניסיון העלאה נוסף
+            </Button>
+          }
+        >
+          לא הצלחנו להעלות את הסיכום הרפואי. הטיוטה נשמרה.
+        </Alert>
+      )}
       {props.file && (
         <Alert severity="info">
           {props.live ? "נבחר:" : "נבחר בזיכרון בלבד:"} {props.file.name} (
           {Math.ceil(props.file.size / 1024)} KB).{" "}
           {props.live ? "יועלה בעת השליחה." : "הקובץ לא הועלה."}
-          <Button onClick={() => props.onFile(undefined)}>הסרה</Button>
+          <Button
+            disabled={props.disabled}
+            onClick={() => props.onFile(undefined)}
+          >
+            הסרה
+          </Button>
         </Alert>
       )}
+      {props.live &&
+        !props.file &&
+        props.data.medical?.physicianSummaryDocumentId && (
+          <Alert severity="success">הסיכום הרפואי נשמר.</Alert>
+        )}
       {(["parent1", "parent2"] as const).map((parent, index) => (
         <Stack
           gap={4}

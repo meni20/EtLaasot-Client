@@ -1,5 +1,8 @@
 import { test, expect, type Page } from "@playwright/test";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 const legal = JSON.parse(
   readFileSync("tests/fixtures/volunteer-legal.json", "utf8"),
 );
@@ -484,8 +487,8 @@ test("approval-revoked pending session returns to regular login without expiry e
 });
 
 
-test("successful trainee submission hides the form before a delayed status reload", async ({page})=>{
- const data = {
+function signedTraineeDraft() {
+  return {
   trainee:{name:'בדיקה',familyName:'בדיקה',nationalId:'123456782',dateOfBirth:'2010-01-01',gender:'male',address:'בדיקה',healthFund:'מכבי',school:'בדיקה',shirtSize:'M'},
   parent1:{name:'אב בדיקה',phone:'0500000001',nationalId:'000000018',notApplicable:false},parent2:{notApplicable:true},
   contacts:{familyStatus:'נשואים',emergencyName:'בדיקה',emergencyRelationship:'משפחה',emergencyPhone:'0500000002'},
@@ -493,6 +496,10 @@ test("successful trainee submission hides the form before a delayed status reloa
   development:{level:'בדיקה'},declarationVersion:'volunteer-v1',declarationAcceptances:Array(10).fill(true),
   signatures:{parent1:{documentId:'00000000-0000-4000-8000-000000000005',contentHash:'a'.repeat(64),signedAt:'2026-11-10T00:00:00Z'}}
  };
+}
+
+test("successful trainee submission hides the form before a delayed status reload", async ({page})=>{
+ const data = signedTraineeDraft();
  const options={status:'DRAFT',step:5,branchId:'a',data};
  await mock(page,options);
  await page.route('**/parent-applications/me',async route=>{if(options.status==='PENDING_REVIEW')await new Promise(r=>setTimeout(r,2000));await route.fallback();});
@@ -501,4 +508,74 @@ test("successful trainee submission hides the form before a delayed status reloa
  await expect(page.getByRole('heading',{name:'הבקשה נשלחה!'})).toBeVisible({timeout:1500});
  await expect(page.getByRole('navigation',{name:'שלבי הרישום'})).toHaveCount(0);
  await expect(page.getByRole('button',{name:'שליחת הטופס',exact:true})).toHaveCount(0);
+});
+
+
+test("medical upload retries the in-memory PDF without signing or submitting again", async ({ page }) => {
+  const signed = signedTraineeDraft();
+  const data = { ...signed, medical: { ...signed.medical, physicianSummaryDocumentId: undefined }, signatures: {} };
+  const state = await mock(page, { status: "DRAFT", step: 5, branchId: "a", data });
+  const pdf = Buffer.from("%PDF-1.4\n% Synthetic transport fixture\n%%EOF\n");
+  const path = join(tmpdir(), `medical-${randomUUID()}.pdf`);
+  const medicalId = "00000000-0000-4000-8000-000000000004";
+  let uploads = 0;
+  let signatureUploads = 0;
+  const revisions: number[] = [];
+  await page.route("**/parent-applications/me/attachments/PHYSICIAN_SUMMARY", async route => {
+    uploads++;
+    const request = route.request();
+    const body = await new Response(new Uint8Array(request.postDataBuffer()!), { headers: { "Content-Type": request.headers()["content-type"] } }).formData();
+    const uploaded = body.get("file") as File;
+    expect(Buffer.from(await uploaded.arrayBuffer())).toEqual(pdf);
+    revisions.push(Number(body.get("revision")));
+    if (uploads === 1) return route.abort("failed");
+    await route.fulfill({ status: 201, json: { documentId: medicalId } });
+  });
+  await page.route("**/parent-applications/me/attachments/SIGNATURE", async route => {
+    signatureUploads++;
+    await route.fulfill({ status: 201, json: signed.signatures.parent1 });
+  });
+  // The offline demo disallows the data URL fetch used by the signature canvas.
+  await page.route("**/password-demo.html?screen=apply", async route => {
+    const response = await route.fetch();
+    const html = (await response.text()).replace("connect-src 'self'", "connect-src 'self' data:");
+    await route.fulfill({ response, body: html });
+  });
+  writeFileSync(path, pdf);
+  try {
+    await page.goto("/password-demo.html?screen=apply");
+    await personal(page);
+    await page.getByLabel("בחירת סיכום רפואי", { exact: true }).setInputFiles(path);
+    await expect(page.getByText(/נבחר: medical-/)).toBeVisible();
+    unlinkSync(path);
+    const canvas = page.getByRole("img", { name: "משטח חתימה האב", exact: true });
+    await canvas.scrollIntoViewIfNeeded();
+    const box = (await canvas.boundingBox())!;
+    await page.mouse.move(box.x + 20, box.y + 20);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 110, box.y + 60, { steps: 8 });
+    await page.mouse.up();
+    await page.getByRole("button", { name: "סיום חתימה", exact: true }).click();
+    const completed = page.getByText(/החתימה הושלמה/);
+    const submit = page.getByRole("button", { name: "שליחת הטופס", exact: true });
+    await submit.click();
+    await expect(page.getByText("לא הצלחנו להעלות את הסיכום הרפואי. הטיוטה נשמרה.")).toBeVisible();
+    await expect(page.getByText(/נבחר: medical-/)).toBeVisible();
+    await expect(completed).toBeVisible();
+    await expect(submit).toBeDisabled();
+    await page.getByRole("button", { name: "ניסיון העלאה נוסף", exact: true }).click();
+    await expect(page.getByText("הסיכום הרפואי נשמר.")).toBeVisible();
+    await expect(completed).toBeVisible();
+    expect(uploads).toBe(2);
+    expect(revisions).toEqual([1, 1]);
+    expect(signatureUploads).toBe(0);
+    expect(state.calls.filter(call => call.path.endsWith("/me/submit"))).toHaveLength(0);
+    await submit.click();
+    await expect(page.getByRole("heading", { name: "הבקשה נשלחה!" })).toBeVisible();
+    expect(uploads).toBe(2);
+    expect(signatureUploads).toBe(1);
+    expect(state.calls.filter(call => call.path.endsWith("/me/submit"))).toHaveLength(1);
+  } finally {
+    if (existsSync(path)) unlinkSync(path);
+  }
 });
