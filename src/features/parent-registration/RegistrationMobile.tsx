@@ -133,6 +133,10 @@ function MobileForm({
   const [letterOpen, setLetterOpen] = useState(false);
   const [issues, setIssues] = useState<FieldIssue[]>([]);
   const [file, setFile] = useState<File>();
+  const [readingFile, setReadingFile] = useState(false);
+  const [fileReadError, setFileReadError] = useState("");
+  const [medicalUploadFailed, setMedicalUploadFailed] = useState(false);
+  const uploadedMedicalId = useRef<string | undefined>(undefined);
   const [signatures, setSignatures] = useState<{
     parent1?: CompletedSignature;
     parent2?: CompletedSignature;
@@ -140,7 +144,11 @@ function MobileForm({
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   useReloadGuard(
-    submitting || !!file || !!signatures.parent1 || !!signatures.parent2,
+    readingFile ||
+      submitting ||
+      !!file ||
+      !!signatures.parent1 ||
+      !!signatures.parent2,
     "יש להשלים את שמירת המסמכים והחתימות לפני העדכון.",
   );
   const inFlight = useRef(false);
@@ -156,7 +164,8 @@ function MobileForm({
     approved ||
     noRequest ||
     draft.saveState === "conflict" ||
-    submitting;
+    submitting ||
+    readingFile;
   const change = (path: string, value: unknown) => {
     if (locked) return;
     draft.change(path, value);
@@ -187,8 +196,84 @@ function MobileForm({
     draft.navigate(step);
     window.scrollTo({ top: 0, behavior: "instant" });
   };
+  const chooseMedicalSummary = async (selected?: File) => {
+    if (locked || inFlight.current) return;
+    inFlight.current = true;
+    setReadingFile(true);
+    setFileReadError("");
+    try {
+      let snapshot: File | undefined;
+      if (selected) {
+        const bytes = await selected.arrayBuffer();
+        if (bytes.byteLength !== selected.size)
+          throw new Error("Incomplete file read");
+        snapshot = new File([bytes], selected.name, { type: selected.type });
+      }
+      setFile(snapshot);
+      uploadedMedicalId.current = undefined;
+      setMedicalUploadFailed(false);
+      setSignatures({});
+      draft.change("signatures", {});
+    } catch {
+      setFileReadError("לא ניתן לקרוא את הסיכום הרפואי. בחרו את הקובץ מחדש.");
+    } finally {
+      setReadingFile(false);
+      inFlight.current = false;
+    }
+  };
+
+  const uploadMedicalSummary = async (
+    selected: File,
+    current: DraftResponse,
+  ) => {
+    if (!current.form || !api.upload) return null;
+    try {
+      const revision = current.form.revision;
+      // Keep a successful upload receipt if saving its draft reference fails.
+      uploadedMedicalId.current ??= (
+        await api.upload({
+          kind: "PHYSICIAN_SUMMARY",
+          file: selected,
+          revision,
+        })
+      ).documentId;
+      const documentId = uploadedMedicalId.current;
+      const data = structuredClone(current.data);
+      let saved = { data, form: current.form };
+      if (data.medical?.physicianSummaryDocumentId !== documentId) {
+        data.medical = {
+          ...data.medical,
+          physicianSummaryDocumentId: documentId,
+        };
+        delete data.signatures;
+        saved = await api.save({ data, revision, currentStep: 5 });
+      }
+      draft.accept(saved);
+      setMedicalUploadFailed(false);
+      setFile(undefined);
+      uploadedMedicalId.current = undefined;
+      return saved;
+    } catch {
+      setMedicalUploadFailed(true);
+      return null;
+    }
+  };
+
+  const retryMedicalSummary = async () => {
+    if (!file || locked || inFlight.current) return;
+    inFlight.current = true;
+    setSubmitting(true);
+    try {
+      if (await draft.flush()) await uploadMedicalSummary(file, await api.me());
+    } catch {
+      setMedicalUploadFailed(true);
+    } finally {
+      inFlight.current = false;
+      setSubmitting(false);
+    }
+  };
   const submit = async () => {
-    if (inFlight.current) return;
+    if (inFlight.current || medicalUploadFailed) return;
     if (branchOptions && !draft.branchId) {
       go(1);
       setMessage("יש לבחור סניף לפני השליחה.");
@@ -216,7 +301,7 @@ function MobileForm({
       } else {
         if (!api.upload)
           throw new Error("העלאת מסמכים אינה זמינה כרגע. נסו שוב מאוחר יותר.");
-        let current = await api.me();
+        const current = await api.me();
         if (!current.form) throw new Error("יש לשמור טיוטה לפני השליחה.");
         let data = structuredClone(current.data),
           revision = current.form.revision;
@@ -227,17 +312,10 @@ function MobileForm({
           draft.accept(next);
         };
         if (file) {
-          const uploaded = await api.upload({
-            kind: "PHYSICIAN_SUMMARY",
-            file,
-            revision,
-          });
-          data.medical = {
-            ...data.medical,
-            physicianSummaryDocumentId: uploaded.documentId,
-          };
-          delete data.signatures;
-          await save();
+          const saved = await uploadMedicalSummary(file, current);
+          if (!saved) return;
+          data = saved.data;
+          revision = saved.form.revision;
         }
         for (const signer of ["parent1", "parent2"] as const) {
           const ink = signatures[signer];
@@ -431,6 +509,7 @@ function MobileForm({
               {stageNames.map((name, index) => (
                 <Button
                   key={name}
+                  disabled={submitting || readingFile}
                   aria-current={draft.step === index + 1 ? "step" : undefined}
                   onClick={() => go(index + 1)}
                   variant={draft.step === index + 1 ? "contained" : "outlined"}
@@ -523,11 +602,11 @@ function MobileForm({
                   {...props}
                   live={api.mode === "live" && !!api.upload}
                   file={file}
-                  onFile={(value) => {
-                    setFile(value);
-                    setSignatures({});
-                    draft.change("signatures", {});
-                  }}
+                  onFile={(value) => void chooseMedicalSummary(value)}
+                  readingFile={readingFile}
+                  fileReadError={fileReadError}
+                  medicalUploadFailed={medicalUploadFailed}
+                  onRetryMedical={() => void retryMedicalSummary()}
                   signatures={signatures}
                   onSignature={(parent, value) =>
                     setSignatures((previous) => ({
@@ -541,13 +620,17 @@ function MobileForm({
             </Paper>
             <Stack direction="row" justifyContent="space-between" gap={3}>
               <Button
-                disabled={draft.step === 1}
+                disabled={draft.step === 1 || submitting || readingFile}
                 onClick={() => go(draft.step - 1)}
               >
                 הקודם
               </Button>
               {draft.step < 5 ? (
-                <Button variant="contained" onClick={() => go(draft.step + 1)}>
+                <Button
+                  variant="contained"
+                  disabled={submitting || readingFile}
+                  onClick={() => go(draft.step + 1)}
+                >
                   השלב הבא
                 </Button>
               ) : (
@@ -556,6 +639,7 @@ function MobileForm({
                     variant="contained"
                     disabled={
                       submitting ||
+                      medicalUploadFailed ||
                       draft.saveState === "conflict" ||
                       draft.saveState === "error"
                     }
