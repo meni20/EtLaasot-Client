@@ -32,7 +32,7 @@ async function mock(
     restricted?: boolean;
     pdfAvailable?: boolean;
     submitted?: boolean;
-    renewalStatus?: "DRAFT" | "PENDING_REVIEW" | "CHANGES_REQUESTED";
+    renewalStatus?: "DRAFT" | "PENDING_REVIEW" | "CHANGES_REQUESTED" | "REJECTED";
   } = {},
 ) {
   let authorized = options.submitted ?? false;
@@ -71,6 +71,8 @@ async function mock(
       !path.startsWith("/parent-applications") &&
       !path.startsWith("/auth/") &&
       !path.startsWith("/parent-registration/") &&
+      path !== "/activity-years" &&
+      path !== "/user/get-all-trainees" &&
       path !== "/user/me"
     ) {
       await route.continue();
@@ -130,9 +132,13 @@ async function mock(
       authorized = false;
       return reply({ ok: true });
     }
-    if (path === "/parent-applications/admin")
+    if (path === "/activity-years" || path === "/user/get-all-trainees")
+      return reply([]);
+    if (path === "/parent-applications/admin") {
+      const status = url.searchParams.get("status");
+      const matches = !status || status === state.application.status;
       return reply({
-        rows: [
+        rows: matches ? [
           {
             ...state.application,
             applicantName: "חניך בדיקה",
@@ -140,9 +146,10 @@ async function mock(
               ? "00000000-0000-4000-8000-000000000003"
               : null,
           },
-        ],
-        count: 1,
+        ] : [],
+        count: matches ? 1 : 0,
       });
+    }
     if (path === `/parent-applications/admin/${id}`)
       return reply({
         application: { ...state.application, status: "PENDING_REVIEW" },
@@ -160,7 +167,13 @@ async function mock(
       });
     if (path.startsWith("/parent-applications/admin/"))
       return reply({ ok: true });
-    if (path === "/parent-registration/me/status")
+    if (path === "/parent-registration/me/volunteer")
+      return reply({
+        application: { ...state.application, registrationType: "VOLUNTEER", status: renewalStatus ?? "DRAFT" },
+        data: { volunteer: { nationalId: "123456782" } }, declarationVersion: "volunteer-v1", integration: "READY",
+        legal: { agreement: ["Fictional"], parental: "Fictional", confidentiality: ["Fictional"], clearance: "Fictional" },
+      });
+    if (path === "/parent-registration/me/status" || path === "/parent-registration/me/volunteer/status")
       return reply({
         form: null,
         annualRequired: blocked,
@@ -187,7 +200,11 @@ async function mock(
       return reply({
         formId: null,
         status: null,
-        reason: renewalStatus === "CHANGES_REQUESTED" ? "יש לתקן את הפרטים" : null,
+        reason: renewalStatus === "CHANGES_REQUESTED"
+          ? "יש לתקן את הפרטים"
+          : renewalStatus === "REJECTED"
+            ? "סיבת דחייה לדוגמה"
+            : null,
         requestReason: null,
       });
     if (path === "/user/me")
@@ -371,6 +388,7 @@ test("administrator review is separate and cannot approve without medical/PDF ev
   const { calls } = await mock(page, { pdfAvailable: true });
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/phase4-demo.html?screen=admin");
+  await expect(page.getByText(/אלה בקשות ללא חשבון מאומת/)).toHaveCount(0);
   await expect(page.getByText(id.slice(0, 8), { exact: false })).toHaveCount(0);
   const popupPromise = page.waitForEvent("popup");
   await page
@@ -402,6 +420,17 @@ test("administrator review is separate and cannot approve without medical/PDF ev
       (c) => c.url.endsWith("/request-changes") && c.method === "POST",
     ),
   ).toBe(true);
+});
+test("registration management shows application counts and existing renewal controls", async ({ page }) => {
+  await mock(page);
+  await page.goto("/phase4-demo.html?screen=registration-management");
+  await expect(page.getByRole("heading", { name: "ניהול הרשמות" })).toBeVisible();
+  await page.getByRole("combobox", { name: "מצב בקשה" }).click();
+  await expect(page.getByRole("option", { name: "טיוטה (1)" })).toBeVisible();
+  await expect(page.getByRole("option", { name: "אושר (0)" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.getByRole("tab", { name: "תקופות רישום וחידושים" }).click();
+  await expect(page.getByRole("button", { name: "פתיחת רישום שנתי לחניכים ולמתנדבים" })).toBeVisible();
 });
 test("old bookmarks become registration-only and approval restores normal navigation", async ({
   page,
@@ -439,6 +468,24 @@ test("pending review stays blocked and manager corrections unlock the existing f
   await page.getByRole("button", { name: "קראתי, המשך למילוי הטופס" }).click();
   await expect(page.getByRole("textbox", { name: "שם פרטי", exact: true })).toBeEnabled();
   await expect(page.getByText("גישה רגילה לדוגמה")).toHaveCount(0);
+});
+test("a rejected renewal keeps access blocked and shows the manager reason", async ({ page }) => {
+  await mock(page, { restricted: true, renewalStatus: "REJECTED" });
+  await page.goto("/phase4-demo.html?screen=restricted");
+  await expect(page.getByText("הרישום נדחה", { exact: true })).toBeVisible();
+  await expect(page.getByText("סיבת דחייה לדוגמה")).toBeVisible();
+  await expect(page.getByText("גישה רגילה לדוגמה")).toHaveCount(0);
+  await expect(page.getByRole("textbox", { name: "שם פרטי", exact: true })).toHaveCount(0);
+});
+test("volunteer annual renewal uses the volunteer questionnaire and restores navigation after approval", async ({ page }) => {
+  const state = await mock(page, { restricted: true });
+  await page.goto("/phase4-demo.html?screen=volunteer-renewal");
+  await expect(page.getByRole("button", { name: "2. שאלון העדפות" })).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "תעודת זהות" })).toHaveValue("123456782");
+  await expect(page.getByText("גישה רגילה לדוגמה")).toHaveCount(0);
+  state.approve();
+  await page.getByRole("button", { name: "בדיקת אישור מחדש" }).click();
+  await expect(page.getByText("גישה רגילה לדוגמה")).toBeVisible();
 });
 
 test("registration preparation is hidden by default; enabled selector preserves ID/branch without volunteer creation", async ({

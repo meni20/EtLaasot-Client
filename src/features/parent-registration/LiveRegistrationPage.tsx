@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Alert, Button } from "@mui/material";
+import { Alert, Box, Button, Tab, Tabs, Typography } from "@mui/material";
 import { useAuth } from "../../contexts/useAuth";
 import { useBranch } from "../../contexts/useBranch";
 import { createAxiosInstance } from "../../config/axiosInstance";
@@ -9,6 +9,7 @@ import { createRegistrationApi, safeRegistrationError } from "./api";
 import { RegistrationMobile } from "./RegistrationMobile";
 import { RegistrationAdmin, type AdminTrainee } from "./RegistrationAdmin";
 import { registrationApiUrl } from "./environment";
+import ApplicantAdminPage from "../parent-admission/ApplicantAdminPage";
 
 function localApiUrl(): string | null {
   return registrationApiUrl(
@@ -75,37 +76,85 @@ function ConnectedRegistration({ url }: { url: string }) {
     gcTime: 0,
   });
   if (!user || (!admin && !trainee))
-    return <Alert severity="error">אין הרשאה לרישום חניכים.</Alert>;
-  const error = admin ? trainees.error : profile.error;
-  if (error)
+    return <Alert severity="error">אין הרשאה לרישום.</Alert>;
+  if (admin)
+    return (
+      <RegistrationManagement
+        key={sessionId}
+        renewals={
+          trainees.error ? (
+            <Alert
+              severity="error"
+              action={<Button onClick={() => void trainees.refetch()}>ניסיון נוסף</Button>}
+            >
+              {trainees.error.message}
+            </Alert>
+          ) : (
+            <RegistrationAdmin
+              api={api}
+              branches={branches}
+              trainees={trainees.data ?? []}
+              onBranchChange={setBranch}
+            />
+          )
+        }
+      />
+    );
+  if (profile.error)
     return (
       <Alert
         severity="error"
-        action={
-          <Button
-            onClick={() =>
-              void (admin ? trainees.refetch() : profile.refetch())
-            }
-          >
-            ניסיון נוסף
-          </Button>
-        }
+        action={<Button onClick={() => void profile.refetch()}>ניסיון נוסף</Button>}
       >
-        {error.message}
+        {profile.error.message}
       </Alert>
-    );
-  if (admin)
-    return (
-      <RegistrationAdmin
-        key={sessionId}
-        api={api}
-        branches={branches}
-        trainees={trainees.data ?? []}
-        onBranchChange={setBranch}
-      />
     );
   if (!profile.data) return <Alert severity="info">טוען פרטי פרופיל…</Alert>;
   return (
     <RegistrationMobile key={sessionId} api={api} profile={profile.data} />
+  );
+}
+
+function RegistrationManagement({ renewals }: { renewals: ReactNode }) {
+  const [tab, setTab] = useState(0);
+  const applicationsEnabled =
+    import.meta.env.VITE_APPLICANT_REGISTRATION_ENABLED === "true";
+  return (
+    <Box dir="rtl">
+      <Typography component="h1" variant="h4" sx={{ px: { xs: 3, md: 6 }, pt: 3 }}>
+        ניהול הרשמות
+      </Typography>
+      {applicationsEnabled && (
+        <Tabs
+          value={tab}
+          onChange={(_, value: number) => setTab(value)}
+          aria-label="ניהול הרשמות"
+        >
+          <Tab
+            label="בקשות הרשמה"
+            id="applications-tab"
+            aria-controls="applications-panel"
+          />
+          <Tab
+            label="תקופות רישום וחידושים"
+            id="renewals-tab"
+            aria-controls="renewals-panel"
+          />
+        </Tabs>
+      )}
+      {applicationsEnabled && tab === 0 ? (
+        <Box role="tabpanel" id="applications-panel" aria-labelledby="applications-tab">
+          <ApplicantAdminPage />
+        </Box>
+      ) : (
+        <Box
+          role={applicationsEnabled ? "tabpanel" : undefined}
+          id="renewals-panel"
+          aria-labelledby={applicationsEnabled ? "renewals-tab" : undefined}
+        >
+          {renewals}
+        </Box>
+      )}
+    </Box>
   );
 }

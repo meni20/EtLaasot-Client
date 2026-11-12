@@ -92,6 +92,7 @@ export function createDemoAdapter(
   scenario: DemoScenario,
   allowedBranches: string[],
 ) {
+  const periods = new Map<string, "OPEN" | "CLOSED">();
   let form: FormSummary = {
     id: formId,
     branchId: demoBranches[0].id,
@@ -308,14 +309,24 @@ export function createDemoAdapter(
             ],
           };
     },
-    openPeriod: async (branchId) => {
+    periodStatus: async (branchId, activityYearId) => {
       scope(branchId);
+      return { status: periods.get(`${branchId}:${activityYearId}`) ?? "CLOSED" };
+    },
+    openPeriod: async (branchId, activityYearId) => {
+      scope(branchId);
+      periods.set(`${branchId}:${activityYearId}`, "OPEN");
       return { status: "OPEN" };
+    },
+    closePeriod: async (branchId, activityYearId) => {
+      scope(branchId);
+      periods.set(`${branchId}:${activityYearId}`, "CLOSED");
+      return { status: "CLOSED" };
     },
     requestChanges: async (id, input) => {
       const found = resolve(id);
       if (!input.trim()) throw new RegistrationError(400);
-      if (found.status !== "PENDING_REVIEW") throw new RegistrationError(409);
+      if (!["PENDING_REVIEW", "REJECTED"].includes(found.status)) throw new RegistrationError(409);
       if (id === formId) {
         reason = input;
         form = { ...form, status: "CHANGES_REQUESTED" };
@@ -324,6 +335,20 @@ export function createDemoAdapter(
         feedbackByForm.set(id, input);
       }
       return { ...found, id, status: "CHANGES_REQUESTED" };
+    },
+    reject: async (id, input) => {
+      const found = resolve(id);
+      if (!input.trim()) throw new RegistrationError(400);
+      if (found.status !== "PENDING_REVIEW") throw new RegistrationError(409);
+      const rejected = { ...found, status: "REJECTED" as const };
+      if (id === formId) {
+        reason = input;
+        form = rejected;
+      } else {
+        feedbackByForm.set(id, input);
+        otherForms.set(id, rejected);
+      }
+      return rejected;
     },
     approve: async () => {
       throw new Error("אין PDF מאומת; לא ניתן לאשר");

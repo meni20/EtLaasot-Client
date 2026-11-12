@@ -5,9 +5,11 @@ export type FormStatus =
   | "DRAFT"
   | "PENDING_REVIEW"
   | "CHANGES_REQUESTED"
+  | "REJECTED"
   | "APPROVED";
 export type DocumentStatus = "PENDING" | "READY" | "FAILED";
 export interface FormSummary {
+  registrationType?: "TRAINEE" | "VOLUNTEER";
   id: string;
   branchId: string;
   activityYearId: string | null;
@@ -23,7 +25,7 @@ export interface FormSummary {
 export interface SafeDocument {
   id: string;
   versionId: string | null;
-  kind: "REGISTRATION_PDF" | "PHYSICIAN_SUMMARY" | "SIGNATURE";
+  kind: "REGISTRATION_PDF" | "PHYSICIAN_SUMMARY" | "SIGNATURE" | "POLICE_CLEARANCE";
   mimeType: string;
   fileSize: number;
   checksum: string;
@@ -64,6 +66,7 @@ export interface ActivityYear {
   isActive: boolean;
 }
 export interface ListRow {
+  registrationType?: FormSummary["registrationType"];
   id: string;
   traineeUuid: string;
   branchId: string;
@@ -150,6 +153,9 @@ export interface RegistrationApi {
   list(params: ListParams): Promise<{ rows: ListRow[]; count: number }>;
   detail(id: string): Promise<FormDetail>;
   openPeriod(branchId: string, activityYearId: string): Promise<unknown>;
+  closePeriod(branchId: string, activityYearId: string): Promise<unknown>;
+  reject(id: string, reason: string): Promise<unknown>;
+  periodStatus(branchId: string, activityYearId: string): Promise<{ status: "OPEN" | "CLOSED" }>;
   requestChanges(id: string, reason: string): Promise<FormSummary>;
   approve(id: string, expectedVersionId: string): Promise<FormSummary>;
   renew(
@@ -252,12 +258,18 @@ export function createRegistrationApi(http: AxiosInstance): RegistrationApi {
       call("get", `${base}/admin/forms/${encodeURIComponent(id)}`),
     openPeriod: (branchId, activityYearId) =>
       call("post", `${base}/admin/periods/open`, { branchId, activityYearId }),
+    closePeriod: (branchId, activityYearId) =>
+      call("post", `${base}/admin/periods/close`, { branchId, activityYearId }),
+    periodStatus: (branchId, activityYearId) =>
+      call("get", `${base}/admin/periods/status`, undefined, { branchId, activityYearId }),
     requestChanges: (id, reason) =>
       call(
         "post",
         `${base}/admin/forms/${encodeURIComponent(id)}/request-changes`,
         { reason },
       ),
+    reject: (id, reason) =>
+      call("post", `${base}/admin/forms/${encodeURIComponent(id)}/reject`, { reason }),
     approve: (id, expectedVersionId) =>
       call("post", `${base}/admin/forms/${encodeURIComponent(id)}/approve`, {
         expectedVersionId,
@@ -275,6 +287,7 @@ export const statuses: Record<FormStatus, string> = {
   DRAFT: "טיוטה",
   PENDING_REVIEW: "ממתין לאישור",
   CHANGES_REQUESTED: "הוחזר לתיקון",
+  REJECTED: "נדחה",
   APPROVED: "מאושר",
 };
 export function canApprove(detail: FormDetail): boolean {

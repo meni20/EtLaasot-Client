@@ -1,6 +1,8 @@
+import { VolunteerApplicationDetails } from "../parent-admission/VolunteerApplicationDetails";
+import type { VolunteerData } from "../volunteer-registration/contracts";
 import { useReloadGuard } from "../../hooks/useReloadGuard";
 import { useState } from "react";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import {
   Alert,
   Box,
@@ -49,6 +51,9 @@ export interface AdminTrainee {
   id: string;
   name: string;
 }
+const openingLabel = import.meta.env.VITE_VOLUNTEER_ANNUAL_RENEWAL_ENABLED === "true"
+  ? "פתיחת רישום שנתי לחניכים ולמתנדבים"
+  : "פתיחת רישום שנתי לחניכים";
 const statusKeys = Object.keys(statuses) as FormStatus[];
 export function RegistrationAdmin({
   api,
@@ -82,6 +87,12 @@ export function RegistrationAdmin({
     pageSize: 25,
   };
   const list = useRegistrationList(api, params);
+  const period = useQuery({
+    queryKey: ["registration", "period", branch, year],
+    queryFn: () => api.periodStatus(branch, year),
+    enabled: !!branch && !!year,
+    retry: false,
+  });
   const counts = useQueries({
     queries: statusKeys.map((key) => ({
       queryKey: ["registration", "count", branch, year, key],
@@ -92,7 +103,7 @@ export function RegistrationAdmin({
     })),
   });
   const [dialog, setDialog] = useState<
-    "annual" | "renew" | "changes" | "approve" | null
+    "annual" | "close" | "renew" | "changes" | "reject" | "approve" | null
   >(null);
   useReloadGuard(!!dialog);
   const [reason, setReason] = useState("");
@@ -104,6 +115,7 @@ export function RegistrationAdmin({
     if (!branches.some((b) => b.id === branch) || !year)
       throw new Error("יש לבחור סניף ושנת פעילות מורשים");
     if (dialog === "annual") return api.openPeriod(branch, year);
+    if (dialog === "close") return api.closePeriod(branch, year);
     if (dialog === "renew")
       return api.renew(trainee, {
         reason: reason.trim(),
@@ -113,6 +125,7 @@ export function RegistrationAdmin({
       });
     if (dialog === "changes")
       return api.requestChanges(selected, reason.trim());
+    if (dialog === "reject") return api.reject(selected, reason.trim());
     if (dialog === "approve" && detail.data && canApprove(detail.data)) {
       const latest = [...detail.data.versions].sort(
         (a, b) => b.versionNumber - a.versionNumber,
@@ -129,7 +142,7 @@ export function RegistrationAdmin({
     setDialog(value);
   };
   const confirm = async () => {
-    if ((dialog === "renew" || dialog === "changes") && !reason.trim()) {
+    if ((dialog === "renew" || dialog === "changes" || dialog === "reject") && !reason.trim()) {
       setValidation("חובה להזין סיבה");
       return;
     }
@@ -195,7 +208,7 @@ export function RegistrationAdmin({
         >
           <Box>
             <Typography component="h1" variant="h4" fontWeight={700}>
-              רישום חניכים
+              תקופות רישום וחידושים
             </Typography>
           </Box>
           <Stack direction="row" gap={2}>
@@ -208,14 +221,19 @@ export function RegistrationAdmin({
             </Button>
             <Button
               variant="contained"
-              disabled={!branch || !year}
-              onClick={() => open("annual")}
+              disabled={!branch || !year || !period.isSuccess}
+              onClick={() => open(period.data?.status === "OPEN" ? "close" : "annual")}
             >
-              פתיחת רישום שנתי לחניכים
+              {period.data?.status === "OPEN" ? "סגירת רישום שנתי" : openingLabel}
             </Button>
           </Stack>
         </Stack>
         {success && <Alert severity="success">{success}</Alert>}
+        {period.isError && (
+          <Alert severity="error" action={<Button onClick={() => void period.refetch()}>ניסיון נוסף</Button>}>
+            לא ניתן לטעון את מצב תקופת הרישום.
+          </Alert>
+        )}
         <Paper
           variant="outlined"
           sx={{ p: 4, borderColor: "var(--color-primary-border, #D9BFD2)", borderRadius: 4 }}
@@ -344,10 +362,10 @@ export function RegistrationAdmin({
           variant="outlined"
           sx={{ borderRadius: 4, borderColor: "var(--color-primary-border, #D9BFD2)" }}
         >
-          <Table aria-label="טפסי רישום חניכים">
+          <Table aria-label="טפסי רישום">
             <TableHead>
               <TableRow>
-                {["חניך/ה", "סוג בקשה", "סטטוס", "מסמך PDF", ""].map(
+                {["משתמש/ת", "סוג בקשה", "סטטוס", "מסמך PDF", ""].map(
                   (label, index) => (
                     <TableCell key={index} align="right">
                       {label}
@@ -364,7 +382,7 @@ export function RegistrationAdmin({
                       row.traineeUuid}
                   </TableCell>
                   <TableCell align="right">
-                    {row.requestType === "YEARLY" ? "שנתי" : "אישי"}
+                    {row.registrationType === "VOLUNTEER" ? "מתנדבים" : "חניכים"} · {row.requestType === "YEARLY" ? "שנתי" : "אישי"}
                   </TableCell>
                   <TableCell align="right">
                     <Chip size="small" label={statuses[row.status]} />
@@ -478,13 +496,21 @@ export function RegistrationAdmin({
                     api={api}
                     reload={() => detail.refetch()}
                   />
-                  <Stack direction="row" gap={3}>
+                  <Stack direction="row" gap={3} flexWrap="wrap">
                     <Button
                       variant="outlined"
-                      disabled={detail.data.form.status !== "PENDING_REVIEW"}
+                      disabled={!["PENDING_REVIEW", "REJECTED"].includes(detail.data.form.status)}
                       onClick={() => open("changes")}
                     >
                       בקשת תיקונים
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      disabled={detail.data.form.status !== "PENDING_REVIEW"}
+                      onClick={() => open("reject")}
+                    >
+                      דחיית הטופס
                     </Button>
                     <Button
                       variant="contained"
@@ -516,8 +542,10 @@ export function RegistrationAdmin({
         dir="rtl"
       >
         <DialogTitle>
-          {dialog === "annual"
-            ? "פתיחת רישום שנתי לחניכים"
+          {dialog === "reject" ? "דחיית הטופס" : dialog === "annual"
+            ? openingLabel
+            : dialog === "close"
+              ? "סגירת רישום שנתי"
             : dialog === "renew"
               ? "בקשת חידוש אישי"
               : dialog === "changes"
@@ -532,9 +560,14 @@ export function RegistrationAdmin({
             </Typography>
             {dialog === "annual" && (
               <Alert severity="info">
-                פתיחת הרישום תחייב אישור שנתי לחניכי הסניף. אם הגבלת הגישה
-                מופעלת, חניכים ללא אישור יוגבלו מיידית ללא תקופת חסד. בקשה חדשה
+                פתיחת הרישום תחייב אישור שנתי למשתמשים הרלוונטיים בסניף. אם הגבלת הגישה
+                מופעלת, משתמשים ללא אישור יוגבלו מיידית ללא תקופת חסד. בקשה חדשה
                 שכבר אושרה לשנת הפעילות הנוכחית נחשבת לרישום מאושר.
+              </Alert>
+            )}
+            {dialog === "close" && (
+              <Alert severity="info">
+                סגירת התקופה תפסיק יצירת דרישות רישום שנתיות חדשות. טפסים פעילים ובקשות חידוש קיימות יישארו בתוקף.
               </Alert>
             )}
             {dialog === "renew" && (
@@ -562,7 +595,7 @@ export function RegistrationAdmin({
                 />
               </>
             )}
-            {(dialog === "renew" || dialog === "changes") && (
+            {(dialog === "renew" || dialog === "changes" || dialog === "reject") && (
               <TextField
                 label="סיבה"
                 required
@@ -596,8 +629,12 @@ export function RegistrationAdmin({
           >
             {action.isPending
               ? "מבצע…"
+              : dialog === "reject"
+                ? "דחיית הטופס"
               : dialog === "annual"
-                ? "פתיחת רישום שנתי לחניכים"
+                ? openingLabel
+                : dialog === "close"
+                  ? "סגירת רישום שנתי"
                 : dialog === "renew"
                   ? "שליחת בקשת חידוש"
                   : dialog === "changes"
@@ -718,6 +755,7 @@ function DetailView({
           סיבת בקשה / תיקון: {detail.feedbackReason || detail.requestReason}
         </Typography>
       )}
+      {detail.form.registrationType !== "VOLUNTEER" && <>
       <Alert severity="warning">
         נתוני רפואה דורשים התאמה ידנית. אישור הטופס אינו מחליף את רשימת התרופות
         או האלרגיות המאושרת.
@@ -754,6 +792,7 @@ function DetailView({
           </TableBody>
         </Table>
       </TableContainer>
+      </>}
       <Typography variant="h6" component="h3">
         היסטוריית הגשות
       </Typography>
@@ -772,6 +811,9 @@ function DetailView({
               </MenuItem>
             ))}
           </TextField>
+          {detail.form.registrationType === "VOLUNTEER" ? (
+            <VolunteerApplicationDetails detail={{ application: detail.form, branch: null, versions: [{ ...version, data: version.data as VolunteerData }] }} />
+          ) : (
           <Box
             component="dl"
             sx={{
@@ -795,6 +837,7 @@ function DetailView({
                 </Box>
               ))}
           </Box>
+          )}
           <Typography variant="h6" component="h3">
             הצהרות בגרסה החתומה
           </Typography>
@@ -840,7 +883,7 @@ function DetailView({
                 ? "PDF הרישום"
                 : d.kind === "PHYSICIAN_SUMMARY"
                   ? "סיכום רפואי"
-                  : "חתימה"}
+                  : d.kind === "POLICE_CLEARANCE" ? "אישור משטרה" : "חתימה"}
             </Button>
           ))}
       {api.adminRetryPdf &&

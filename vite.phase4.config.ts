@@ -36,6 +36,7 @@ export default defineConfig({
       JSON.stringify("true"),
     "import.meta.env.VITE_PARENT_REGISTRATION_BLOCKING_ENABLED":
       JSON.stringify("true"),
+    "import.meta.env.VITE_VOLUNTEER_ANNUAL_RENEWAL_ENABLED": JSON.stringify("true"),
   },
   server: { host: "127.0.0.1", port: 5184, strictPort: true, open: false },
 });

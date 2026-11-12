@@ -1,7 +1,7 @@
 import { RecoveryAuthorization } from "./RecoveryAuthorization";
 import { useReloadGuard } from "../../hooks/useReloadGuard";
 import { useEffect, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Alert,
   Box,
@@ -151,6 +151,16 @@ function ApplicantAdminWorkspace() {
     retry: false,
     gcTime: 0,
   });
+  const statusCounts = useQueries({
+    queries: Object.keys(labels).map((key) => ({
+      queryKey: ["applications", "count", sessionId, branch, type, key, search],
+      queryFn: () => api.list(branch, 1, type, key, search),
+      select: (data: { count: number }) => data.count,
+      enabled: !!branch,
+      retry: false,
+      gcTime: 0,
+    })),
+  });
   const detail = useQuery({
     queryKey: ["applications", "detail", sessionId, branch, selected],
     queryFn: () => api.detail(selected),
@@ -259,11 +269,6 @@ function ApplicantAdminWorkspace() {
             )}
           </Alert>
         )}
-        <Alert severity="warning">
-          {volunteerEnabled
-            ? "אלה בקשות ללא חשבון מאומת. אישור דורש אימות ידני, את כל הראיות הנדרשות ו-PDF חתום מאומת של הגרסה שנבדקה. הקבצים נשמרים באחסון פרטי."
-            : "אלה בקשות ללא חשבון מאומת. אישור דורש אימות ידני, סיכום רפואי ו-PDF חתום מאומת של הגרסה שנבדקה. הקבצים נשמרים באחסון פרטי."}
-        </Alert>
         <TextField
           select
           label="סניף"
@@ -319,9 +324,9 @@ function ApplicantAdminWorkspace() {
             }}
           >
             <MenuItem value="">כל המצבים</MenuItem>
-            {Object.entries(labels).map(([key, label]) => (
+            {Object.entries(labels).map(([key, label], index) => (
               <MenuItem key={key} value={key}>
-                {label}
+                {label}{statusCounts[index].data === undefined ? "" : ` (${statusCounts[index].data})`}
               </MenuItem>
             ))}
           </TextField>

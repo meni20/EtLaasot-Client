@@ -16,6 +16,7 @@ import { BranchContext } from "../../../contexts/useBranch";
 import { TwoStepLogin } from "../TwoStepLogin";
 import { ApplicantPage } from "../ApplicantPage";
 import ApplicantAdminPage from "../ApplicantAdminPage";
+import LiveRegistrationPage from "../../parent-registration/LiveRegistrationPage";
 import { RegistrationBoundary } from "../RegistrationBoundary";
 import { PasswordChangePage } from "../../../pages/Mobile/PasswordChangePage/PasswordChange";
 import { PwaInstallContext } from "../../../contexts/PwaInstallContext";
@@ -26,8 +27,8 @@ const marker = "phase4-fictional-branch";
 function Harness() {
   const screen = new URLSearchParams(location.search).get("screen") ?? "login";
   const [passwordRequired, setPasswordRequired] = useState(false);
-  const admin = screen === "admin",
-    roleId = admin ? 10000 : 2;
+  const admin = screen === "admin" || screen === "registration-management",
+    roleId = admin ? 10000 : screen === "volunteer-renewal" ? 1 : 2;
   const user = {
     userId: "fictional-user",
     name: "Fictional QA",
@@ -96,7 +97,7 @@ function Harness() {
                       ? "/reset-password"
                       : screen === "apply"
                         ? "/apply"
-                        : screen === "restricted"
+                        : screen === "restricted" || screen === "volunteer-renewal"
                           ? "/old-bookmark"
                           : "/login",
                   ]}
@@ -113,7 +114,9 @@ function Harness() {
                     />
                   ) : screen === "admin" ? (
                     <ApplicantAdminPage />
-                  ) : screen === "restricted" ? (
+                  ) : screen === "registration-management" ? (
+                    <LiveRegistrationPage />
+                  ) : screen === "restricted" || screen === "volunteer-renewal" ? (
                     <RegistrationBoundary>
                       <Alert>גישה רגילה לדוגמה</Alert>
                     </RegistrationBoundary>

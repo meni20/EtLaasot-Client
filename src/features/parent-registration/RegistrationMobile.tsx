@@ -124,6 +124,7 @@ function MobileForm({
     initial,
     profile,
     initial.form?.status === "PENDING_REVIEW" ||
+      initial.form?.status === "REJECTED" ||
       initial.form?.status === "APPROVED" ||
       !status.registrationRequired,
     undefined,
@@ -143,6 +144,7 @@ function MobileForm({
   }>({});
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [sendingForm, setSendingForm] = useState(false);
   useReloadGuard(
     readingFile ||
       submitting ||
@@ -281,6 +283,7 @@ function MobileForm({
     }
     inFlight.current = true;
     setSubmitting(true);
+    setSendingForm(true);
     setMessage("");
     try {
       const validation = validateForm(draft.data, initial.declarationVersion, {
@@ -354,8 +357,16 @@ function MobileForm({
     } finally {
       inFlight.current = false;
       setSubmitting(false);
+      setSendingForm(false);
     }
   };
+  if (formStatus === "REJECTED")
+    return (
+      <Alert severity="error" dir="rtl">
+        <strong>הרישום נדחה</strong>
+        {feedback && <div>{feedback}</div>}
+      </Alert>
+    );
   return (
     <Box
       dir="rtl"
@@ -634,9 +645,15 @@ function MobileForm({
                   השלב הבא
                 </Button>
               ) : (
-                !locked && (
+                (!locked || sendingForm) && (
                   <Button
                     variant="contained"
+                    aria-busy={sendingForm}
+                    startIcon={
+                      sendingForm ? (
+                        <CircularProgress size={16} color="inherit" aria-hidden="true" />
+                      ) : undefined
+                    }
                     disabled={
                       submitting ||
                       medicalUploadFailed ||
