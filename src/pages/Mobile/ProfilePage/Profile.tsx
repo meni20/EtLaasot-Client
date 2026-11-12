@@ -52,6 +52,7 @@ import {
 } from "../../../utils/password.util";
 import { TraineeMedicationsSection } from "../../../components/VolunteerDetails/TraineeMedicationsSection";
 import { TraineeDocumentsSection } from "../../../components/TraineeDocuments/TraineeDocumentsSection";
+import { DiscountRequest } from "../../../features/discount-request/DiscountRequest";
 import { PwaInstallButton } from "../../../components/PwaInstallButton/PwaInstallButton";
 import { PushNotificationSettings } from "../../../components/PushNotificationSettings/PushNotificationSettings";
 import {
@@ -451,6 +452,7 @@ export const ProfilePage: React.FC = () => {
       )}
       {isTrainee && <TraineeMedicationsSection mode="self" />}
       {isTrainee && <TraineeDocumentsSection mode="self" />}
+      <DiscountRequest />
 
       {isVolunteer && (
         <Box className={styles.section}>

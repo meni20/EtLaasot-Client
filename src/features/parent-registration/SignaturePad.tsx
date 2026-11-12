@@ -10,10 +10,12 @@ export function SignaturePad({
   label,
   value,
   onChange,
+  maxPixelRatio = Infinity,
 }: {
   label: string;
   value?: CompletedSignature;
   onChange: (value?: CompletedSignature) => void;
+  maxPixelRatio?: number;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
@@ -29,7 +31,7 @@ export function SignaturePad({
     if (!element) return;
     const observer = new ResizeObserver(() => {
       const rect = element.getBoundingClientRect();
-      const scale = window.devicePixelRatio || 1;
+      const scale = Math.min(window.devicePixelRatio || 1, maxPixelRatio);
       element.width = Math.round(rect.width * scale);
       element.height = Math.round(rect.height * scale);
       const ctx = element.getContext("2d");
@@ -46,7 +48,7 @@ export function SignaturePad({
     });
     observer.observe(element);
     return () => observer.disconnect();
-  }, [value]);
+  }, [value, maxPixelRatio]);
   const clear = () => {
     const element = canvas.current;
     if (element)
