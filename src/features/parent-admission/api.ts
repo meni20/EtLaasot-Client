@@ -338,7 +338,10 @@ export function applicantFormApi(
     list: unsupported,
     detail: unsupported,
     openPeriod: unsupported,
+    closePeriod: unsupported,
+    periodStatus: unsupported,
     requestChanges: unsupported,
+    reject: unsupported,
     approve: unsupported,
     renew: unsupported,
   };

@@ -10,15 +10,20 @@ const LiveRegistrationPage = lazy(
   () => import("../parent-registration/LiveRegistrationPage"),
 );
 
+const VolunteerRenewalPage = lazy(() => import("../volunteer-registration/VolunteerRenewalPage"));
+
 export function RegistrationBoundary({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  return onlyTraineeRoles(user?.roles ?? []) ? (
-    <TraineeBoundary>{children}</TraineeBoundary>
+  const roles = user?.roles ?? [];
+  const volunteer = import.meta.env.VITE_VOLUNTEER_ANNUAL_RENEWAL_ENABLED === "true" &&
+    roles.some((role) => role.roleId === 1) && !roles.some((role) => [10000, 10001].includes(role.roleId));
+  return volunteer || onlyTraineeRoles(roles) ? (
+    <TraineeBoundary volunteer={volunteer}>{children}</TraineeBoundary>
   ) : (
     children
   );
 }
-function TraineeBoundary({ children }: { children: ReactNode }) {
+function TraineeBoundary({ children, volunteer }: { children: ReactNode; volunteer: boolean }) {
   const { user, logout, sessionId } = useAuth();
   const [epoch, setEpoch] = useState(0);
   const [wasRestricted, setWasRestricted] = useState(false);
@@ -34,9 +39,9 @@ function TraineeBoundary({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("registration:required", required);
   }, []);
   const status = useQuery({
-    queryKey: ["registration", "access", user?.userId, sessionId, epoch],
+    queryKey: ["registration", "access", user?.userId, sessionId, epoch, volunteer],
     queryFn: async () => {
-      const { data } = await http.get<{ accessBlocked: boolean }>("/me/status");
+      const { data } = await http.get<{ accessBlocked: boolean }>(volunteer ? "/me/volunteer/status" : "/me/status");
       if (typeof data?.accessBlocked !== "boolean")
         throw new Error("לא ניתן לאמת את מצב הרישום. נסו שוב.");
       return data;
@@ -80,7 +85,7 @@ function TraineeBoundary({ children }: { children: ReactNode }) {
             <Routes>
               <Route
                 path="/parent-registration"
-                element={<LiveRegistrationPage />}
+                element={volunteer ? <VolunteerRenewalPage /> : <LiveRegistrationPage />}
               />
               <Route
                 path="*"

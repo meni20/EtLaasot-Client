@@ -361,6 +361,9 @@ test("super admin may select authorized branches; annual opening is explicit", a
   await expect(page.getByRole("dialog")).toContainText("סניף הדגמה דרום");
   await page.getByRole("dialog").getByRole("button", { name: "פתיחת רישום שנתי לחניכים", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByRole("button", { name: "סגירת רישום שנתי", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "סגירת רישום שנתי", exact: true }).click();
+  await expect(page.getByRole("button", { name: "פתיחת רישום שנתי לחניכים", exact: true })).toBeEnabled();
 });
 test("visual captures and preview makes no external requests or runtime errors", async ({
   page,

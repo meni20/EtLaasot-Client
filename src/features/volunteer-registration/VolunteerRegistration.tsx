@@ -60,7 +60,7 @@ export function VolunteerRegistration({
   onReload,
   branchOptions,
 }: {
-  client: ApplicantClient<RegistrationType>;
+  client: Pick<ApplicantClient<RegistrationType>, "save" | "upload" | "submit">;
   initial: ApplicationSnapshot<"VOLUNTEER">;
   onSubmitted: () => void;
   onReload?: () => void;

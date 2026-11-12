@@ -1,7 +1,7 @@
 import { RecoveryAuthorization } from "./RecoveryAuthorization";
 import { useReloadGuard } from "../../hooks/useReloadGuard";
 import { useEffect, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Alert,
   Box,
@@ -150,6 +150,16 @@ function ApplicantAdminWorkspace() {
     enabled: !!branch,
     retry: false,
     gcTime: 0,
+  });
+  const statusCounts = useQueries({
+    queries: Object.keys(labels).map((key) => ({
+      queryKey: ["applications", "count", sessionId, branch, type, key, search],
+      queryFn: () => api.list(branch, 1, type, key, search),
+      select: (data: { count: number }) => data.count,
+      enabled: !!branch,
+      retry: false,
+      gcTime: 0,
+    })),
   });
   const detail = useQuery({
     queryKey: ["applications", "detail", sessionId, branch, selected],
@@ -319,9 +329,9 @@ function ApplicantAdminWorkspace() {
             }}
           >
             <MenuItem value="">כל המצבים</MenuItem>
-            {Object.entries(labels).map(([key, label]) => (
+            {Object.entries(labels).map(([key, label], index) => (
               <MenuItem key={key} value={key}>
-                {label}
+                {label}{statusCounts[index].data === undefined ? "" : ` (${statusCounts[index].data})`}
               </MenuItem>
             ))}
           </TextField>

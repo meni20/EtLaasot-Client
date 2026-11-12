@@ -34,7 +34,7 @@ const show = (value: unknown) =>
 export function VolunteerApplicationDetails({
   detail,
 }: {
-  detail: ApplicationDetail<"VOLUNTEER">;
+  detail: Pick<ApplicationDetail<"VOLUNTEER">, "versions" | "branch"> & { application: Pick<ApplicationDetail<"VOLUNTEER">["application"], "branchId"> };
 }) {
   const version = detail.versions[0];
   if (!version)

@@ -124,6 +124,7 @@ function MobileForm({
     initial,
     profile,
     initial.form?.status === "PENDING_REVIEW" ||
+      initial.form?.status === "REJECTED" ||
       initial.form?.status === "APPROVED" ||
       !status.registrationRequired,
     undefined,
@@ -356,6 +357,13 @@ function MobileForm({
       setSubmitting(false);
     }
   };
+  if (formStatus === "REJECTED")
+    return (
+      <Alert severity="error" dir="rtl">
+        <strong>הרישום נדחה</strong>
+        {feedback && <div>{feedback}</div>}
+      </Alert>
+    );
   return (
     <Box
       dir="rtl"
