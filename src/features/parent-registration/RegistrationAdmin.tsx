@@ -172,9 +172,13 @@ export function RegistrationAdmin({
     setSearch("");
     onBranchChange?.(nextBranch);
   };
+  const userName = (row: { userName?: string | null; traineeUuid: string }) =>
+    row.userName !== undefined
+      ? row.userName
+      : trainees.find((trainee) => trainee.id === row.traineeUuid)?.name;
   const rows =
     list.data?.rows.filter((row) =>
-      `${trainees.find((t) => t.id === row.traineeUuid)?.name ?? ""} ${row.traineeUuid}`.includes(
+      `${userName(row) ?? ""} ${row.traineeUuid}`.includes(
         search.trim(),
       ),
     ) ?? [];
@@ -378,8 +382,7 @@ export function RegistrationAdmin({
               {rows.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell align="right">
-                    {trainees.find((t) => t.id === row.traineeUuid)?.name ??
-                      row.traineeUuid}
+                    {userName(row) || "שם לא זמין"}
                   </TableCell>
                   <TableCell align="right">
                     {row.registrationType === "VOLUNTEER" ? "מתנדבים" : "חניכים"} · {row.requestType === "YEARLY" ? "שנתי" : "אישי"}
@@ -405,8 +408,7 @@ export function RegistrationAdmin({
                             size="small"
                             color="primary"
                             aria-label={`פתיחת PDF הרישום של ${
-                              trainees.find((t) => t.id === row.traineeUuid)
-                                ?.name ?? "החניך"
+                              userName(row) || "המשתמש/ת"
                             }`}
                             onClick={() =>
                               openPdf(row.id, row.pdfDocumentId!)

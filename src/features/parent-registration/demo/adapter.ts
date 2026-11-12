@@ -274,6 +274,7 @@ export function createDemoAdapter(
         .map((row, index) => ({
           ...row,
           traineeUuid: demoTrainees[index].id,
+          userName: index === 1 ? "מתנדבת לדוגמה" : demoTrainees[index].name,
           createdAt: "2026-10-21T08:00:00Z",
         }))
         .filter(
