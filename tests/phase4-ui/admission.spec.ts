@@ -388,6 +388,7 @@ test("administrator review is separate and cannot approve without medical/PDF ev
   const { calls } = await mock(page, { pdfAvailable: true });
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/phase4-demo.html?screen=admin");
+  await expect(page.getByText(/אלה בקשות ללא חשבון מאומת/)).toHaveCount(0);
   await expect(page.getByText(id.slice(0, 8), { exact: false })).toHaveCount(0);
   const popupPromise = page.waitForEvent("popup");
   await page

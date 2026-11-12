@@ -8,6 +8,7 @@ import {
   Button,
   Checkbox,
   Chip,
+  CircularProgress,
   FormControlLabel,
   Stack,
   Typography,
@@ -102,6 +103,7 @@ export function VolunteerRegistration({
   const [inks, setInks] = useState<
     Partial<Record<VolunteerPurpose, CompletedSignature>>
   >({});
+  const [sendingForm, setSendingForm] = useState(false);
   useReloadGuard(
     busy || Object.values(inks).some(Boolean),
     "יש להשלים את שמירת החתימות והמסמכים לפני העדכון.",
@@ -134,10 +136,11 @@ export function VolunteerRegistration({
     setIssues([]);
     setMessage("");
   };
-  const run = async (work: () => Promise<void>) => {
+  const run = async (work: () => Promise<void>, submission = false) => {
     if (working.current) return;
     working.current = true;
     setBusy(true);
+    if (submission) setSendingForm(true);
     setMessage("");
     try {
       await work();
@@ -150,6 +153,7 @@ export function VolunteerRegistration({
     } finally {
       working.current = false;
       setBusy(false);
+      if (submission) setSendingForm(false);
     }
   };
   const sign = (purpose: VolunteerPurpose) =>
@@ -230,7 +234,7 @@ export function VolunteerRegistration({
         idempotencyKey: idempotency.current.key,
       });
       onSubmitted();
-    });
+    }, true);
   if (!legal)
     return (
       <Alert severity="error">
@@ -646,6 +650,12 @@ export function VolunteerRegistration({
             ))}
           <Button
             variant="contained"
+            aria-busy={sendingForm}
+            startIcon={
+              sendingForm ? (
+                <CircularProgress size={16} color="inherit" aria-hidden="true" />
+              ) : undefined
+            }
             disabled={disabled || initial.integration !== "READY"}
             onClick={() => void submit()}
           >

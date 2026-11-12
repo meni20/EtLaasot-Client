@@ -144,6 +144,7 @@ function MobileForm({
   }>({});
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [sendingForm, setSendingForm] = useState(false);
   useReloadGuard(
     readingFile ||
       submitting ||
@@ -282,6 +283,7 @@ function MobileForm({
     }
     inFlight.current = true;
     setSubmitting(true);
+    setSendingForm(true);
     setMessage("");
     try {
       const validation = validateForm(draft.data, initial.declarationVersion, {
@@ -355,6 +357,7 @@ function MobileForm({
     } finally {
       inFlight.current = false;
       setSubmitting(false);
+      setSendingForm(false);
     }
   };
   if (formStatus === "REJECTED")
@@ -642,9 +645,15 @@ function MobileForm({
                   השלב הבא
                 </Button>
               ) : (
-                !locked && (
+                (!locked || sendingForm) && (
                   <Button
                     variant="contained"
+                    aria-busy={sendingForm}
+                    startIcon={
+                      sendingForm ? (
+                        <CircularProgress size={16} color="inherit" aria-hidden="true" />
+                      ) : undefined
+                    }
                     disabled={
                       submitting ||
                       medicalUploadFailed ||

@@ -502,9 +502,23 @@ test("successful trainee submission hides the form before a delayed status reloa
  const data = signedTraineeDraft();
  const options={status:'DRAFT',step:5,branchId:'a',data};
  await mock(page,options);
+ let finishSubmit!: () => void;
+ const submitGate = new Promise<void>((resolve) => { finishSubmit = resolve; });
+ await page.route('**/parent-applications/me/submit', async route => {
+   await submitGate;
+   await route.fallback();
+ });
  await page.route('**/parent-applications/me',async route=>{if(options.status==='PENDING_REVIEW')await new Promise(r=>setTimeout(r,2000));await route.fallback();});
  await page.goto('/password-demo.html?screen=apply');await personal(page);
- await page.getByRole('button',{name:'שליחת הטופס',exact:true}).click();
+ const submit = page.getByRole('button',{name:'שליחת הטופס',exact:true});
+ await submit.click();
+ try {
+   await expect(submit).toBeDisabled();
+   await expect(submit).toHaveAttribute('aria-busy', 'true');
+   await expect(submit.locator('[role="progressbar"]')).toBeVisible();
+ } finally {
+   finishSubmit();
+ }
  await expect(page.getByRole('heading',{name:'הבקשה נשלחה!'})).toBeVisible({timeout:1500});
  await expect(page.getByRole('navigation',{name:'שלבי הרישום'})).toHaveCount(0);
  await expect(page.getByRole('button',{name:'שליחת הטופס',exact:true})).toHaveCount(0);
