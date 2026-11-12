@@ -69,6 +69,7 @@ import {
 } from "../../constants/user.constants";
 import { TraineeMedicationsSection } from "./TraineeMedicationsSection";
 import { TraineeDocumentsSection } from "../TraineeDocuments/TraineeDocumentsSection";
+import { AdminDiscountRequest } from "../../features/discount-request/AdminDiscountRequest";
 
 type UserDetailsFormState = {
   name: string;
@@ -1015,6 +1016,9 @@ export const VolunteerDetails: React.FC<IVolunteerDetailsProps> = ({
               mode="admin"
               traineeUuid={volunteerData.id}
             />
+          )}
+          {open && canManageTraineeDocuments && (
+            <AdminDiscountRequest key={volunteerData.id} traineeId={volunteerData.id} />
           )}
 
           <Box className={classes.section}>

@@ -318,6 +318,9 @@ test("branch admin scope, status counts, immutable versions, no approval without
   await page.getByRole("combobox", { name: "סניף מורשה" }).click();
   await expect(page.getByRole("option")).toHaveCount(1);
   await page.keyboard.press("Escape");
+  const renewals = page.getByRole("table", { name: "טפסי רישום" });
+  await expect(renewals.getByRole("cell", { name: "מתנדבת לדוגמה" })).toBeVisible();
+  await expect(renewals.getByText("33333333-3333-4333-8333-333333333333")).toHaveCount(0);
   await page
     .getByRole("button", { name: "פתיחת טופס", exact: true })
     .first()

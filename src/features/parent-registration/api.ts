@@ -66,6 +66,7 @@ export interface ActivityYear {
   isActive: boolean;
 }
 export interface ListRow {
+  userName?: string | null;
   registrationType?: FormSummary["registrationType"];
   id: string;
   traineeUuid: string;
