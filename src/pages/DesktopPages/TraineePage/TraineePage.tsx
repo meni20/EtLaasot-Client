@@ -1,3 +1,4 @@
+import { AdminRecordCards } from "../../../components/Shell/AdminRecordCards";
 import {
   Avatar,
   Box,
@@ -7,6 +8,7 @@ import {
   TextField,
   Tooltip,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
@@ -15,7 +17,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useMemo, useState } from "react";
-import { COLUMNS } from "./Trainee.constants";
+import { COLUMNS, formLabel } from "./Trainee.constants";
 import { useQuery } from "@tanstack/react-query";
 import userService, {
   type UserListStatus,
@@ -234,6 +236,7 @@ export const TraineePage: React.FC = () => {
     ],
     [],
   );
+  const compact = useMediaQuery("(max-width:767px)");
   const isArchivedView = statusFilter === "archived";
   const emptyMessage = searchTerm.trim()
     ? "לא נמצאו חניכים שתואמים לחיפוש."
@@ -322,6 +325,24 @@ export const TraineePage: React.FC = () => {
                 נסו לרענן את העמוד או לבחור סניף מחדש.
               </Typography>
             </Box>
+          ) : compact ? (
+            <AdminRecordCards
+              rows={filteredRows}
+              loading={isFetchingTrainees}
+              emptyMessage={emptyMessage}
+              fields={[
+                { label: "גיל", value: (row) => row.age },
+                { label: "מגדר", value: (row) => row.gender },
+                { label: "מידת חולצה", value: (row) => row.shirtSizeDisplay },
+                { label: "טלפון", value: (row) => row.phoneNumber },
+                { label: "כתובת", value: (row) => row.address },
+                { label: "תעודת זהות", value: (row) => row.nationalIdMasked },
+                { label: "שם הורה", value: (row) => row.parentName },
+                { label: "טופס", value: (row) => formLabel(row.parentRegistrationStatus) },
+              ]}
+              onDetails={(row) => openTraineeDetails(getOriginalTrainee(row))}
+              document={(row) => <ApprovedRegistrationPdfButton tabIndex={0} name={row.name} reference={row.parentRegistrationStatus === "APPROVED" ? row.parentRegistrationPdf : null} />}
+            />
           ) : (
             <DataGrid
               rows={filteredRows}

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Box, useMediaQuery } from "@mui/material";
+import { Box, GlobalStyles, useMediaQuery } from "@mui/material";
 import Navbar from "../Navbar/Navbar";
 import { SideMenu } from "../SideMenu/SideMenu";
 import {
@@ -33,6 +33,21 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
           "linear-gradient(180deg, rgba(251, 248, 251, 0.92) 0%, #f7f7f8 100%)",
       }}
     >
+      <GlobalStyles styles={{
+        "@media (max-width: 767px)": {
+          ".MuiDialog-paper:not(.MuiDialog-paperFullScreen)": {
+            margin: 12,
+            width: "calc(100% - 24px)",
+            maxHeight: "calc(100dvh - 24px)",
+          },
+          ".MuiDialogTitle-root, .MuiDialogContent-root, .MuiDialogActions-root": {
+            paddingInline: 16,
+            overflowWrap: "anywhere",
+          },
+          ".MuiDialogActions-root": { flexWrap: "wrap" },
+          ".MuiDialogActions-root .MuiButton-root": { minHeight: 44 },
+        },
+      }} />
       <Navbar
         title="עת לעשות"
         menuOpen={menuOpen}
@@ -61,6 +76,12 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
           "@media (max-width: 767px)": {
             width: "100%",
             marginInlineStart: 0,
+            "& .MuiTableContainer-root": { maxWidth: "100%", overflowX: "auto", overscrollBehaviorInline: "contain" },
+            "& .MuiButton-root": { minHeight: 44 },
+            "& .MuiTypography-h3, & .MuiTypography-h4": {
+              fontSize: "clamp(1.45rem, 6vw, 2rem)",
+              overflowWrap: "anywhere",
+            },
           },
         }}
       >

@@ -1,3 +1,5 @@
+import { AdminRecordCards } from "../../../components/Shell/AdminRecordCards";
+import { useMediaQuery } from "@mui/material";
 import { useAuth } from "../../../contexts/useAuth";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -115,6 +117,7 @@ export const ActivitiesPage: React.FC = () => {
     [activities],
   );
 
+  const compact = useMediaQuery("(max-width:767px)");
   const columns = useMemo<GridColDef[]>(
     () => [
       {
@@ -399,6 +402,22 @@ export const ActivitiesPage: React.FC = () => {
             ניסיון נוסף
           </Button>
         </Box>
+      ) : compact ? (
+        <AdminRecordCards
+          rows={rows.map((row) => ({ ...row, name: row.volunteerName }))}
+          loading={isLoading || isFetching}
+          emptyMessage="לא נמצאו פעילויות למסננים שנבחרו."
+          fields={[
+            { label: "חניך", value: (row) => row.traineeName },
+            { label: "אירוע", value: (row) => row.eventName },
+            { label: "סניף", value: (row) => row.branchName },
+            { label: "התחלה", value: (row) => formatDateTime(row.startTime, row.timezone) },
+            { label: "סיום", value: (row) => row.endTime ? formatDateTime(row.endTime, row.timezone) : null },
+            { label: "משך", value: (row) => row.duration },
+            { label: "סטטוס", value: (row) => row.status === "ACTIVE" ? "פעיל" : "הושלם" },
+            { label: "הערות", value: (row) => row.notes },
+          ]}
+        />
       ) : (
         <Box className={styles.dataGridBox}>
           <DataGrid
@@ -415,13 +434,13 @@ export const ActivitiesPage: React.FC = () => {
         </Box>
       )}
 
-      {!isError && !isLoading && !isFetching && rows.length === 0 && (
+      {!compact && !isError && !isLoading && !isFetching && rows.length === 0 && (
         <Typography className={styles.emptyState}>
           לא נמצאו פעילויות למסננים שנבחרו.
         </Typography>
       )}
 
-      {!isError && (isLoading || isFetching) && rows.length === 0 && (
+      {!compact && !isError && (isLoading || isFetching) && rows.length === 0 && (
         <Stack direction="row" justifyContent="center" sx={{ mt: 2 }}>
           <CircularProgress size={26} sx={{ color: "var(--color-primary)" }} />
         </Stack>

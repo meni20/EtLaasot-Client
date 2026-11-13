@@ -145,7 +145,9 @@ export const useStyles = makeStyles({
     },
     cardsContainer: {
       gridTemplateColumns: "1fr",
-      gap: 14,
+      gap: 12,
+      minWidth: 0,
+      overflowWrap: "anywhere" as const,
     },
   },
   "@media (prefers-reduced-transparency: reduce)": {

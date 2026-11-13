@@ -194,19 +194,19 @@ export const SuperAdminDashboardPage: React.FC = () => {
                         </ButtonBase>
                       </Tooltip>
                     </TableCell>
-                    <TableCell className={classes.bodyCell}>
+                    <TableCell className={classes.bodyCell} data-label="מתנדבים">
                       {branch.activeVolunteers}
                     </TableCell>
-                    <TableCell className={classes.bodyCell}>
+                    <TableCell className={classes.bodyCell} data-label="חניכים">
                       {branch.activeTrainees}
                     </TableCell>
-                    <TableCell className={classes.bodyCell}>
+                    <TableCell className={classes.bodyCell} data-label="שיבוצים פעילים">
                       {branch.activeAssignments}
                     </TableCell>
-                    <TableCell className={classes.bodyCell}>
+                    <TableCell className={classes.bodyCell} data-label="חניכים ללא שיבוץ">
                       {branch.unassignedTrainees}
                     </TableCell>
-                    <TableCell className={classes.bodyCell}>
+                    <TableCell className={classes.bodyCell} data-label="אירועים קרובים">
                       {branch.upcomingEvents}
                     </TableCell>
                   </TableRow>

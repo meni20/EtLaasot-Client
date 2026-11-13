@@ -1,3 +1,4 @@
+import { AdminRecordCards } from "../../../components/Shell/AdminRecordCards";
 import { useState, useMemo } from "react";
 import {
   Avatar,
@@ -8,6 +9,7 @@ import {
   TextField,
   Tooltip,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
@@ -221,6 +223,7 @@ export const VolunteerPage: React.FC = () => {
     ],
     [],
   );
+  const compact = useMediaQuery("(max-width:767px)");
   const isArchivedView = statusFilter === "archived";
   const emptyMessage = searchTerm.trim()
     ? "לא נמצאו מתנדבים שתואמים לחיפוש."
@@ -308,6 +311,22 @@ export const VolunteerPage: React.FC = () => {
                 נסו לרענן את העמוד או לבחור סניף מחדש.
               </Typography>
             </Box>
+          ) : compact ? (
+            <AdminRecordCards
+              rows={filteredRows}
+              loading={isFetchingVolunteers}
+              emptyMessage={emptyMessage}
+              fields={[
+                { label: "גיל", value: (row) => row.age },
+                { label: "מגדר", value: (row) => row.gender },
+                { label: "מידת חולצה", value: (row) => row.shirtSizeDisplay },
+                { label: "טלפון", value: (row) => row.phoneNumber },
+                { label: "כתובת", value: (row) => row.address },
+                { label: "אימייל", value: (row) => row.email },
+              ]}
+              onDetails={(row) => openVolunteerDetails(getOriginalVolunteer(row))}
+              document={(row) => <ApprovedRegistrationPdfButton tabIndex={0} name={row.name} reference={row.volunteerRegistrationPdf} />}
+            />
           ) : (
             <DataGrid
               rows={filteredRows}

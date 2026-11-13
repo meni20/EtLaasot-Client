@@ -239,7 +239,7 @@ function ApplicantAdminWorkspace() {
         ? welcomeResult.value
         : undefined;
   return (
-    <Box dir="rtl" p={5}>
+    <Box dir="rtl" sx={{ p: { xs: 2, sm: 5 }, minWidth: 0, overflowWrap: { xs: "anywhere", sm: "normal" } }}>
       <Stack gap={3}>
         <Typography component="h1" variant="h5" color="primary">
           בקשות הרשמה

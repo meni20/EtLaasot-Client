@@ -224,6 +224,16 @@ export const useSuperAdminDashboardStyles = makeStyles({
       minHeight: 122,
       padding: "14px 12px",
     },
+    table: {
+      minWidth: 0,
+      display: "block",
+      "& thead": { position: "absolute", width: 1, height: 1, overflow: "hidden", clipPath: "inset(50%)" },
+      "& tbody": { display: "grid", gap: 8, padding: 8 },
+      "& tbody tr": { display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", border: "1px solid var(--color-border-subtle)", borderRadius: 12 },
+      "& tbody td": { display: "block", padding: "8px 10px", border: 0, whiteSpace: "normal" },
+      "& tbody td:first-child": { gridColumn: "1 / -1" },
+      "& td[data-label]::before": { content: "attr(data-label)", display: "block", color: "var(--color-text-secondary)", fontSize: "0.82rem" },
+    },
     tableHeader: {
       paddingInline: 14,
     },

@@ -368,6 +368,18 @@ test("super admin may select authorized branches; annual opening is explicit", a
   await page.getByRole("dialog").getByRole("button", { name: "סגירת רישום שנתי", exact: true }).click();
   await expect(page.getByRole("button", { name: "פתיחת רישום שנתי לחניכים", exact: true })).toBeEnabled();
 });
+test("mobile renewal rows and manager dialog fit a narrow screen", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await select(page, "תפקיד בהדגמה בלבד", "מנהל/ת סניף");
+  const table = page.getByRole("table", { name: "טפסי רישום" });
+  await expect(table.getByText("מתנדבת לדוגמה")).toBeVisible();
+  expect(await table.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
+  await page.getByRole("button", { name: "פתיחת רישום שנתי לחניכים", exact: true }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect.poll(() => page.evaluate(() =>
+    document.documentElement.scrollWidth <= innerWidth,
+  )).toBe(true);
+});
 test("visual captures and preview makes no external requests or runtime errors", async ({
   page,
 }) => {
