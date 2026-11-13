@@ -21,6 +21,10 @@ export const useSideMenuStyles = makeStyles({
     transformOrigin: "right center",
     transition:
       "box-shadow var(--transition-normal, 180ms ease), background-color var(--transition-normal, 180ms ease)",
+    "@media (max-width: 767px)": {
+      paddingTop: "env(safe-area-inset-top, 0px)",
+      background: "var(--color-surface)",
+    },
     "@media (min-width: 1024px)": {
       top: "calc(env(safe-area-inset-top, 0px) + var(--shell-top-inset, 68px)) !important",
       bottom: "0 !important",

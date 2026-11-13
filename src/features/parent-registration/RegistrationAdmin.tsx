@@ -1,3 +1,4 @@
+import { useMediaQuery } from "@mui/material";
 import { VolunteerApplicationDetails } from "../parent-admission/VolunteerApplicationDetails";
 import type { VolunteerData } from "../volunteer-registration/contracts";
 import { useReloadGuard } from "../../hooks/useReloadGuard";
@@ -66,6 +67,7 @@ export function RegistrationAdmin({
   trainees: AdminTrainee[];
   onBranchChange?: (branchId: string) => void;
 }) {
+  const compactDialog = useMediaQuery("(max-width:767px)");
   const years = useRegistrationYears(api);
   const [branch, setBranch] = useState(branches[0]?.id ?? "");
   const [selectedYear, setYear] = useState("");
@@ -215,7 +217,7 @@ export function RegistrationAdmin({
               תקופות רישום וחידושים
             </Typography>
           </Box>
-          <Stack direction="row" gap={2}>
+          <Stack direction={{ xs: "column", sm: "row" }} gap={2}>
             <Button
               variant="outlined"
               disabled={!branch || !year}
@@ -289,8 +291,8 @@ export function RegistrationAdmin({
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: { xs: "repeat(2,1fr)", md: "repeat(4,1fr)" },
-            gap: 4,
+            gridTemplateColumns: { xs: "repeat(2,minmax(0,1fr))", md: "repeat(4,1fr)" },
+            gap: { xs: 1.5, sm: 4 },
           }}
         >
           {statusKeys.map((key, index) => (
@@ -298,7 +300,8 @@ export function RegistrationAdmin({
               variant="outlined"
               key={key}
               sx={{
-                p: 4,
+                p: { xs: 1.5, sm: 4 },
+                overflowWrap: "anywhere",
                 borderColor: status === key ? "var(--color-primary, #7A3E6B)" : "var(--color-primary-border, #D9BFD2)",
                 borderRadius: 4,
                 bgcolor: status === key ? "var(--color-primary-soft, #F7F1F5)" : "white",
@@ -366,7 +369,21 @@ export function RegistrationAdmin({
           variant="outlined"
           sx={{ borderRadius: 4, borderColor: "var(--color-primary-border, #D9BFD2)" }}
         >
-          <Table aria-label="טפסי רישום">
+          <Table aria-label="טפסי רישום" sx={{
+            "@media (max-width:767px)": {
+              display: "block",
+              "& thead": { position: "absolute", insetInlineStart: 0, display: "block", width: "1px", height: "1px", overflow: "hidden", clipPath: "inset(50%)" },
+              "& tbody": { display: "grid", gap: 1, p: 1 },
+              "& tbody tr": { display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", border: "1px solid", borderColor: "divider", borderRadius: 2, p: 1 },
+              "& tbody td": { display: "block", minWidth: 0, overflowWrap: "anywhere", border: 0, p: 1 },
+              "& tbody td:first-of-type, & tbody td:last-of-type": { gridColumn: "1 / -1" },
+                "& tbody td:first-of-type": { fontWeight: 700 },
+                "& tbody td[data-label]::before": {
+                  content: "attr(data-label)", display: "block",
+                  color: "text.secondary", fontSize: "0.8rem",
+                },
+            },
+          }}>
             <TableHead>
               <TableRow>
                 {["משתמש/ת", "סוג בקשה", "סטטוס", "מסמך PDF", ""].map(
@@ -384,13 +401,13 @@ export function RegistrationAdmin({
                   <TableCell align="right">
                     {userName(row) || "שם לא זמין"}
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell align="right" data-label="סוג בקשה">
                     {row.registrationType === "VOLUNTEER" ? "מתנדבים" : "חניכים"} · {row.requestType === "YEARLY" ? "שנתי" : "אישי"}
                   </TableCell>
                   <TableCell align="right">
                     <Chip size="small" label={statuses[row.status]} />
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell align="right" data-label="מסמך PDF">
                     {row.documentStatus === "READY"
                       ? "מוכן"
                       : row.documentStatus === "FAILED"
@@ -536,6 +553,7 @@ export function RegistrationAdmin({
       </Stack>
       <Dialog
         open={!!dialog}
+        disableScrollLock={compactDialog}
         onClose={() => {
           if (!action.isPending) setDialog(null);
         }}

@@ -363,12 +363,12 @@ export const useNavbarStyles = makeStyles({
       gap: 4,
     },
     homeButton: {
-      width: 40,
-      height: 40,
+      width: 44,
+      height: 44,
     },
     menuIconBox: {
-      width: "40px !important",
-      height: "40px !important",
+      width: "44px !important",
+      height: "44px !important",
     },
   },
   "@media (min-width: 641px)": {
