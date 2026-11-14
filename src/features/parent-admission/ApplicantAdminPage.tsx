@@ -147,6 +147,8 @@ function ApplicantAdminWorkspace() {
       search,
     ],
     queryFn: () => api.list(branch, page, type, status, search),
+    refetchInterval: (query) =>
+      query.state.data?.rows.some((row) => row.deletionPending) ? 5000 : false,
     enabled: !!branch,
     retry: false,
     gcTime: 0,
