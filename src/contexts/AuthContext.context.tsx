@@ -84,7 +84,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       newPassword: string;
       confirmPassword: string;
     }) => {
-      await authService.changePassword(payload);
+      const result = await authService.changePassword(payload);
+      if (typeof result?.token === "string" && result.token) {
+        persistToken(result.token);
+        setToken(result.token);
+      }
       const currentUser = await authService.getMe();
       setUser(currentUser);
       setToken((currentToken) => currentToken ?? getToken() ?? "cookie");
