@@ -46,12 +46,6 @@ export function IdentityStage(
 ) {
   return (
     <Stack gap={4}>
-      {props.profileName && (
-        <Alert severity="info">
-          השם בפרופיל: {props.profileName}. יש למלא שם פרטי ושם משפחה בנפרד; השם
-          לא פוצל אוטומטית.
-        </Alert>
-      )}
       <Box sx={grid}>
         <Field {...props} path="trainee.name" label="שם פרטי" required />
         <Field {...props} path="trainee.familyName" label="שם משפחה" required />

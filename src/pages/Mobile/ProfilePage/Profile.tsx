@@ -34,6 +34,7 @@ import CheckroomOutlinedIcon from "@mui/icons-material/CheckroomOutlined";
 import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { createServerAxiosInstance } from "../../../config/axiosInstance";
 import { useAuth } from "../../../contexts/useAuth";
 import { useBranch } from "../../../contexts/useBranch";
 import mentorAssignmentService from "../../../services/mentorAssignment.service";
@@ -62,6 +63,7 @@ import {
 import { useStyles } from "./Profile.styles";
 import type { IMentorAssignment } from "../../../interfaces/event.interface";
 import type { ShirtSize } from "../../../interfaces/user.interface";
+import type { RegistrationStatus } from "../../../features/parent-registration/api";
 
 const ROLE_LABELS: Record<number, string> = {
   [AUTH_ROLES.SUPER_ADMIN.id]: "מנהל על",
@@ -133,6 +135,19 @@ export const ProfilePage: React.FC = () => {
   const isTrainee = user?.roles?.some(
     (role) => role.roleId === AUTH_ROLES.TRAINEE.id,
   );
+  const registrationEnabled =
+    import.meta.env.VITE_PARENT_REGISTRATION_ENABLED === "true";
+  const { data: registrationStatus } = useQuery({
+    queryKey: ["registration", "profile-status", user?.userId],
+    queryFn: async () =>
+      (
+        await createServerAxiosInstance(
+          "/parent-registration",
+        ).get<RegistrationStatus>("/me/status")
+      ).data,
+    enabled: !!isTrainee && registrationEnabled,
+    retry: false,
+  });
 
   const {
     data: currentProfile,
@@ -440,16 +455,18 @@ export const ProfilePage: React.FC = () => {
         </Box>
       )}
 
-      {isTrainee && import.meta.env.VITE_PARENT_REGISTRATION_ENABLED === "true" && (
-        <Button
-          fullWidth
-          variant="outlined"
-          sx={{ my: 3 }}
-          onClick={() => navigate("/parent-registration")}
-        >
-          רישום חניכים לפעילויות
-        </Button>
-      )}
+      {isTrainee &&
+        registrationEnabled &&
+        registrationStatus?.registrationRequired && (
+          <Button
+            fullWidth
+            variant="outlined"
+            sx={{ my: 3 }}
+            onClick={() => navigate("/parent-registration")}
+          >
+            רישום חניכים לפעילויות
+          </Button>
+        )}
       {isTrainee && <TraineeMedicationsSection mode="self" />}
       {isTrainee && <TraineeDocumentsSection mode="self" />}
       <DiscountRequest />
