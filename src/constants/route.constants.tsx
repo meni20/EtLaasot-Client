@@ -12,6 +12,11 @@ const SuperAdminDashboardPage = lazy(() =>
     (module) => ({ default: module.SuperAdminDashboardPage }),
   ),
 );
+const ManagersPage = lazy(() =>
+  import("../pages/DesktopPages/ManagersPage/ManagersPage").then((module) => ({
+    default: module.ManagersPage,
+  })),
+);
 const VolunteerPage = lazy(() =>
   import("../pages/DesktopPages/VolunteersPage/VolunteerPage").then(
     (module) => ({ default: module.VolunteerPage }),
@@ -127,6 +132,11 @@ export const DESKTOP_ROUTES: AppRoute[] = [
   {
     path: "/super-admin-dashboard",
     element: <SuperAdminDashboardPage />,
+    allowedRoles: [AUTH_ROLES.SUPER_ADMIN.id],
+  },
+  {
+    path: "/managers",
+    element: <ManagersPage />,
     allowedRoles: [AUTH_ROLES.SUPER_ADMIN.id],
   },
   { path: "/home", element: <Navigate to="/dashboard" replace /> },

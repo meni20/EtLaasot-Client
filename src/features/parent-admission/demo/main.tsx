@@ -17,6 +17,7 @@ import { TwoStepLogin } from "../TwoStepLogin";
 import { ApplicantPage } from "../ApplicantPage";
 import ApplicantAdminPage from "../ApplicantAdminPage";
 import LiveRegistrationPage from "../../parent-registration/LiveRegistrationPage";
+import { ManagersPage } from "../../../pages/DesktopPages/ManagersPage/ManagersPage";
 import { RegistrationBoundary } from "../RegistrationBoundary";
 import { PasswordChangePage } from "../../../pages/Mobile/PasswordChangePage/PasswordChange";
 import { PwaInstallContext } from "../../../contexts/PwaInstallContext";
@@ -27,8 +28,9 @@ const marker = "phase4-fictional-branch";
 function Harness() {
   const screen = new URLSearchParams(location.search).get("screen") ?? "login";
   const [passwordRequired, setPasswordRequired] = useState(false);
+  const superAdmin = screen === "managers";
   const admin = screen === "admin" || screen === "registration-management",
-    roleId = admin ? 10000 : screen === "volunteer-renewal" ? 1 : 2;
+    roleId = superAdmin ? 10001 : admin ? 10000 : screen === "volunteer-renewal" ? 1 : 2;
   const user = {
     userId: "fictional-user",
     name: "Fictional QA",
@@ -49,7 +51,7 @@ function Harness() {
     isAuthenticated: false,
     mustChangePassword: passwordRequired,
     loading: false,
-    isSuperAdmin: false,
+    isSuperAdmin: superAdmin,
     login: async () => setPasswordRequired(true),
     changePassword: async () => setPasswordRequired(false),
     logout: () => {},
@@ -88,7 +90,7 @@ function Harness() {
                   activeBranch: marker,
                   availableBranches: [{ id: marker, name: "סניף בדיקה מקומי" }],
                   switchBranch: () => {},
-                  isSuperAdmin: false,
+                  isSuperAdmin: superAdmin,
                 }}
               >
                 <MemoryRouter
@@ -105,7 +107,9 @@ function Harness() {
                   <Alert severity="warning">
                     Phase 4 QA · נתונים בדויים בלבד · ללא מערכת חיה
                   </Alert>
-                  {screen === "recovery-admin-global" ? (
+                  {screen === "managers" ? (
+                    <ManagersPage />
+                  ) : screen === "recovery-admin-global" ? (
                     <RecoveryAuthorization />
                   ) : screen === "recovery-admin" ? (
                     <RecoveryAuthorization

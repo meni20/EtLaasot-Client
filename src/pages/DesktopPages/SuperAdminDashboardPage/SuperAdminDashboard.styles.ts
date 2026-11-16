@@ -11,6 +11,10 @@ export const useSuperAdminDashboardStyles = makeStyles({
   header: {
     maxWidth: 1480,
     margin: "0 auto 18px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
   },
   title: {
     margin: "0 !important",
@@ -218,6 +222,10 @@ export const useSuperAdminDashboardStyles = makeStyles({
     },
     title: {
       fontSize: "1.35rem !important",
+    },
+    header: {
+      alignItems: "stretch",
+      flexDirection: "column",
     },
     summaryGrid: { gap: 10 },
     summaryCard: {
