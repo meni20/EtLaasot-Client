@@ -22,6 +22,7 @@ import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined";
 import VolunteerActivismOutlinedIcon from "@mui/icons-material/VolunteerActivismOutlined";
 import InstallMobileRoundedIcon from "@mui/icons-material/InstallMobileRounded";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
+import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
@@ -127,6 +128,14 @@ export const SuperAdminDashboardPage: React.FC = () => {
         <Typography component="h1" className={classes.title}>
           סקירה ארגונית
         </Typography>
+        <Button
+          variant="outlined"
+          startIcon={<AdminPanelSettingsOutlinedIcon />}
+          onClick={() => navigate("/managers")}
+          sx={{ minHeight: 44, mt: { xs: 1.5, sm: 0 } }}
+        >
+          מנהלים
+        </Button>
       </Box>
 
       <Box className={classes.summaryGrid}>

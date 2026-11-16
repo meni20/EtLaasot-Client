@@ -25,6 +25,12 @@ export interface IArchiveUserResponse {
 }
 
 export type UserListStatus = "active" | "archived" | "all";
+export interface IBranchManager {
+  id: string;
+  name: string;
+  branchId: string;
+  branchName: string;
+}
 
 export class UserService {
   private api: AxiosInstance;
@@ -85,6 +91,15 @@ export class UserService {
       { branchId },
     );
     return res.data;
+  }
+
+  async getBranchManagers(): Promise<IBranchManager[]> {
+    const res = await this.api.get<IBranchManager[]>("/branch-managers");
+    return res.data;
+  }
+
+  async removeBranchAdminRole(userId: string): Promise<void> {
+    await this.api.patch(`/${userId}/remove-branch-admin`);
   }
 
   async archiveUser(userId: string, reason?: string | null) {
