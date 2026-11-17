@@ -517,7 +517,7 @@ export function SigningStage(
     onFile: (file?: File) => void;
     readingFile: boolean;
     fileReadError: string;
-    medicalUploadFailed: boolean;
+    medicalUploadError: string;
     onRetryMedical: () => void;
     signatures: { parent1?: CompletedSignature; parent2?: CompletedSignature };
     onSignature: (
@@ -574,7 +574,7 @@ export function SigningStage(
       {props.fileReadError && (
         <Alert severity="error">{props.fileReadError}</Alert>
       )}
-      {props.medicalUploadFailed && (
+      {props.medicalUploadError && (
         <Alert
           severity="error"
           action={
@@ -583,7 +583,7 @@ export function SigningStage(
             </Button>
           }
         >
-          לא הצלחנו להעלות את הסיכום הרפואי. הטיוטה נשמרה.
+          {props.medicalUploadError}
         </Alert>
       )}
       {props.file && (
