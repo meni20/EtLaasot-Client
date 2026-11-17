@@ -10,6 +10,7 @@ import { createServerAxiosInstance } from "../../config/axiosInstance";
 import type { RegistrationData } from "../parent-registration/contracts";
 import {
   RegistrationError,
+  safeRegistrationError,
   type DraftResponse,
   type FormStatus,
   type FormSummary,
@@ -162,7 +163,7 @@ export function createApplicantClient<T extends RegistrationType = "TRAINEE">(
           if (typeof window !== "undefined")
             window.dispatchEvent(new Event("applicant-session-expired"));
         }
-        throw new RegistrationError(error.response?.status ?? 0);
+        throw safeRegistrationError(error);
       }
       throw new RegistrationError(0);
     }

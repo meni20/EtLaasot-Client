@@ -17,6 +17,44 @@ import {
 import { demoDeclarations } from "../src/features/parent-registration/demo/legal.fixture.ts";
 import type { AxiosInstance } from "axios";
 import { registrationApiUrl } from "../src/features/parent-registration/environment.ts";
+import {
+  medicalUploadErrorMessage,
+  reportMedicalUploadFailure,
+} from "../src/features/parent-registration/uploadDiagnostics.ts";
+
+test("invalid PDFs receive a clear safe Hebrew upload error", () => {
+  const error = new RegistrationError(400, undefined, "INVALID_PDF");
+  assert.equal(
+    medicalUploadErrorMessage(error),
+    "קובץ ה-PDF פגום או אינו נתמך. יש לבחור קובץ PDF תקין.",
+  );
+});
+
+test("upload diagnostics contain only normalized non-personal fields", () => {
+  const entries: unknown[][] = [];
+  const originalWarn = console.warn;
+  console.warn = (...values: unknown[]) => entries.push(values);
+  try {
+    reportMedicalUploadFailure(
+      "upload",
+      new RegistrationError(400, undefined, "INVALID_PDF"),
+    );
+  } finally {
+    console.warn = originalWarn;
+  }
+  assert.equal(entries[0]?.[0], "medical-summary-upload-failed");
+  assert.deepEqual(entries[0]?.[1], {
+    phase: "upload",
+    status: 400,
+    code: "INVALID_PDF",
+    online: undefined,
+    pwaControlled: false,
+  });
+  assert.doesNotMatch(
+    JSON.stringify(entries),
+    /file|name|content|token|national/i,
+  );
+});
 
 test("registration requires an explicit matching local or opted-in Railway DEV API", () => {
   const dev = "https://etlaasot-server-dev-dev.up.railway.app";

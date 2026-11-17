@@ -38,6 +38,10 @@ import {
 } from "./model";
 import type { CompletedSignature } from "./SignaturePad";
 import {
+  medicalUploadErrorMessage,
+  reportMedicalUploadFailure,
+} from "./uploadDiagnostics";
+import {
   ContactsStage,
   DeclarationsStage,
   IdentityStage,
@@ -136,7 +140,8 @@ function MobileForm({
   const [file, setFile] = useState<File>();
   const [readingFile, setReadingFile] = useState(false);
   const [fileReadError, setFileReadError] = useState("");
-  const [medicalUploadFailed, setMedicalUploadFailed] = useState(false);
+  const [medicalUploadError, setMedicalUploadError] = useState("");
+  const medicalUploadFailed = Boolean(medicalUploadError);
   const uploadedMedicalId = useRef<string | undefined>(undefined);
   const [signatures, setSignatures] = useState<{
     parent1?: CompletedSignature;
@@ -213,10 +218,11 @@ function MobileForm({
       }
       setFile(snapshot);
       uploadedMedicalId.current = undefined;
-      setMedicalUploadFailed(false);
+      setMedicalUploadError("");
       setSignatures({});
       draft.change("signatures", {});
-    } catch {
+    } catch (error) {
+      reportMedicalUploadFailure("read", error);
       setFileReadError("לא ניתן לקרוא את הסיכום הרפואי. בחרו את הקובץ מחדש.");
     } finally {
       setReadingFile(false);
@@ -251,12 +257,13 @@ function MobileForm({
         saved = await api.save({ data, revision, currentStep: 5 });
       }
       draft.accept(saved);
-      setMedicalUploadFailed(false);
+      setMedicalUploadError("");
       setFile(undefined);
       uploadedMedicalId.current = undefined;
       return saved;
-    } catch {
-      setMedicalUploadFailed(true);
+    } catch (error) {
+      reportMedicalUploadFailure("upload", error);
+      setMedicalUploadError(medicalUploadErrorMessage(error));
       return null;
     }
   };
@@ -267,8 +274,9 @@ function MobileForm({
     setSubmitting(true);
     try {
       if (await draft.flush()) await uploadMedicalSummary(file, await api.me());
-    } catch {
-      setMedicalUploadFailed(true);
+    } catch (error) {
+      reportMedicalUploadFailure("retry", error);
+      setMedicalUploadError(medicalUploadErrorMessage(error));
     } finally {
       inFlight.current = false;
       setSubmitting(false);
@@ -616,7 +624,7 @@ function MobileForm({
                   onFile={(value) => void chooseMedicalSummary(value)}
                   readingFile={readingFile}
                   fileReadError={fileReadError}
-                  medicalUploadFailed={medicalUploadFailed}
+                  medicalUploadError={medicalUploadError}
                   onRetryMedical={() => void retryMedicalSummary()}
                   signatures={signatures}
                   onSignature={(parent, value) =>
@@ -651,7 +659,11 @@ function MobileForm({
                     aria-busy={sendingForm}
                     startIcon={
                       sendingForm ? (
-                        <CircularProgress size={16} color="inherit" aria-hidden="true" />
+                        <CircularProgress
+                          size={16}
+                          color="inherit"
+                          aria-hidden="true"
+                        />
                       ) : undefined
                     }
                     disabled={

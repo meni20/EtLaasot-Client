@@ -2,11 +2,7 @@ import type { AxiosInstance } from "axios";
 import type { RegistrationData } from "./contracts";
 
 export type FormStatus =
-  | "DRAFT"
-  | "PENDING_REVIEW"
-  | "CHANGES_REQUESTED"
-  | "REJECTED"
-  | "APPROVED";
+  "DRAFT" | "PENDING_REVIEW" | "CHANGES_REQUESTED" | "REJECTED" | "APPROVED";
 export type DocumentStatus = "PENDING" | "READY" | "FAILED";
 export interface FormSummary {
   registrationType?: "TRAINEE" | "VOLUNTEER";
@@ -25,7 +21,8 @@ export interface FormSummary {
 export interface SafeDocument {
   id: string;
   versionId: string | null;
-  kind: "REGISTRATION_PDF" | "PHYSICIAN_SUMMARY" | "SIGNATURE" | "POLICE_CLEARANCE";
+  kind:
+    "REGISTRATION_PDF" | "PHYSICIAN_SUMMARY" | "SIGNATURE" | "POLICE_CLEARANCE";
   mimeType: string;
   fileSize: number;
   checksum: string;
@@ -156,7 +153,10 @@ export interface RegistrationApi {
   openPeriod(branchId: string, activityYearId: string): Promise<unknown>;
   closePeriod(branchId: string, activityYearId: string): Promise<unknown>;
   reject(id: string, reason: string): Promise<unknown>;
-  periodStatus(branchId: string, activityYearId: string): Promise<{ status: "OPEN" | "CLOSED" }>;
+  periodStatus(
+    branchId: string,
+    activityYearId: string,
+  ): Promise<{ status: "OPEN" | "CLOSED" }>;
   requestChanges(id: string, reason: string): Promise<FormSummary>;
   approve(id: string, expectedVersionId: string): Promise<FormSummary>;
   renew(
@@ -173,30 +173,38 @@ export interface RegistrationApi {
 export class RegistrationError extends Error {
   readonly status: number;
   readonly field?: string;
-  constructor(status: number, field?: string) {
+  readonly code?: string;
+  constructor(status: number, field?: string, code?: string) {
     super(
-      status === 409
-        ? "קיימת גרסה חדשה יותר. יש לטעון אותה לפני המשך עריכה."
-        : status === 401
-          ? "החיבור פג. יש להתחבר מחדש."
-          : status === 403
-            ? "אין הרשאה לפעולה בסניף זה."
-            : status === 400 || status === 422
-              ? "יש לבדוק את פרטי הטופס והשדות המסומנים."
-              : "לא ניתן להשלים את הפעולה. נסו שוב.",
+      code === "INVALID_PDF"
+        ? "קובץ ה-PDF פגום או אינו נתמך. יש לבחור קובץ PDF תקין."
+        : status === 409
+          ? "קיימת גרסה חדשה יותר. יש לטעון אותה לפני המשך עריכה."
+          : status === 401
+            ? "החיבור פג. יש להתחבר מחדש."
+            : status === 403
+              ? "אין הרשאה לפעולה בסניף זה."
+              : status === 400 || status === 422
+                ? "יש לבדוק את פרטי הטופס והשדות המסומנים."
+                : "לא ניתן להשלים את הפעולה. נסו שוב.",
     );
     this.status = status;
     this.field = field;
+    this.code = code;
   }
 }
 export function safeRegistrationError(error: unknown): RegistrationError {
   const e = error as {
-    response?: { status?: number; data?: { field?: string } };
+    response?: { status?: number; data?: { field?: string; code?: string } };
   };
+  const code = e?.response?.data?.code;
   return new RegistrationError(
     e?.response?.status ?? 0,
     typeof e?.response?.data?.field === "string"
       ? e.response.data.field
+      : undefined,
+    typeof code === "string" && /^[A-Z0-9_]{1,64}$/.test(code)
+      ? code
       : undefined,
   );
 }
@@ -262,7 +270,10 @@ export function createRegistrationApi(http: AxiosInstance): RegistrationApi {
     closePeriod: (branchId, activityYearId) =>
       call("post", `${base}/admin/periods/close`, { branchId, activityYearId }),
     periodStatus: (branchId, activityYearId) =>
-      call("get", `${base}/admin/periods/status`, undefined, { branchId, activityYearId }),
+      call("get", `${base}/admin/periods/status`, undefined, {
+        branchId,
+        activityYearId,
+      }),
     requestChanges: (id, reason) =>
       call(
         "post",
@@ -270,7 +281,9 @@ export function createRegistrationApi(http: AxiosInstance): RegistrationApi {
         { reason },
       ),
     reject: (id, reason) =>
-      call("post", `${base}/admin/forms/${encodeURIComponent(id)}/reject`, { reason }),
+      call("post", `${base}/admin/forms/${encodeURIComponent(id)}/reject`, {
+        reason,
+      }),
     approve: (id, expectedVersionId) =>
       call("post", `${base}/admin/forms/${encodeURIComponent(id)}/approve`, {
         expectedVersionId,

@@ -28,9 +28,9 @@ export const PwaUpdatePrompt: React.FC<PwaUpdatePromptProps> = ({
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    // Let the initial document and authenticated API traffic finish before
-    // Workbox starts downloading the full application precache.
-    immediate: false,
+    // Register immediately so installed clients discover a repaired upload
+    // bundle promptly. Activation remains explicit and reload-safe.
+    immediate: true,
     // Includes a worker activated by another tab. Never let the library reload
     // directly: work may have become dirty after the update button was clicked.
     onNeedReload: () => setReloadPending(true),
@@ -56,14 +56,27 @@ export const PwaUpdatePrompt: React.FC<PwaUpdatePromptProps> = ({
   };
 
   useEffect(() => {
-    const updateInterval = window.setInterval(() => {
+    const checkForUpdate = () => {
       const registration = registrationRef.current;
       if (!registration || registration.installing || !navigator.onLine) return;
 
       void registration.update().catch(() => setUpdateError(true));
-    }, UPDATE_INTERVAL_MS);
+    };
+    const updateInterval = window.setInterval(
+      checkForUpdate,
+      UPDATE_INTERVAL_MS,
+    );
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") checkForUpdate();
+    };
+    window.addEventListener("online", checkForUpdate);
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
-    return () => window.clearInterval(updateInterval);
+    return () => {
+      window.clearInterval(updateInterval);
+      window.removeEventListener("online", checkForUpdate);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
   }, []);
 
   const closePrompt = () => {
