@@ -6,6 +6,7 @@ export interface BranchSelectionProps {
   onChange: (id: string) => void;
   disabled?: boolean;
   locked?: boolean;
+  error?: string;
 }
 export function BranchSelection({
   branches,
@@ -13,20 +14,25 @@ export function BranchSelection({
   onChange,
   disabled,
   locked,
+  error,
 }: BranchSelectionProps) {
   return (
     <TextField
+      data-registration-field="branchId"
+      name="branchId"
       select
       fullWidth
       required
       label="סניף"
       value={value ?? ""}
       disabled={disabled || locked}
+      error={!!error}
       onChange={(e) => onChange(e.target.value)}
       helperText={
-        locked
+        error ||
+        (locked
           ? "שינוי סניף לאחר חתימה או הגשה נעשה מול מנהל הסניף."
-          : "בחרו את הסניף שאליו נרשמים לפני החתימה."
+          : "בחרו את הסניף שאליו נרשמים לפני החתימה.")
       }
     >
       <MenuItem value="" disabled>

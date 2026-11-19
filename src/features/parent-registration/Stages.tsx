@@ -152,6 +152,19 @@ export function ContactsStage(props: FieldProps) {
           <Typography component="h3" variant="h6">
             {index === 0 ? "פרטי האב" : "פרטי האם"}
             <FormControlLabel
+              data-registration-field={`${parent}.notApplicable`}
+              sx={
+                props.issues.some(
+                  (issue) => issue.path === `${parent}.notApplicable`,
+                )
+                  ? {
+                      outline: "2px solid",
+                      outlineColor: "error.main",
+                      outlineOffset: 3,
+                      borderRadius: 1,
+                    }
+                  : undefined
+              }
               control={
                 <Checkbox
                   disabled={props.disabled}
@@ -465,7 +478,20 @@ export function DeclarationsStage(
 ) {
   const accepted = props.data.declarationAcceptances ?? [];
   return (
-    <Stack gap={3}>
+    <Stack
+      gap={3}
+      data-registration-field="declarationAcceptances"
+      sx={
+        props.issues.some((issue) => issue.path === "declarationAcceptances")
+          ? {
+              outline: "2px solid",
+              outlineColor: "error.main",
+              outlineOffset: 6,
+              borderRadius: 2,
+            }
+          : undefined
+      }
+    >
       <Typography color="text.secondary">
         קראו ואשרו כל הצהרה בנפרד. שינוי באישור מבטל חתימות קודמות.
       </Typography>
@@ -534,6 +560,9 @@ export function SigningStage(
   },
 ) {
   const [fileError, setFileError] = useState("");
+  const medicalIssue = props.issues.find(
+    (issue) => issue.path === "medical.physicianSummaryDocumentId",
+  );
   return (
     <Stack gap={5}>
       <Alert severity={props.live ? "info" : "warning"}>
@@ -541,81 +570,109 @@ export function SigningStage(
           ? "הקבצים והחתימות יישמרו באחסון פרטי בעת השליחה. שינוי פרטי הטופס מבטל חתימות קודמות."
           : "הדגמה בלבד: הקבצים והחתימות נשארים בזיכרון ולא מועלים."}
       </Alert>
-      <Typography variant="h6" component="h3">
-        להעלאת הסיכום הרפואי
-      </Typography>
-      <Typography>{parentLetter.medicalRequirement}</Typography>
-      <Button component="label" variant="outlined" disabled={props.disabled}>
-        בחירת סיכום רפואי
-        <input
-          hidden
-          type="file"
-          disabled={props.disabled}
-          accept="application/pdf,image/jpeg,image/png"
-          aria-label="בחירת סיכום רפואי"
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            if (
-              file &&
-              (!["application/pdf", "image/png", "image/jpeg"].includes(
-                file.type,
-              ) ||
-                file.size === 0 ||
-                file.size > 10 * 1024 * 1024)
-            ) {
-              setFileError("יש לבחור PDF, PNG או JPEG בגודל עד 10MB");
-              event.target.value = "";
-              return;
-            }
-            setFileError("");
-            event.target.value = "";
-            if (file) props.onFile(file);
-          }}
-        />
-      </Button>
-      {fileError && <Alert severity="error">{fileError}</Alert>}
-      {props.readingFile && (
-        <Typography role="status">קורא את הסיכום הרפואי…</Typography>
-      )}
-      {props.fileReadError && (
-        <Alert severity="error">{props.fileReadError}</Alert>
-      )}
-      {props.medicalUploadError && (
-        <Alert
-          severity="error"
-          action={
-            <Button disabled={props.disabled} onClick={props.onRetryMedical}>
-              ניסיון העלאה נוסף
-            </Button>
-          }
-        >
-          {props.medicalUploadError}
-        </Alert>
-      )}
-      {props.file && (
-        <Alert severity="info">
-          {props.live ? "נבחר:" : "נבחר בזיכרון בלבד:"} {props.file.name} (
-          {Math.ceil(props.file.size / 1024)} KB).{" "}
-          {props.live ? "יועלה בעת השליחה." : "הקובץ לא הועלה."}
-          <Button
+      <Stack
+        gap={2}
+        data-registration-field="medical.physicianSummaryDocumentId"
+        sx={
+          medicalIssue
+            ? {
+                outline: "2px solid",
+                outlineColor: "error.main",
+                outlineOffset: 6,
+                borderRadius: 2,
+              }
+            : undefined
+        }
+      >
+        <Typography variant="h6" component="h3">
+          להעלאת הסיכום הרפואי
+        </Typography>
+        <Typography>{parentLetter.medicalRequirement}</Typography>
+        <Button component="label" variant="outlined" disabled={props.disabled}>
+          בחירת סיכום רפואי
+          <input
+            hidden
+            type="file"
             disabled={props.disabled}
-            onClick={() => props.onFile(undefined)}
-          >
-            הסרה
-          </Button>
-        </Alert>
-      )}
-      {props.live &&
-        !props.file &&
-        props.data.medical?.physicianSummaryDocumentId && (
-          <Alert severity="success">הסיכום הרפואי נשמר.</Alert>
+            accept="application/pdf,image/jpeg,image/png"
+            aria-label="בחירת סיכום רפואי"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (
+                file &&
+                (!["application/pdf", "image/png", "image/jpeg"].includes(
+                  file.type,
+                ) ||
+                  file.size === 0 ||
+                  file.size > 10 * 1024 * 1024)
+              ) {
+                setFileError("יש לבחור PDF, PNG או JPEG בגודל עד 10MB");
+                event.target.value = "";
+                return;
+              }
+              setFileError("");
+              event.target.value = "";
+              if (file) props.onFile(file);
+            }}
+          />
+        </Button>
+        {medicalIssue && <Alert severity="error">{medicalIssue.message}</Alert>}
+        {fileError && <Alert severity="error">{fileError}</Alert>}
+        {props.readingFile && (
+          <Typography role="status">קורא את הסיכום הרפואי…</Typography>
         )}
+        {props.fileReadError && (
+          <Alert severity="error">{props.fileReadError}</Alert>
+        )}
+        {props.medicalUploadError && (
+          <Alert
+            severity="error"
+            action={
+              <Button disabled={props.disabled} onClick={props.onRetryMedical}>
+                ניסיון העלאה נוסף
+              </Button>
+            }
+          >
+            {props.medicalUploadError}
+          </Alert>
+        )}
+        {props.file && (
+          <Alert severity="info">
+            {props.live ? "נבחר:" : "נבחר בזיכרון בלבד:"} {props.file.name} (
+            {Math.ceil(props.file.size / 1024)} KB).{" "}
+            {props.live ? "יועלה בעת השליחה." : "הקובץ לא הועלה."}
+            <Button
+              disabled={props.disabled}
+              onClick={() => props.onFile(undefined)}
+            >
+              הסרה
+            </Button>
+          </Alert>
+        )}
+        {props.live &&
+          !props.file &&
+          props.data.medical?.physicianSummaryDocumentId && (
+            <Alert severity="success">הסיכום הרפואי נשמר.</Alert>
+          )}
+      </Stack>
       {(["parent1", "parent2"] as const).map((parent, index) => (
         <Stack
           gap={4}
           key={parent}
+          data-registration-field={`signatures.${parent}`}
           sx={{
-            border: "1px solid var(--color-primary-border, #D9BFD2)",
+            border: "1px solid",
+            borderColor: props.issues.some(
+              (issue) => issue.path === `signatures.${parent}`,
+            )
+              ? "error.main"
+              : "var(--color-primary-border, #D9BFD2)",
+            outline: props.issues.some(
+              (issue) => issue.path === `signatures.${parent}`,
+            )
+              ? "1px solid"
+              : undefined,
+            outlineColor: "error.main",
             p: 4,
             borderRadius: 3,
           }}

@@ -41,6 +41,7 @@ import {
   type VolunteerIssue,
 } from "./contracts";
 import { volunteerSetField } from "./model";
+import { focusRegistrationIssue } from "../parent-registration/validationFocus";
 
 const stages = [
   "פרטים אישיים",
@@ -136,6 +137,29 @@ export function VolunteerRegistration({
     setIssues([]);
     setMessage("");
   };
+  const revealIssues = (found: VolunteerIssue[], messageText: string) => {
+    setIssues(found);
+    if (!found.length) return false;
+    draft.navigate(found[0].stage);
+    setMessage(messageText);
+    focusRegistrationIssue(found[0].path);
+    return true;
+  };
+  const continueToNextStep = () => {
+    const found: VolunteerIssue[] = [
+      ...(draft.step === 1 && branchOptions && !draft.branchId
+        ? [{ path: "branchId", stage: 1, message: "יש לבחור סניף" }]
+        : []),
+      ...volunteerIssues(data, version).filter(
+        (issue) => issue.stage === draft.step,
+      ),
+    ];
+    if (revealIssues(found, "יש לתקן את השדה המסומן לפני המעבר לשלב הבא."))
+      return;
+    setIssues([]);
+    setMessage("");
+    draft.navigate(draft.step + 1);
+  };
   const run = async (work: () => Promise<void>, submission = false) => {
     if (working.current) return;
     working.current = true;
@@ -145,6 +169,23 @@ export function VolunteerRegistration({
     try {
       await work();
     } catch (error) {
+      if (error instanceof RegistrationError && error.field) {
+        const path = error.field.replace(/^data\./, "");
+        const known = volunteerIssues(data, version).find(
+          (issue) => issue.path === path,
+        );
+        revealIssues(
+          [
+            {
+              path,
+              stage: known?.stage ?? draft.step,
+              message: error.message,
+            },
+          ],
+          error.message,
+        );
+        return;
+      }
       setMessage(
         error instanceof Error && /[\u0590-\u05ff]/.test(error.message)
           ? error.message
@@ -209,18 +250,19 @@ export function VolunteerRegistration({
   const submit = () =>
     run(async () => {
       if (branchOptions && !draft.branchId) {
-        draft.navigate(1);
-        setMessage("יש לבחור סניף לפני השליחה.");
+        revealIssues(
+          [{ path: "branchId", stage: 1, message: "יש לבחור סניף" }],
+          "יש לבחור סניף לפני השליחה.",
+        );
         return;
       }
       if (!(await draft.flush())) return;
       const current = draft.current();
       const found = volunteerIssues(current.data, version);
-      setIssues(found);
-      if (found.length) {
-        draft.navigate(found[0].stage);
+      if (
+        revealIssues(found, `יש לתקן ${found.length} שדות מסומנים לפני השליחה.`)
+      )
         return;
-      }
       if (
         !idempotency.current ||
         idempotency.current.revision !== current.revision
@@ -260,16 +302,35 @@ export function VolunteerRegistration({
     />
   );
   const ack = (path: string, label: string, checked: boolean) => (
-    <FormControlLabel
-      control={
-        <Checkbox
-          checked={checked}
-          disabled={disabled}
-          onChange={(_, value) => change(path, value)}
-        />
+    <Box
+      data-registration-field={path}
+      sx={
+        issues.some((issue) => issue.path === path)
+          ? {
+              outline: "2px solid",
+              outlineColor: "error.main",
+              outlineOffset: 3,
+              borderRadius: 1,
+            }
+          : undefined
       }
-      label={label}
-    />
+    >
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={checked}
+            disabled={disabled}
+            onChange={(_, value) => change(path, value)}
+          />
+        }
+        label={label}
+      />
+      {issues.find((issue) => issue.path === path) && (
+        <Alert severity="error" role="alert">
+          {issues.find((issue) => issue.path === path)!.message}
+        </Alert>
+      )}
+    </Box>
   );
   const paragraphs = (lines: readonly string[]) =>
     lines.map((line, index) => (
@@ -278,7 +339,21 @@ export function VolunteerRegistration({
       </Typography>
     ));
   const signature = (purpose: VolunteerPurpose) => (
-    <Stack gap={2} data-testid={`signature-${purpose}`}>
+    <Stack
+      gap={2}
+      data-testid={`signature-${purpose}`}
+      data-registration-field={`signatures.${purpose}`}
+      sx={
+        issues.some((issue) => issue.path === `signatures.${purpose}`)
+          ? {
+              outline: "2px solid",
+              outlineColor: "error.main",
+              outlineOffset: 4,
+              borderRadius: 2,
+            }
+          : undefined
+      }
+    >
       {data.signatures?.[purpose] ? (
         <>
           <Chip label="חתימה שמורה" />
@@ -378,7 +453,11 @@ export function VolunteerRegistration({
           העריכה נעצרה כדי למנוע דריסת נתונים.
         </Alert>
       )}
-      {message && <Alert severity="error">{message}</Alert>}
+      {message && (
+        <Alert severity="error" role="alert">
+          {message}
+        </Alert>
+      )}
       {initial.integration !== "READY" && (
         <Alert severity="warning">
           אפשר לשמור טיוטה. חתימה ושליחה אינן זמינות כרגע.
@@ -398,6 +477,7 @@ export function VolunteerRegistration({
                 initial.application.status !== "DRAFT" ||
                 !!Object.keys(draft.data.signatures ?? {}).length
               }
+              error={issues.find((issue) => issue.path === "branchId")?.message}
               onChange={(id) => {
                 draft.changeBranch(id);
                 setInks({});
@@ -609,7 +689,22 @@ export function VolunteerRegistration({
           )}
           <Typography>{legal.clearance}</Typography>
           {needsClearance(data) ? (
-            <>
+            <Stack
+              gap={1}
+              data-registration-field="policeClearanceDocumentId"
+              sx={
+                issues.some(
+                  (issue) => issue.path === "policeClearanceDocumentId",
+                )
+                  ? {
+                      outline: "2px solid",
+                      outlineColor: "error.main",
+                      outlineOffset: 4,
+                      borderRadius: 2,
+                    }
+                  : undefined
+              }
+            >
               <Button
                 component="label"
                 disabled={disabled || initial.integration !== "READY"}
@@ -634,26 +729,34 @@ export function VolunteerRegistration({
                 PDF, PNG או JPEG עד 10 MB. בדיקת תוכן הקובץ אינה אימות אמיתות
                 האישור.
               </Typography>
-            </>
+              {issues.find(
+                (issue) => issue.path === "policeClearanceDocumentId",
+              ) && (
+                <Alert severity="error" role="alert">
+                  {
+                    issues.find(
+                      (issue) => issue.path === "policeClearanceDocumentId",
+                    )!.message
+                  }
+                </Alert>
+              )}
+            </Stack>
           ) : (
             <Typography>
               אישור משטרה אינו נדרש לפי הפרטים שהוזנו והנוסח המקורי.
             </Typography>
           )}
           {signature("CONFIDENTIALITY")}
-          {issues
-            .filter((i) => i.stage === 5)
-            .map((i) => (
-              <Alert key={i.path} severity="error">
-                {i.message}
-              </Alert>
-            ))}
           <Button
             variant="contained"
             aria-busy={sendingForm}
             startIcon={
               sendingForm ? (
-                <CircularProgress size={16} color="inherit" aria-hidden="true" />
+                <CircularProgress
+                  size={16}
+                  color="inherit"
+                  aria-hidden="true"
+                />
               ) : undefined
             }
             disabled={disabled || initial.integration !== "READY"}
@@ -672,7 +775,7 @@ export function VolunteerRegistration({
         </Button>
         <Button
           disabled={busy || draft.step === 5}
-          onClick={() => draft.navigate(draft.step + 1)}
+          onClick={continueToNextStep}
         >
           הבא
         </Button>
