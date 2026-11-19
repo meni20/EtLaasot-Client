@@ -374,9 +374,30 @@ test("male adult clearance uses private multipart upload and final validation ro
 }) => {
   const h = await harness(page);
   await h.start();
+  await page.getByRole("button", { name: "הבא", exact: true }).click();
+  const firstInvalid = page.getByLabel("שם פרטי", { exact: false });
+  await expect(firstInvalid).toHaveAttribute("aria-invalid", "true");
+  await expect(firstInvalid).toBeFocused();
+  await expect(
+    page.getByText("יש לתקן את השדה המסומן לפני המעבר לשלב הבא."),
+  ).toBeVisible();
+  await stage(page, 3);
+  await page.getByRole("button", { name: "הבא", exact: true }).click();
+  const agreement = page.getByRole("checkbox", {
+    name: "קראתי ואני מאשר/ת את הסכם ההתנדבות",
+  });
+  await expect(agreement).toBeFocused();
+  await agreement.check();
+  await page.getByRole("button", { name: "הבא", exact: true }).click();
+  await expect(
+    page.getByRole("img", {
+      name: "משטח חתימה חתימת המתנדב/ת על הסכם ההתנדבות",
+    }),
+  ).toBeFocused();
   await stage(page, 5);
   await page.getByRole("button", { name: "שליחת בקשת התנדבות" }).click();
-  await expect(page.getByLabel("שם פרטי", { exact: false })).toBeVisible();
+  await expect(firstInvalid).toBeVisible();
+  await expect(firstInvalid).toBeFocused();
   await h.personal();
   await select(page, "מין", "זכר");
   await stage(page, 5);

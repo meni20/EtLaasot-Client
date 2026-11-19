@@ -41,6 +41,7 @@ import {
   medicalUploadErrorMessage,
   reportMedicalUploadFailure,
 } from "./uploadDiagnostics";
+import { focusRegistrationIssue } from "./validationFocus";
 import {
   ContactsStage,
   DeclarationsStage,
@@ -203,6 +204,35 @@ function MobileForm({
     draft.navigate(step);
     window.scrollTo({ top: 0, behavior: "instant" });
   };
+  const localValidation = () =>
+    validateForm(draft.data, initial.declarationVersion, {
+      physician: !!file || !!draft.data.medical?.physicianSummaryDocumentId,
+      parent1: !!signatures.parent1 || !!draft.data.signatures?.parent1,
+      parent2: !!signatures.parent2 || !!draft.data.signatures?.parent2,
+    });
+  const revealIssues = (found: FieldIssue[], messageText: string) => {
+    setIssues(found);
+    if (!found.length) return false;
+    go(found[0].stage);
+    setMessage(messageText);
+    focusRegistrationIssue(found[0].path);
+    return true;
+  };
+  const continueToNextStep = () => {
+    const branchIssue: FieldIssue[] =
+      draft.step === 1 && branchOptions && !draft.branchId
+        ? [{ path: "branchId", stage: 1, message: "יש לבחור סניף" }]
+        : [];
+    const found = [
+      ...branchIssue,
+      ...localValidation().filter((issue) => issue.stage === draft.step),
+    ];
+    if (revealIssues(found, "יש לתקן את השדה המסומן לפני המעבר לשלב הבא."))
+      return;
+    setIssues([]);
+    setMessage("");
+    go(draft.step + 1);
+  };
   const chooseMedicalSummary = async (selected?: File) => {
     if (locked || inFlight.current) return;
     inFlight.current = true;
@@ -284,27 +314,24 @@ function MobileForm({
   };
   const submit = async () => {
     if (inFlight.current || medicalUploadFailed) return;
-    if (branchOptions && !draft.branchId) {
-      go(1);
-      setMessage("יש לבחור סניף לפני השליחה.");
-      return;
-    }
     inFlight.current = true;
     setSubmitting(true);
     setSendingForm(true);
     setMessage("");
     try {
-      const validation = validateForm(draft.data, initial.declarationVersion, {
-        physician: !!file || !!draft.data.medical?.physicianSummaryDocumentId,
-        parent1: !!signatures.parent1 || !!draft.data.signatures?.parent1,
-        parent2: !!signatures.parent2 || !!draft.data.signatures?.parent2,
-      });
-      setIssues(validation);
-      if (validation.length) {
-        go(validation[0].stage);
-        setMessage(`יש להשלים ${validation.length} שדות לפני השליחה.`);
+      const validation: FieldIssue[] = [
+        ...(branchOptions && !draft.branchId
+          ? [{ path: "branchId", stage: 1, message: "יש לבחור סניף" }]
+          : []),
+        ...localValidation(),
+      ];
+      if (
+        revealIssues(
+          validation,
+          `יש לתקן ${validation.length} שדות מסומנים לפני השליחה.`,
+        )
+      )
         return;
-      }
       if (!(await draft.flush())) return;
       if (api.mode === "demo") {
         if (!onDemoSubmit) throw new Error("Demo submission unavailable");
@@ -356,6 +383,7 @@ function MobileForm({
         const path = e.field.replace(/^data\./, "");
         setIssues([{ path, stage: stageFor(path), message: e.message }]);
         go(stageFor(path));
+        focusRegistrationIssue(path);
       }
       setMessage(
         e instanceof Error && /[\u0590-\u05ff]/.test(e.message)
@@ -561,7 +589,7 @@ function MobileForm({
               </Alert>
             )}
             {issues.length > 0 && (
-              <Alert severity="error">
+              <Alert severity="error" role="alert">
                 יש להשלים את השדות המסומנים. המעבר בין השלבים פתוח.
               </Alert>
             )}
@@ -592,6 +620,10 @@ function MobileForm({
                       locked={
                         formStatus !== "DRAFT" ||
                         !!Object.keys(draft.data.signatures ?? {}).length
+                      }
+                      error={
+                        issues.find((issue) => issue.path === "branchId")
+                          ?.message
                       }
                       onChange={(id) => {
                         draft.changeBranch(id);
@@ -648,7 +680,7 @@ function MobileForm({
                 <Button
                   variant="contained"
                   disabled={submitting || readingFile}
-                  onClick={() => go(draft.step + 1)}
+                  onClick={continueToNextStep}
                 >
                   השלב הבא
                 </Button>

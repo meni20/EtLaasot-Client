@@ -204,16 +204,22 @@ test("required validation jumps to stage one and preserves free navigation with 
   page,
 }) => {
   await begin(page);
+  await page.getByRole("button", { name: "השלב הבא" }).click();
+  const firstInvalid = page.locator('input[name="trainee.name"]');
+  await expect(page.getByText("שלב 1 מתוך 5", { exact: true })).toBeVisible();
+  await expect(firstInvalid).toHaveAttribute("aria-invalid", "true");
+  await expect(firstInvalid).toBeFocused();
+  await expect(
+    page.getByText("יש לתקן את השדה המסומן לפני המעבר לשלב הבא."),
+  ).toBeVisible();
   await stage(page, 5);
   await expect(
     page.getByText(/הדגמה בלבד: הקבצים והחתימות נשארים בזיכרון ולא מועלים/),
   ).toBeVisible();
   await page.getByRole("button", { name: "הדמיית שליחה (ללא העלאה)" }).click();
   await expect(page.getByText("שלב 1 מתוך 5", { exact: true })).toBeVisible();
-  await expect(page.locator('input[name="trainee.name"]')).toHaveAttribute(
-    "aria-invalid",
-    "true",
-  );
+  await expect(firstInvalid).toHaveAttribute("aria-invalid", "true");
+  await expect(firstInvalid).toBeFocused();
   await stage(page, 5);
   await physician(page);
   await expect(
