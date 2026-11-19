@@ -47,9 +47,54 @@ export function setField(
     const person = (copy[key] ?? {}) as Record<string, unknown>;
     copy[key] = { ...person, notApplicable: person.notApplicable === true };
   }
-  // Signatures attest the entire content, not just the currently visible stage.
-  delete copy.signatures;
-  return copy as RegistrationData;
+  return reconcileRegistrationSignatures(data, copy as RegistrationData);
+}
+export type RegistrationSigner = "parent1" | "parent2";
+export function signatureCoveredData(
+  data: RegistrationData,
+  signer: RegistrationSigner,
+) {
+  return {
+    declarationVersion: data.declarationVersion,
+    declarationAcceptances: data.declarationAcceptances,
+    trainee: {
+      name: data.trainee?.name,
+      familyName: data.trainee?.familyName,
+      nationalId: data.trainee?.nationalId,
+    },
+    signer: {
+      name: data[signer]?.name,
+      nationalId: data[signer]?.nationalId,
+      notApplicable: data[signer]?.notApplicable === true,
+    },
+  };
+}
+export function canonical(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  if (value && typeof value === "object")
+    return `{${Object.keys(value)
+      .sort()
+      .map(
+        (key) =>
+          `${JSON.stringify(key)}:${canonical((value as Record<string, unknown>)[key])}`,
+      )
+      .join(",")}}`;
+  return JSON.stringify(value) ?? "null";
+}
+export function reconcileRegistrationSignatures(
+  previous: RegistrationData,
+  next: RegistrationData,
+) {
+  const copy = structuredClone(next);
+  for (const signer of ["parent1", "parent2"] as const)
+    if (
+      canonical(signatureCoveredData(previous, signer)) !==
+      canonical(signatureCoveredData(copy, signer))
+    )
+      delete copy.signatures?.[signer];
+  if (copy.signatures && !Object.keys(copy.signatures).length)
+    delete copy.signatures;
+  return copy;
 }
 export function valueAt(data: unknown, path: string): unknown {
   return path
