@@ -33,6 +33,9 @@ import { useDraft } from "./useDraft";
 import {
   validateForm,
   stageFor,
+  canonical,
+  setField,
+  signatureCoveredData,
   type FieldIssue,
   type ProfilePrefill,
 } from "./model";
@@ -176,8 +179,19 @@ function MobileForm({
     readingFile;
   const change = (path: string, value: unknown) => {
     if (locked) return;
+    const before = draft.current().data;
+    const next = setField(before, path, value);
+    setSignatures((current) => {
+      const retained = { ...current };
+      for (const signer of ["parent1", "parent2"] as const)
+        if (
+          canonical(signatureCoveredData(before, signer)) !==
+          canonical(signatureCoveredData(next, signer))
+        )
+          delete retained[signer];
+      return retained;
+    });
     draft.change(path, value);
-    setSignatures({});
     setIssues([]);
     setMessage("");
   };
@@ -249,8 +263,6 @@ function MobileForm({
       setFile(snapshot);
       uploadedMedicalId.current = undefined;
       setMedicalUploadError("");
-      setSignatures({});
-      draft.change("signatures", {});
     } catch (error) {
       reportMedicalUploadFailure("read", error);
       setFileReadError("לא ניתן לקרוא את הסיכום הרפואי. בחרו את הקובץ מחדש.");

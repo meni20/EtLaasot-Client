@@ -81,8 +81,12 @@ export function useDraft<T = import("./contracts").RegistrationData>(
           });
           state.current.revision = result.form.revision;
           state.current.saved = snapshot.generation;
+          if (state.current.generation === snapshot.generation)
+            state.current.data = result.data;
           if (alive.current) {
             setRevision(result.form.revision);
+            if (state.current.generation === snapshot.generation)
+              setData(result.data);
             setError(null);
           }
         } catch (e) {

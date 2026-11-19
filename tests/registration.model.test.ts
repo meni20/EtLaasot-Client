@@ -95,7 +95,7 @@ test("profile autofill never splits a full name, invents an ID, or replaces save
   assert.equal(data.trainee?.name, undefined);
   assert.equal(data.trainee?.nationalId, undefined);
 });
-test("every content edit invalidates both signatures without mutating the original", () => {
+test("only edits to signed identity or declarations invalidate affected signatures", () => {
   const signature = {
     documentId: "fixture",
     signedAt: "fixture",
@@ -105,8 +105,13 @@ test("every content edit invalidates both signatures without mutating the origin
     trainee: { name: "שם" },
     signatures: { parent1: signature, parent2: signature },
   };
-  const edited = setField(original, "trainee.phone", "0500000000");
-  assert.equal(edited.signatures, undefined);
+  const unrelated = setField(original, "trainee.phone", "0500000000");
+  assert.deepEqual(unrelated.signatures, original.signatures);
+  const parentEdit = setField(original, "parent1.name", "שם האב");
+  assert.equal(parentEdit.signatures?.parent1, undefined);
+  assert.deepEqual(parentEdit.signatures?.parent2, signature);
+  const identityEdit = setField(original, "trainee.name", "שם חדש");
+  assert.equal(identityEdit.signatures, undefined);
   assert.ok(original.signatures.parent2);
 });
 test("final validation routes missing fields to all five stages and enforces parent-specific signing", () => {
