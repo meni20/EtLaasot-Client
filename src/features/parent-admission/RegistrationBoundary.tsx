@@ -10,47 +10,80 @@ const LiveRegistrationPage = lazy(
   () => import("../parent-registration/LiveRegistrationPage"),
 );
 
-const VolunteerRenewalPage = lazy(() => import("../volunteer-registration/VolunteerRenewalPage"));
+const VolunteerRenewalPage = lazy(
+  () => import("../volunteer-registration/VolunteerRenewalPage"),
+);
 
-export function RegistrationBoundary({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
-  const roles = user?.roles ?? [];
-  const volunteer = import.meta.env.VITE_VOLUNTEER_ANNUAL_RENEWAL_ENABLED === "true" &&
-    roles.some((role) => role.roleId === 1) && !roles.some((role) => [10000, 10001].includes(role.roleId));
-  return volunteer || onlyTraineeRoles(roles) ? (
-    <TraineeBoundary volunteer={volunteer}>{children}</TraineeBoundary>
-  ) : (
-    children
-  );
+export function registrationAccessRole(roles: Array<{ roleId: number }> = []) {
+  const volunteer =
+    import.meta.env.VITE_VOLUNTEER_ANNUAL_RENEWAL_ENABLED === "true" &&
+    roles.some((role) => role.roleId === 1) &&
+    !roles.some((role) => [10000, 10001].includes(role.roleId));
+  return {
+    checked: volunteer || onlyTraineeRoles(roles),
+    volunteer,
+  };
 }
-function TraineeBoundary({ children, volunteer }: { children: ReactNode; volunteer: boolean }) {
-  const { user, logout, sessionId } = useAuth();
-  const [epoch, setEpoch] = useState(0);
-  const [wasRestricted, setWasRestricted] = useState(false);
+
+export function useRegistrationAccessStatus(epoch = 0) {
+  const { user, sessionId } = useAuth();
+  const role = registrationAccessRole(user?.roles ?? []);
   const [http] = useState(() =>
     createServerAxiosInstance("/parent-registration"),
   );
   const enabled =
     import.meta.env.VITE_PARENT_REGISTRATION_BLOCKING_ENABLED === "true" ||
     import.meta.env.VITE_PARENT_REGISTRATION_ENABLED === "true";
+  const status = useQuery({
+    queryKey: [
+      "registration",
+      "access",
+      user?.userId,
+      sessionId,
+      epoch,
+      role.volunteer,
+    ],
+    queryFn: async () => {
+      const { data } = await http.get<{ accessBlocked: boolean }>(
+        role.volunteer ? "/me/volunteer/status" : "/me/status",
+      );
+      if (typeof data?.accessBlocked !== "boolean")
+        throw new Error("לא ניתן לאמת את מצב הרישום. נסו שוב.");
+      return data;
+    },
+    enabled: role.checked && (enabled || epoch > 0),
+    retry: false,
+    refetchInterval: 15000,
+    gcTime: 0,
+  });
+  return { ...role, enabled, status };
+}
+
+export function RegistrationBoundary({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const role = registrationAccessRole(user?.roles ?? []);
+  return role.checked ? (
+    <TraineeBoundary volunteer={role.volunteer}>{children}</TraineeBoundary>
+  ) : (
+    children
+  );
+}
+function TraineeBoundary({
+  children,
+  volunteer,
+}: {
+  children: ReactNode;
+  volunteer: boolean;
+}) {
+  const { logout } = useAuth();
+  const [epoch, setEpoch] = useState(0);
+  const [wasRestricted, setWasRestricted] = useState(false);
   useEffect(() => {
     const required = () => setEpoch((v) => v + 1);
     window.addEventListener("registration:required", required);
     return () => window.removeEventListener("registration:required", required);
   }, []);
-  const status = useQuery({
-    queryKey: ["registration", "access", user?.userId, sessionId, epoch, volunteer],
-    queryFn: async () => {
-      const { data } = await http.get<{ accessBlocked: boolean }>(volunteer ? "/me/volunteer/status" : "/me/status");
-      if (typeof data?.accessBlocked !== "boolean")
-        throw new Error("לא ניתן לאמת את מצב הרישום. נסו שוב.");
-      return data;
-    },
-    enabled: enabled || epoch > 0,
-    retry: false,
-    refetchInterval: 15000,
-    gcTime: 0,
-  });
+  const { enabled, status } = useRegistrationAccessStatus(epoch);
   useEffect(() => {
     if (status.isSuccess) setWasRestricted(status.data.accessBlocked);
   }, [status.isSuccess, status.data?.accessBlocked]);
@@ -85,7 +118,13 @@ function TraineeBoundary({ children, volunteer }: { children: ReactNode; volunte
             <Routes>
               <Route
                 path="/parent-registration"
-                element={volunteer ? <VolunteerRenewalPage /> : <LiveRegistrationPage />}
+                element={
+                  volunteer ? (
+                    <VolunteerRenewalPage />
+                  ) : (
+                    <LiveRegistrationPage />
+                  )
+                }
               />
               <Route
                 path="*"

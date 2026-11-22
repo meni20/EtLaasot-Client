@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useReloadGuard } from "../../hooks/useReloadGuard";
 import { RegistrationError } from "./api";
 import { prefill, setField, type ProfilePrefill } from "./model";
+import { nextAutosaveDelay } from "./autosave";
 
 interface DraftTransport<T> {
   save(input: {
@@ -57,6 +58,7 @@ export function useDraft<T = import("./contracts").RegistrationData>(
     blocked: false,
   });
   const pending = useRef<Promise<boolean> | null>(null);
+  const dirtySince = useRef<number | null>(null);
   const alive = useRef(true);
   useEffect(() => {
     alive.current = true;
@@ -102,6 +104,7 @@ export function useDraft<T = import("./contracts").RegistrationData>(
           return false;
         }
       }
+      dirtySince.current = null;
       if (alive.current) setSaveState("saved");
       return true;
     })();
@@ -114,9 +117,11 @@ export function useDraft<T = import("./contracts").RegistrationData>(
   }, [api, readOnly, branchSelection]);
   useEffect(() => {
     if (saveState !== "dirty") return;
+    const started = dirtySince.current ?? Date.now();
+    dirtySince.current = started;
     const timer = window.setTimeout(() => {
       void flush();
-    }, 650);
+    }, nextAutosaveDelay(started));
     return () => window.clearTimeout(timer);
   }, [data, step, saveState, flush]);
   useEffect(() => {
@@ -138,6 +143,8 @@ export function useDraft<T = import("./contracts").RegistrationData>(
           value,
         ) as T);
     state.current.data = next;
+    if (state.current.generation === state.current.saved)
+      dirtySince.current = Date.now();
     state.current.generation++;
     setData(next);
     setSignatureGeneration((v) => v + 1);
@@ -147,6 +154,8 @@ export function useDraft<T = import("./contracts").RegistrationData>(
     setStep(next);
     state.current.step = next;
     if (!state.current.blocked && !readOnly) {
+      if (state.current.generation === state.current.saved)
+        dirtySince.current = Date.now();
       state.current.generation++;
       setSaveState("dirty");
       void flush();
@@ -161,6 +170,8 @@ export function useDraft<T = import("./contracts").RegistrationData>(
       state.current.data = next;
       state.current.branchId = value || null;
       state.current.blocked = false;
+      if (state.current.generation === state.current.saved)
+        dirtySince.current = Date.now();
       state.current.generation++;
       setData(next);
       setBranchId(value || null);
@@ -188,6 +199,7 @@ export function useDraft<T = import("./contracts").RegistrationData>(
       state.current.revision = result.form.revision;
       state.current.saved = state.current.generation;
       state.current.blocked = false;
+      dirtySince.current = null;
       setData(result.data);
       setRevision(result.form.revision);
       setSaveState("saved");
