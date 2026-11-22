@@ -21,6 +21,39 @@ import {
   medicalUploadErrorMessage,
   reportMedicalUploadFailure,
 } from "../src/features/parent-registration/uploadDiagnostics.ts";
+import { nextAutosaveDelay } from "../src/features/parent-registration/autosave.ts";
+import { regularDataAccessReady } from "../src/features/parent-admission/accessGate.ts";
+
+test("autosave coalesces typing but never leaves a dirty draft indefinitely", () => {
+  assert.equal(nextAutosaveDelay(1_000, 1_000), 1_800);
+  assert.equal(nextAutosaveDelay(1_000, 4_500), 1_500);
+  assert.equal(nextAutosaveDelay(1_000, 6_000), 0);
+});
+
+test("regular API data waits for renewal access verification and stays blocked", () => {
+  assert.equal(
+    regularDataAccessReady({ checked: true, enabled: true, verified: false }),
+    false,
+  );
+  assert.equal(
+    regularDataAccessReady({
+      checked: true,
+      enabled: true,
+      verified: true,
+      accessBlocked: true,
+    }),
+    false,
+  );
+  assert.equal(
+    regularDataAccessReady({
+      checked: true,
+      enabled: true,
+      verified: true,
+      accessBlocked: false,
+    }),
+    true,
+  );
+});
 
 test("invalid PDFs receive a clear safe Hebrew upload error", () => {
   const error = new RegistrationError(400, undefined, "INVALID_PDF");
