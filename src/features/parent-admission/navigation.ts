@@ -15,3 +15,12 @@ export function accessView(
   if (pending || failed) return "VERIFY";
   return blocked ? "REGISTRATION" : "NORMAL";
 }
+
+export function normalRegistrationRedirect(
+  view: ReturnType<typeof accessView>,
+  pathname: string,
+) {
+  return view === "NORMAL" && pathname.startsWith("/parent-registration")
+    ? "/profile"
+    : null;
+}

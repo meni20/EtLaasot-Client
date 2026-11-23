@@ -1,11 +1,15 @@
 import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Alert, Box, Button, Stack } from "@mui/material";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
 import { createServerAxiosInstance } from "../../config/axiosInstance";
 import { PwaUpdatePrompt } from "../../components/PwaUpdatePrompt/PwaUpdatePrompt";
-import { accessView, onlyTraineeRoles } from "./navigation";
+import {
+  accessView,
+  normalRegistrationRedirect,
+  onlyTraineeRoles,
+} from "./navigation";
 const LiveRegistrationPage = lazy(
   () => import("../parent-registration/LiveRegistrationPage"),
 );
@@ -76,6 +80,7 @@ function TraineeBoundary({
   volunteer: boolean;
 }) {
   const { logout } = useAuth();
+  const location = useLocation();
   const [epoch, setEpoch] = useState(0);
   const [wasRestricted, setWasRestricted] = useState(false);
   useEffect(() => {
@@ -99,6 +104,8 @@ function TraineeBoundary({
   // normal application access from a stale result.
   const view =
     checkedView === "VERIFY" && wasRestricted ? "REGISTRATION" : checkedView;
+  const exit = normalRegistrationRedirect(view, location.pathname);
+  if (exit) return <Navigate to={exit} replace />;
   if (view === "NORMAL") return children;
   return (
     <Box
