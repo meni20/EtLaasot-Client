@@ -9,9 +9,13 @@ import {
   DialogTitle,
   IconButton,
   Stack,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import { useNavigate } from "react-router-dom";
 import { AUTH_ROLES } from "../../constants/auth.const";
 import { useAuth } from "../../contexts/useAuth";
 import { useBranch } from "../../contexts/useBranch";
@@ -42,7 +46,8 @@ export const PersonalDetailsDialog: React.FC<PersonalDetailsDialogProps> = ({
   onClose,
 }) => {
   const classes = useNavbarStyles();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { logout, user } = useAuth();
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState(false);
   const canEdit = user?.roles.some(
@@ -54,6 +59,10 @@ export const PersonalDetailsDialog: React.FC<PersonalDetailsDialogProps> = ({
     setEditing(false);
     setSaved(false);
     onClose();
+  };
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
   };
   const { activeBranch, availableBranches } = useBranch();
   const {
@@ -175,16 +184,29 @@ export const PersonalDetailsDialog: React.FC<PersonalDetailsDialogProps> = ({
               />
             </Box>
             {canEdit && currentProfile && (
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  setSaved(false);
-                  setEditing(true);
-                }}
-              >
-                עריכת פרטים
-              </Button>
+              <Tooltip title="עריכת פרטים">
+                <IconButton
+                  aria-label="עריכת פרטים"
+                  size="small"
+                  onClick={() => {
+                    setSaved(false);
+                    setEditing(true);
+                  }}
+                  sx={{ alignSelf: "flex-start" }}
+                >
+                  <EditOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
             )}
+            <Button
+              variant="text"
+              color="error"
+              startIcon={<LogoutRoundedIcon />}
+              onClick={handleLogout}
+              sx={{ alignSelf: "stretch", mt: 1 }}
+            >
+              התנתקות
+            </Button>
           </Stack>
         )}
       </DialogContent>
