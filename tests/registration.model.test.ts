@@ -23,6 +23,7 @@ import {
 } from "../src/features/parent-registration/uploadDiagnostics.ts";
 import { nextAutosaveDelay } from "../src/features/parent-registration/autosave.ts";
 import { regularDataAccessReady } from "../src/features/parent-admission/accessGate.ts";
+import { normalRegistrationRedirect } from "../src/features/parent-admission/navigation.ts";
 
 test("autosave coalesces typing but never leaves a dirty draft indefinitely", () => {
   assert.equal(nextAutosaveDelay(1_000, 1_000), 1_800);
@@ -53,6 +54,18 @@ test("regular API data waits for renewal access verification and stays blocked",
     }),
     true,
   );
+});
+
+test("approved users leave the renewal route while genuinely blocked users stay", () => {
+  assert.equal(
+    normalRegistrationRedirect("NORMAL", "/parent-registration"),
+    "/profile",
+  );
+  assert.equal(
+    normalRegistrationRedirect("REGISTRATION", "/parent-registration"),
+    null,
+  );
+  assert.equal(normalRegistrationRedirect("NORMAL", "/profile"), null);
 });
 
 test("invalid PDFs receive a clear safe Hebrew upload error", () => {

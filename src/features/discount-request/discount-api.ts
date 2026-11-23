@@ -21,27 +21,86 @@ export type Draft = {
 };
 export type AdminStatus =
   | { status: "disabled" | "draft" | "enabled" }
-  | { status: "submitted"; submittedAt: string; attachments: Record<string, string> };
+  | {
+      status: "submitted";
+      submittedAt: string;
+      attachments: Record<string, string>;
+    };
+
+export type DiscountRequestListItem = {
+  traineeId: string;
+  traineeName: string;
+  branchId: string;
+  branchName: string | null;
+  status: "enabled" | "draft" | "submitted";
+  submittedAt: string | null;
+  files: { key: string; name: string }[];
+};
+
+export type DiscountRequestPage = {
+  items: DiscountRequestListItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
 
 const api = createServerAxiosInstance("", { "X-Discount-Request": "1" });
 const self = "/user/me/discount-request";
-const admin = (id: string) => `/trainee/${encodeURIComponent(id)}/discount-request`;
+const admin = (id: string) =>
+  `/trainee/${encodeURIComponent(id)}/discount-request`;
 
 export const discountApi = {
-  status: (signal?: AbortSignal) => api.get<{ status: "available" | "submitted" }>(self + "/status", { signal }),
+  status: (signal?: AbortSignal) =>
+    api.get<{ status: "available" | "submitted" }>(self + "/status", {
+      signal,
+    }),
   draft: (signal: AbortSignal) => api.get<Draft>(self + "/draft", { signal }),
-  save: (revision: number, data: Answers) => api.put<{ revision: number }>(self + "/draft", { revision, data }),
+  save: (revision: number, data: Answers) =>
+    api.put<{ revision: number }>(self + "/draft", { revision, data }),
   upload: (revision: number, key: string, file: File) => {
     const form = new FormData();
     form.append("file", file);
-    return api.put<{ revision: number; name: string }>(self + "/attachments/" + key, form, { params: { revision } });
+    return api.put<{ revision: number; name: string }>(
+      self + "/attachments/" + key,
+      form,
+      { params: { revision } },
+    );
   },
   remove: (revision: number, key: string) =>
-    api.delete<{ revision: number }>(self + "/attachments/" + key, { params: { revision } }),
-  submit: (revision: number, data: Answers, declared: boolean, signature?: string) =>
-    api.post<{ status: "submitted" }>(self + "/submit", { revision, data, declared, signature }),
-  adminStatus: (id: string, signal?: AbortSignal) => api.get<AdminStatus>(admin(id), { signal }),
+    api.delete<{ revision: number }>(self + "/attachments/" + key, {
+      params: { revision },
+    }),
+  submit: (
+    revision: number,
+    data: Answers,
+    declared: boolean,
+    signature?: string,
+  ) =>
+    api.post<{ status: "submitted" }>(self + "/submit", {
+      revision,
+      data,
+      declared,
+      signature,
+    }),
+  adminStatus: (id: string, signal?: AbortSignal) =>
+    api.get<AdminStatus>(admin(id), { signal }),
   enable: (id: string) => api.put<AdminStatus>(admin(id) + "/enable"),
   file: (id: string, key: string) =>
-    api.get<Blob>(admin(id) + "/files/" + encodeURIComponent(key), { responseType: "blob" }),
+    api.get<Blob>(admin(id) + "/files/" + encodeURIComponent(key), {
+      responseType: "blob",
+    }),
+  list: (
+    params: {
+      branchId?: string;
+      search?: string;
+      status?: "enabled" | "draft" | "submitted";
+      page: number;
+      pageSize: number;
+    },
+    signal?: AbortSignal,
+  ) =>
+    api.get<DiscountRequestPage>("/admin/discount-requests", {
+      params,
+      signal,
+    }),
 };
